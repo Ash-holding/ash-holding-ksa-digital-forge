@@ -12,6 +12,37 @@ const loginSchema = z.object({
   password: z.string().min(6),
 });
 
+const registerSchema = z.object({
+  name: z.string().min(2),
+  email: z.string().email(),
+  password: z.string().min(8),
+  phone: z.string().optional(),
+  companyName: z.string().optional(),
+});
+
+authRouter.post("/register", async (req, res) => {
+  const parsed = registerSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "Invalid input", details: parsed.error.flatten() });
+
+  const exists = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+  if (exists) return res.status(409).json({ error: "Email already registered" });
+
+  const passwordHash = await bcrypt.hash(parsed.data.password, 10);
+  const user = await prisma.user.create({
+    data: {
+      email: parsed.data.email,
+      name: parsed.data.name,
+      phone: parsed.data.phone,
+      passwordHash,
+      role: "CLIENT",
+      client: { create: { companyName: parsed.data.companyName, country: "SA" } },
+    },
+  });
+
+  const token = signToken({ sub: user.id, role: user.role, email: user.email });
+  res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+});
+
 authRouter.post("/login", async (req, res) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) return res.status(400).json({ error: "Invalid input" });
@@ -45,7 +76,7 @@ authRouter.post("/logout", (_req, res) => {
 authRouter.get("/me", requireAuth, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user!.sub },
-    select: { id: true, email: true, name: true, role: true, avatarUrl: true },
+    select: { id: true, email: true, name: true, role: true, avatarUrl: true, phone: true },
   });
   res.json({ user });
 });

@@ -1,23 +1,26 @@
-# syntax=docker/dockerfile:1
-
-FROM node:20-alpine AS deps
+FROM node:20-alpine AS base
 WORKDIR /app
+RUN apk add --no-cache openssl
+
+# Dependencies
 COPY package.json ./
-RUN npm install --production=false
+RUN npm install --no-audit --no-fund
 
-FROM node:20-alpine AS build
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
-COPY . .
+# Source
+COPY tsconfig.json ./
+COPY prisma ./prisma
+COPY src ./src
+
 RUN npx prisma generate
 RUN npm run build
 
-FROM node:20-alpine AS runner
-WORKDIR /app
+# Runtime
 ENV NODE_ENV=production
-COPY --from=build /app/node_modules ./node_modules
-COPY --from=build /app/dist ./dist
-COPY --from=build /app/prisma ./prisma
-COPY --from=build /app/package.json ./package.json
+ENV PORT=4000
+ENV UPLOAD_DIR=/data/uploads
+
+RUN mkdir -p /data/uploads
+VOLUME ["/data/uploads"]
+
 EXPOSE 4000
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
+CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]
