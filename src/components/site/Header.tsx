@@ -1,59 +1,79 @@
 import { useEffect, useState } from "react";
 import {
-  Menu, X, ChevronDown, LogIn, Home, Info, Sparkles, Workflow, HelpCircle, Phone,
-  Code2, Smartphone, LayoutDashboard, Brain, Palette, GraduationCap, Wrench, Plug,
-  Server, Cpu, Database, Settings2, Mail, ShieldCheck,
-  Search, Target, FileText, Image as ImageIcon, Share2, BarChart3, User,
+  Menu, X, ChevronDown, LogIn, Home, Info, Sparkles, Workflow, HelpCircle, Phone, LifeBuoy,
+  Code2, Smartphone, LayoutDashboard, Brain, Palette, GraduationCap, Plug, Wrench,
+  Server, Cpu, Database, Settings2, Mail, ShieldCheck, HardDrive,
+  Search, Target, FileText, Image as ImageIcon, MousePointerClick, BarChart3, User,
 } from "lucide-react";
 
-type MegaItem = { icon: React.ComponentType<{ className?: string }>; title: string; desc: string; href: string };
+type IconTone = "blue" | "cyan" | "violet" | "emerald" | "amber" | "rose" | "indigo" | "teal";
+type MegaItem = {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  desc: string;
+  href: string;
+  tone: IconTone;
+};
 type NavItem = { label: string; href?: string; items?: MegaItem[] };
+
+const TONE: Record<IconTone, string> = {
+  blue: "bg-blue-50 text-blue-600",
+  cyan: "bg-cyan-50 text-cyan-600",
+  violet: "bg-violet-50 text-violet-600",
+  emerald: "bg-emerald-50 text-emerald-600",
+  amber: "bg-amber-50 text-amber-600",
+  rose: "bg-rose-50 text-rose-600",
+  indigo: "bg-indigo-50 text-indigo-600",
+  teal: "bg-teal-50 text-teal-600",
+};
 
 const NAV: NavItem[] = [
   { label: "الرئيسية", href: "#home" },
   {
     label: "الشركة",
     items: [
-      { icon: Info, title: "من نحن", desc: "قصة ASH HOLDING ورسالتنا الرقمية.", href: "#about" },
-      { icon: Sparkles, title: "لماذا ASH", desc: "ما الذي يميزنا كشريك تقني.", href: "#why" },
-      { icon: Workflow, title: "آلية العمل", desc: "منهجية واضحة من الفكرة للإطلاق.", href: "#process" },
-      { icon: HelpCircle, title: "الأسئلة الشائعة", desc: "إجابات لأكثر الاستفسارات تكراراً.", href: "#faq" },
-      { icon: Phone, title: "تواصل معنا", desc: "تحدث مع فريقنا مباشرة.", href: "#contact" },
+      { icon: Info, title: "من نحن", desc: "تعرف على ASH HOLDING ورؤيتنا في بناء الحلول الرقمية.", href: "#about", tone: "blue" },
+      { icon: Sparkles, title: "لماذا ASH", desc: "منهجية واضحة، تنفيذ احترافي، ودعم بعد الإطلاق.", href: "#why", tone: "violet" },
+      { icon: Workflow, title: "آلية العمل", desc: "خطوات منظمة من التحليل إلى التسليم.", href: "#process", tone: "cyan" },
+      { icon: HelpCircle, title: "الأسئلة الشائعة", desc: "إجابات واضحة حول الخدمات، العقود، والدعم.", href: "#faq", tone: "amber" },
+      { icon: Phone, title: "تواصل معنا", desc: "ابدأ مشروعك أو اطلب استشارة.", href: "#contact", tone: "emerald" },
+      { icon: LifeBuoy, title: "الدعم", desc: "الوصول إلى فريق الدعم ومتابعة الطلبات.", href: "#portal", tone: "rose" },
     ],
   },
   {
     label: "الخدمات",
     items: [
-      { icon: Code2, title: "تطوير المواقع والمنصات", desc: "مواقع ومنصات ويب مؤسسية عالية الأداء.", href: "#services" },
-      { icon: Smartphone, title: "تطبيقات الجوال", desc: "iOS و Android بتجربة استخدام مميزة.", href: "#services" },
-      { icon: LayoutDashboard, title: "الأنظمة ولوحات التحكم", desc: "أنظمة إدارية مخصصة تربط عملياتك.", href: "#services" },
-      { icon: Brain, title: "الذكاء الاصطناعي والأتمتة", desc: "حلول AI وأتمتة تسرّع أعمالك.", href: "#services" },
-      { icon: Palette, title: "التصميم والهوية", desc: "هوية بصرية وتجربة استخدام متكاملة.", href: "#services" },
-      { icon: GraduationCap, title: "خدمات الطلاب والأعمال", desc: "حلول متخصصة للطلاب ورواد الأعمال.", href: "#services" },
-      { icon: Wrench, title: "الدعم الفني والتشغيل", desc: "دعم مستمر وتشغيل موثوق ما بعد الإطلاق.", href: "#services" },
-      { icon: Plug, title: "التكاملات والربط البرمجي", desc: "ربط الأنظمة عبر APIs بأمان وكفاءة.", href: "#services" },
+      { icon: Code2, title: "تطوير المواقع والمنصات", desc: "مواقع تعريفية، بوابات أعمال، ومتاجر إلكترونية مخصصة.", href: "#services", tone: "blue" },
+      { icon: Smartphone, title: "تطبيقات الجوال", desc: "تطبيقات iOS و Android بتجربة استخدام متقدمة.", href: "#services", tone: "cyan" },
+      { icon: LayoutDashboard, title: "الأنظمة ولوحات التحكم", desc: "أنظمة إدارية، صلاحيات، تقارير، وفواتير.", href: "#services", tone: "indigo" },
+      { icon: Brain, title: "الذكاء الاصطناعي والأتمتة", desc: "حلول ذكية لتسريع التشغيل وتحسين الإنتاجية.", href: "#services", tone: "violet" },
+      { icon: Palette, title: "التصميم والهوية", desc: "UI/UX، هوية بصرية، وصفحات هبوط.", href: "#services", tone: "rose" },
+      { icon: GraduationCap, title: "خدمات الطلاب والأعمال", desc: "حلول تعليمية وخدمات رقمية مخصصة.", href: "#services", tone: "amber" },
+      { icon: Plug, title: "التكاملات البرمجية", desc: "ربط API، بوابات دفع، SMS، بريد، وأنظمة خارجية.", href: "#services", tone: "teal" },
+      { icon: Wrench, title: "الدعم والتشغيل", desc: "صيانة، تحديثات، مراقبة، وتحسين مستمر.", href: "#services", tone: "emerald" },
     ],
   },
   {
     label: "الاستضافة والسيرفرات",
     items: [
-      { icon: Server, title: "الاستضافة المشتركة", desc: "بيئة سريعة وآمنة للمواقع والمنصات.", href: "#hosting" },
-      { icon: Cpu, title: "VPS", desc: "خوادم افتراضية بأداء مخصص ومرن.", href: "#hosting" },
-      { icon: Database, title: "السيرفرات المخصصة", desc: "بنية مؤسسية للتطبيقات الحساسة.", href: "#hosting" },
-      { icon: Settings2, title: "إدارة السيرفرات", desc: "إدارة Nginx و Linux باحتراف.", href: "#hosting" },
-      { icon: Mail, title: "البريد و SMTP", desc: "حلول بريد باحترافية وإيصال عالٍ.", href: "#hosting" },
-      { icon: ShieldCheck, title: "حماية ومراقبة السيرفرات", desc: "مراقبة ٢٤/٧ وحماية متعددة الطبقات.", href: "#hosting" },
+      { icon: Server, title: "الاستضافة المشتركة", desc: "استضافة اقتصادية للمواقع الصغيرة والمتوسطة.", href: "#hosting", tone: "blue" },
+      { icon: Cpu, title: "VPS", desc: "خوادم افتراضية مرنة للمشاريع المتنامية.", href: "#hosting", tone: "violet" },
+      { icon: HardDrive, title: "السيرفرات المخصصة", desc: "أداء عالي وتحكم كامل للمشاريع الكبيرة.", href: "#hosting", tone: "indigo" },
+      { icon: Settings2, title: "إدارة السيرفرات", desc: "إعداد Linux و Nginx وقواعد البيانات والحماية.", href: "#hosting", tone: "cyan" },
+      { icon: Mail, title: "SMTP والبريد", desc: "إعداد بريد احترافي وإرسال موثوق.", href: "#hosting", tone: "emerald" },
+      { icon: Database, title: "قواعد البيانات", desc: "PostgreSQL و MySQL مع نسخ احتياطي ومراقبة.", href: "#hosting", tone: "teal" },
+      { icon: ShieldCheck, title: "الحماية والمراقبة", desc: "مراقبة الأداء، SSL، Firewall، وتنبيهات.", href: "#hosting", tone: "rose" },
     ],
   },
   {
     label: "التسويق الرقمي",
     items: [
-      { icon: Search, title: "تحسين محركات البحث SEO", desc: "ظهور مستدام في نتائج البحث.", href: "#marketing" },
-      { icon: Target, title: "الحملات الإعلانية", desc: "حملات مدفوعة الأداء على أهم المنصات.", href: "#marketing" },
-      { icon: FileText, title: "إدارة المحتوى", desc: "محتوى عربي احترافي متسق مع العلامة.", href: "#marketing" },
-      { icon: ImageIcon, title: "الهوية البصرية", desc: "بناء هوية بصرية ثابتة ومميزة.", href: "#marketing" },
-      { icon: Share2, title: "إدارة السوشيال ميديا", desc: "إدارة كاملة للحسابات الاجتماعية.", href: "#marketing" },
-      { icon: BarChart3, title: "تقارير وتحليلات", desc: "قرارات مبنية على بيانات دقيقة.", href: "#marketing" },
+      { icon: Search, title: "تحسين محركات البحث SEO", desc: "رفع ظهور الموقع وتحسين البنية والمحتوى.", href: "#marketing", tone: "blue" },
+      { icon: Target, title: "الحملات الإعلانية", desc: "إدارة إعلانات Google و Meta باحتراف.", href: "#marketing", tone: "rose" },
+      { icon: FileText, title: "إدارة المحتوى", desc: "كتابة محتوى، صفحات، ورسائل تسويقية.", href: "#marketing", tone: "amber" },
+      { icon: ImageIcon, title: "الهوية البصرية", desc: "بناء هوية متناسقة للشركة أو المنتج.", href: "#marketing", tone: "violet" },
+      { icon: MousePointerClick, title: "صفحات الهبوط", desc: "صفحات مصممة للتحويل وقياس النتائج.", href: "#marketing", tone: "cyan" },
+      { icon: BarChart3, title: "التقارير والتحليلات", desc: "تتبع الأداء وتحسين القرارات التسويقية.", href: "#marketing", tone: "teal" },
     ],
   },
   { label: "حسابي", href: "#portal" },
@@ -63,6 +83,7 @@ export function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [openIdx, setOpenIdx] = useState<number | null>(null);
+  const [activeMega, setActiveMega] = useState<string | null>(null);
 
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 12);
@@ -88,42 +109,95 @@ export function Header() {
           </div>
         </a>
 
-        <nav className="hidden lg:flex items-center gap-1">
-          {NAV.map((item) => (
-            <div key={item.label} className="relative group">
-              {item.items ? (
-                <>
-                  <button className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-secondary transition">
+        <nav
+          className="hidden lg:flex items-center gap-1"
+          onMouseLeave={() => setActiveMega(null)}
+        >
+          {NAV.map((item) => {
+            const isActive = activeMega === item.label;
+            return (
+              <div
+                key={item.label}
+                className="relative"
+                onMouseEnter={() => item.items && setActiveMega(item.label)}
+              >
+                {item.items ? (
+                  <button
+                    onClick={() => setActiveMega(isActive ? null : item.label)}
+                    className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                      isActive
+                        ? "bg-secondary text-foreground"
+                        : "text-foreground/80 hover:text-foreground hover:bg-secondary"
+                    }`}
+                  >
                     {item.label}
-                    <ChevronDown className="h-3.5 w-3.5 opacity-60 transition group-hover:rotate-180" />
+                    <ChevronDown className={`h-3.5 w-3.5 opacity-60 transition ${isActive ? "rotate-180" : ""}`} />
                   </button>
-                  {/* Mega dropdown */}
-                  <div className="absolute right-0 top-full pt-3 opacity-0 pointer-events-none translate-y-1 group-hover:opacity-100 group-hover:pointer-events-auto group-hover:translate-y-0 transition-all">
-                    <div className={`glass rounded-2xl p-3 shadow-soft border border-border/60 grid gap-1 ${item.items.length > 4 ? "w-[640px] grid-cols-2" : "w-[340px]"}`}>
-                      {item.items.map((m) => (
-                        <a key={m.title} href={m.href} className="group/item flex items-start gap-3 rounded-xl p-3 hover:bg-secondary transition">
-                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-electric/10 text-electric group-hover/item:bg-brand group-hover/item:text-primary-foreground transition">
-                            <m.icon className="h-5 w-5" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-sm font-bold">{m.title}</div>
-                            <div className="text-[11px] text-muted-foreground leading-relaxed">{m.desc}</div>
-                          </div>
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <a href={item.href} className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-secondary transition">
-                  {item.label === "الرئيسية" && <Home className="h-3.5 w-3.5 opacity-60" />}
-                  {item.label === "حسابي" && <User className="h-3.5 w-3.5 opacity-60" />}
-                  {item.label}
-                </a>
-              )}
-            </div>
-          ))}
+                ) : (
+                  <a
+                    href={item.href}
+                    className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-secondary transition"
+                  >
+                    {item.label === "الرئيسية" && <Home className="h-3.5 w-3.5 opacity-60" />}
+                    {item.label === "حسابي" && <User className="h-3.5 w-3.5 opacity-60" />}
+                    {item.label}
+                  </a>
+                )}
+              </div>
+            );
+          })}
         </nav>
+
+        {/* Full-width mega panel — positioned outside nav so it never overflows */}
+        {activeMega && (
+          <div
+            className="hidden lg:block absolute right-0 left-0 top-full px-4 md:px-8 z-40"
+            onMouseEnter={() => setActiveMega(activeMega)}
+            onMouseLeave={() => setActiveMega(null)}
+          >
+            <div className="mx-auto max-w-6xl mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
+              {NAV.filter((n) => n.label === activeMega && n.items).map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-3xl border border-slate-200/80 bg-white p-4 sm:p-6 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.25)]"
+                >
+                  <div className="mb-4 flex items-center justify-between px-2">
+                    <div>
+                      <div className="text-xs font-medium text-slate-500">ASH HOLDING</div>
+                      <div className="text-base font-bold text-slate-900">{item.label}</div>
+                    </div>
+                    <div className="h-px flex-1 mx-4 bg-gradient-to-l from-transparent via-slate-200 to-transparent" />
+                    <a href="#contact" className="text-xs font-semibold text-blue-600 hover:text-blue-700">
+                      اطلب استشارة ←
+                    </a>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {item.items!.map((m) => (
+                      <a
+                        key={m.title}
+                        href={m.href}
+                        onClick={() => setActiveMega(null)}
+                        className="group flex items-start gap-3 rounded-2xl p-3 hover:bg-slate-50 transition"
+                      >
+                        <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${TONE[m.tone]} transition group-hover:scale-105`}>
+                          <m.icon className="h-5 w-5" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition">
+                            {m.title}
+                          </div>
+                          <div className="text-[11px] leading-relaxed text-slate-500 mt-0.5">
+                            {m.desc}
+                          </div>
+                        </div>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center gap-2">
           <a
@@ -160,9 +234,14 @@ export function Header() {
                   {openIdx === i && (
                     <div className="pb-3 space-y-1">
                       {item.items.map((m) => (
-                        <a key={m.title} href={m.href} onClick={() => setOpen(false)} className="flex items-start gap-3 rounded-xl p-2.5 hover:bg-secondary">
-                          <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-electric/10 text-electric">
-                            <m.icon className="h-4.5 w-4.5" />
+                        <a
+                          key={m.title}
+                          href={m.href}
+                          onClick={() => setOpen(false)}
+                          className="flex items-start gap-3 rounded-xl p-2.5 hover:bg-secondary"
+                        >
+                          <div className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${TONE[m.tone]}`}>
+                            <m.icon className="h-4 w-4" />
                           </div>
                           <div className="min-w-0">
                             <div className="text-sm font-bold">{m.title}</div>
