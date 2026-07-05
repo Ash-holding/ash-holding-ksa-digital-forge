@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Menu, X, ChevronDown, LogIn, Home, Info, Sparkles, Workflow, HelpCircle, Phone, LifeBuoy,
   Code2, Smartphone, LayoutDashboard, Brain, Palette, GraduationCap, Plug, Wrench,
@@ -84,12 +84,36 @@ export function Header() {
   const [scrolled, setScrolled] = useState(false);
   const [openIdx, setOpenIdx] = useState<number | null>(null);
   const [activeMega, setActiveMega] = useState<string | null>(null);
+  const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const cancelClose = () => {
+    if (closeTimer.current) {
+      clearTimeout(closeTimer.current);
+      closeTimer.current = null;
+    }
+  };
+  const openMenu = (label: string) => {
+    cancelClose();
+    setActiveMega(label);
+  };
+  const scheduleClose = () => {
+    cancelClose();
+    closeTimer.current = setTimeout(() => setActiveMega(null), 200);
+  };
 
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 12);
     on();
     window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setActiveMega(null);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("scroll", on);
+      window.removeEventListener("keydown", onKey);
+      cancelClose();
+    };
   }, []);
 
   return (
