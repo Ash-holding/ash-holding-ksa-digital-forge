@@ -363,42 +363,98 @@ function AboutLiveVisual() {
 /* ---------------- SERVICES ---------------- */
 export function Services() {
   const items = [
-    { icon: Code2, title: "تطوير المواقع والمنصات", desc: "مواقع ومنصات ويب مؤسسية عالية الأداء وقابلة للتوسع.", color: "electric" },
-    { icon: Smartphone, title: "تطبيقات الجوال", desc: "تطبيقات iOS و Android بتجربة استخدام سلسة.", color: "cyan-accent" },
-    { icon: LayoutDashboard, title: "الأنظمة ولوحات التحكم", desc: "أنظمة إدارية مخصصة تربط عملياتك في مكان واحد.", color: "purple-accent" },
-    { icon: Brain, title: "الذكاء الاصطناعي والأتمتة", desc: "حلول AI وأتمتة تسرّع أعمالك وتحسّن اتخاذ القرار.", color: "orange-accent" },
-    { icon: Palette, title: "التصميم والهوية", desc: "هويات بصرية وواجهات UI/UX تنقل قيمة علامتك.", color: "electric" },
-    { icon: GraduationCap, title: "خدمات الطلاب والأعمال", desc: "حلول متخصصة للطلاب ورواد الأعمال.", color: "cyan-accent" },
-    { icon: Wrench, title: "الدعم الفني والتشغيل", desc: "دعم مستمر وتشغيل موثوق بعد الإطلاق.", color: "purple-accent" },
-    { icon: Plug, title: "التكاملات والربط البرمجي", desc: "ربط الأنظمة عبر APIs بأمان وكفاءة.", color: "orange-accent" },
+    { icon: Code2, title: "تطوير المواقع والمنصات", desc: "مواقع ومنصات ويب مؤسسية عالية الأداء وقابلة للتوسع.", color: "electric", tags: ["Next.js", "React", "Node.js"] },
+    { icon: Smartphone, title: "تطبيقات الجوال", desc: "تطبيقات iOS و Android بتجربة استخدام سلسة وأداء أصلي.", color: "cyan-accent", tags: ["iOS", "Android", "Flutter"] },
+    { icon: LayoutDashboard, title: "الأنظمة ولوحات التحكم", desc: "أنظمة إدارية مخصصة تربط عملياتك في مكان واحد.", color: "purple-accent", tags: ["ERP", "CRM", "Dashboards"] },
+    { icon: Brain, title: "الذكاء الاصطناعي والأتمتة", desc: "حلول AI وأتمتة تسرّع أعمالك وتحسّن اتخاذ القرار.", color: "orange-accent", tags: ["AI Agents", "RAG", "Automation"] },
+    { icon: Palette, title: "التصميم والهوية", desc: "هويات بصرية وواجهات UI/UX تنقل قيمة علامتك بوضوح.", color: "electric", tags: ["Branding", "UI/UX", "Design System"] },
+    { icon: GraduationCap, title: "خدمات الطلاب والأعمال", desc: "حلول متخصصة للطلاب ورواد الأعمال بأسعار مدروسة.", color: "cyan-accent", tags: ["MVP", "بحوث", "استشارات"] },
+    { icon: Wrench, title: "الدعم الفني والتشغيل", desc: "دعم مستمر وتشغيل موثوق بعد الإطلاق على مدار الساعة.", color: "purple-accent", tags: ["24/7", "SLA", "Monitoring"] },
+    { icon: Plug, title: "التكاملات والربط البرمجي", desc: "ربط الأنظمة عبر APIs بأمان وكفاءة عالية.", color: "orange-accent", tags: ["REST", "GraphQL", "Webhooks"] },
   ];
+
+  const stats = [
+    { v: "+8", l: "خدمات متكاملة" },
+    { v: "+120", l: "مشروع منفذ" },
+    { v: "24/7", l: "دعم متواصل" },
+    { v: "99.9%", l: "نسبة توفر" },
+  ];
+
   return (
-    <section id="services" className="relative py-24 md:py-32 bg-secondary/40">
-      <div className="mx-auto max-w-7xl px-4 md:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-14">
+    <section id="services" className="relative py-20 sm:py-24 md:py-32 bg-secondary/40 overflow-hidden">
+      <div className="pointer-events-none absolute inset-0 opacity-60">
+        <div className="absolute -top-24 right-[10%] h-64 w-64 sm:h-96 sm:w-96 rounded-full bg-electric/10 blur-3xl" />
+        <div className="absolute -bottom-24 left-[5%] h-64 w-64 sm:h-96 sm:w-96 rounded-full bg-purple-accent/10 blur-3xl" />
+      </div>
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+        <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
           <div className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1 text-xs font-medium mb-4 border border-border">
-            <span className="h-1.5 w-1.5 rounded-full bg-electric" /> خدماتنا
+            <span className="h-1.5 w-1.5 rounded-full bg-electric animate-pulse" /> خدماتنا
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold">خدمات ASH HOLDING الرقمية</h2>
-          <p className="mt-4 text-muted-foreground md:text-lg">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
+            خدمات <span className="gradient-text">ASH HOLDING</span> الرقمية
+          </h2>
+          <p className="mt-3 sm:mt-4 text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed">
             كل ما تحتاجه لبناء مشروع رقمي متكامل، من البنية التقنية إلى النمو والتسويق.
           </p>
         </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {items.map((s, i) => (
-            <motion.div
-              key={s.title}
-              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
-              className="group relative rounded-3xl border border-border bg-card p-6 shadow-card hover:shadow-glow hover:-translate-y-1 transition-all overflow-hidden"
-            >
-              <div className={`absolute -top-16 -left-16 h-40 w-40 rounded-full bg-${s.color}/10 blur-2xl opacity-0 group-hover:opacity-100 transition`} />
-              <div className={`relative grid h-12 w-12 place-items-center rounded-2xl bg-${s.color}/10 text-${s.color} mb-4 group-hover:scale-110 transition`}>
-                <s.icon className="h-6 w-6" />
-              </div>
-              <h3 className="relative text-base font-bold mb-2">{s.title}</h3>
-              <p className="relative text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
-            </motion.div>
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-10 sm:mb-14">
+          {stats.map((s) => (
+            <div key={s.l} className="rounded-2xl border border-border bg-card/70 backdrop-blur px-4 py-4 text-center">
+              <div className="text-xl sm:text-2xl md:text-3xl font-extrabold gradient-text">{s.v}</div>
+              <div className="mt-1 text-[11px] sm:text-xs md:text-sm text-muted-foreground">{s.l}</div>
+            </div>
           ))}
+        </div>
+
+        <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {items.map((s, i) => (
+            <motion.article
+              key={s.title}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-50px" }}
+              transition={{ delay: Math.min(i * 0.05, 0.3), duration: 0.4 }}
+              className="group relative rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-card hover:shadow-glow hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
+            >
+              <div className={`absolute -top-16 -left-16 h-40 w-40 rounded-full bg-${s.color}/15 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+              <div className={`absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-${s.color} to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+
+              <div className="relative flex items-start justify-between mb-4">
+                <div className={`grid h-12 w-12 sm:h-14 sm:w-14 place-items-center rounded-2xl bg-${s.color}/10 text-${s.color} group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
+                  <s.icon className="h-6 w-6 sm:h-7 sm:w-7" />
+                </div>
+                <span className="text-[10px] font-mono text-muted-foreground/60">0{i + 1}</span>
+              </div>
+
+              <h3 className="relative text-base sm:text-lg font-bold mb-2 leading-snug">{s.title}</h3>
+              <p className="relative text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 flex-1">{s.desc}</p>
+
+              <div className="relative flex flex-wrap gap-1.5 mb-4">
+                {s.tags.map((t) => (
+                  <span key={t} className="text-[10px] sm:text-[11px] font-medium px-2 py-0.5 rounded-md bg-secondary text-foreground/70 border border-border">
+                    {t}
+                  </span>
+                ))}
+              </div>
+
+              <a href="#contact" className={`relative inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-${s.color} group-hover:gap-2.5 transition-all`}>
+                اطلب الخدمة
+                <span className="inline-block rotate-180">→</span>
+              </a>
+            </motion.article>
+          ))}
+        </div>
+
+        <div className="mt-10 sm:mt-14 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+          <a href="#contact" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-primary text-primary-foreground px-6 py-3.5 text-sm font-semibold shadow-soft hover:shadow-glow transition">
+            ابدأ مشروعك الآن
+          </a>
+          <a href="#process" className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-border bg-card px-6 py-3.5 text-sm font-semibold hover:bg-secondary transition">
+            تعرف على منهجيتنا
+          </a>
         </div>
       </div>
     </section>
