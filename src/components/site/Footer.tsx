@@ -1,11 +1,10 @@
 export function Footer() {
   const cols = [
-    { title: "الشركة", links: ["من نحن", "رؤيتنا", "فريق العمل", "الأسئلة الشائعة"] },
-    { title: "الخدمات", links: ["تطوير المواقع", "تطبيقات الجوال", "الأنظمة", "الذكاء الاصطناعي", "التصميم", "خدمات الطلاب"] },
-    { title: "المنتجات", links: ["ASH Client OS", "ASH Web AI", "ASH Stream", "ASH Stores", "Numaxio", "DigiMart", "Student OS"] },
-    { title: "الاستضافة", links: ["استضافة مشتركة", "VPS", "سيرفرات مخصصة", "إدارة السيرفرات", "SMTP"] },
-    { title: "التسويق", links: ["SEO", "الإعلانات", "إدارة الحملات", "الهوية والمحتوى"] },
-    { title: "الدعم", links: ["مركز المساعدة", "تواصل معنا", "حالة الخدمة", "الأدلة"] },
+    { title: "الشركة", links: ["من نحن", "لماذا ASH", "آلية العمل", "الأسئلة الشائعة", "تواصل معنا"] },
+    { title: "الخدمات", links: ["تطوير المواقع والمنصات", "تطبيقات الجوال", "الأنظمة ولوحات التحكم", "الذكاء الاصطناعي", "التصميم والهوية", "خدمات الطلاب والأعمال"] },
+    { title: "الاستضافة والسيرفرات", links: ["الاستضافة المشتركة", "VPS", "السيرفرات المخصصة", "إدارة السيرفرات", "SMTP والبريد", "الحماية والمراقبة"] },
+    { title: "التسويق الرقمي", links: ["SEO", "الحملات الإعلانية", "إدارة المحتوى", "الهوية البصرية", "السوشيال ميديا", "التقارير والتحليلات"] },
+    { title: "الدعم", links: ["مركز المساعدة", "تواصل معنا", "حالة الخدمة", "الأدلة والوثائق"] },
     { title: "قانوني", links: ["الشروط والأحكام", "سياسة الخصوصية", "اتفاقية الاستخدام", "SLA"] },
   ];
   return (
@@ -15,7 +14,7 @@ export function Footer() {
         <div className="absolute bottom-0 left-10 h-72 w-72 rounded-full bg-purple-accent/20 blur-3xl" />
       </div>
       <div className="relative mx-auto max-w-7xl px-4 md:px-8 pt-20 pb-8">
-        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8">
+        <div className="grid gap-10 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
           <div className="xl:col-span-2">
             <div className="flex items-center gap-2">
               <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand shadow-glow">
@@ -27,8 +26,8 @@ export function Footer() {
               </div>
             </div>
             <p className="mt-4 text-sm leading-7 text-white/70">
-              شريكك الرقمي السعودي لبناء منصات وأنظمة تشغيلية بمعايير مؤسسية عالمية،
-              مع دعم عربي كامل وبنية تحتية موثوقة.
+              ASH HOLDING شركة سعودية لبناء وتشغيل الحلول الرقمية، من المواقع
+              والتطبيقات إلى الأنظمة، الاستضافة، التسويق، والدعم التشغيلي.
             </p>
           </div>
           {cols.map((c) => (
