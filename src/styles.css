@@ -2,6 +2,8 @@
 @source "../src";
 @import "tw-animate-css";
 
+@source inline("{,hover:,group-hover:}bg-electric/{5,10,15,20} {,hover:,group-hover:}bg-cyan-accent/{5,10,15,20} {,hover:,group-hover:}bg-purple-accent/{5,10,15,20} {,hover:,group-hover:}bg-orange-accent/{5,10,15,20} text-electric text-cyan-accent text-purple-accent text-orange-accent border-electric/{20,40} border-cyan-accent/{20,40} border-purple-accent/{20,40} border-orange-accent/{20,40}");
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
