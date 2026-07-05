@@ -150,60 +150,215 @@ export function About() {
           </div>
         </div>
 
-        <div className="relative h-[520px]">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
-            className="absolute top-0 right-0 w-[62%] h-[58%] rounded-3xl overflow-hidden shadow-soft border border-border"
-          >
-            <div className="h-full w-full bg-gradient-to-br from-navy to-electric relative">
-              <div className="absolute inset-0 opacity-30" style={{ backgroundImage: "radial-gradient(circle at 30% 30%, white 1px, transparent 1px)", backgroundSize: "24px 24px" }} />
-              <div className="absolute bottom-4 right-4 glass-dark rounded-xl px-3 py-2 text-white text-xs font-semibold">Enterprise Architecture</div>
-            </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} viewport={{ once: true }}
-            className="absolute bottom-0 left-0 w-[58%] h-[55%] rounded-3xl overflow-hidden shadow-soft border border-border bg-card"
-          >
-            <div className="h-full w-full p-5 flex flex-col">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="h-2 w-2 rounded-full bg-orange-accent" />
-                <span className="h-2 w-2 rounded-full bg-cyan-accent" />
-                <span className="h-2 w-2 rounded-full bg-electric" />
-                <span className="mr-auto">ash-platform.ts</span>
-              </div>
-              <div className="mt-4 space-y-2 text-[11px] font-mono leading-5 text-muted-foreground">
-                <div><span className="text-purple-accent">const</span> ash = <span className="text-electric">buildPlatform</span>(&#123;</div>
-                <div className="pr-4">brand: <span className="text-orange-accent">"ASH"</span>,</div>
-                <div className="pr-4">scale: <span className="text-orange-accent">"enterprise"</span>,</div>
-                <div className="pr-4">region: <span className="text-orange-accent">"KSA"</span></div>
-                <div>&#125;);</div>
-              </div>
-              <div className="mt-auto grid grid-cols-3 gap-2">
-                {["React", "AI", "Cloud"].map(t => (
-                  <div key={t} className="rounded-lg bg-secondary py-1.5 text-center text-[10px] font-semibold">{t}</div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ delay: 0.3 }} viewport={{ once: true }}
-            className="absolute top-[42%] left-[18%] glass rounded-2xl p-4 shadow-glow animate-float"
-          >
-            <div className="flex items-center gap-3">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand text-primary-foreground">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <div>
-                <div className="text-sm font-bold">ISO Ready</div>
-                <div className="text-[10px] text-muted-foreground">أمن معلومات مؤسسي</div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
+        <AboutLiveVisual />
       </div>
     </section>
   );
 }
+
+/* ---------------- ABOUT — animated live visual ---------------- */
+function AboutLiveVisual() {
+  const servers = [
+    { label: "SRV-01", region: "الرياض", load: 62 },
+    { label: "SRV-02", region: "جدة", load: 38 },
+    { label: "SRV-03", region: "الدمام", load: 81 },
+    { label: "SRV-04", region: "Edge", load: 24 },
+  ];
+  return (
+    <div className="relative h-[560px]">
+      {/* Ambient glow */}
+      <div className="absolute -inset-6 rounded-[2rem] bg-gradient-to-tr from-electric/20 via-cyan-accent/10 to-purple-accent/15 blur-3xl -z-10" />
+
+      {/* ---- Card 1: Live browser / website build ---- */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+        className="absolute top-0 right-0 w-[68%] rounded-2xl overflow-hidden shadow-soft border border-border bg-card"
+      >
+        {/* Browser chrome */}
+        <div className="flex items-center gap-2 px-3 py-2 border-b border-border bg-secondary/60">
+          <span className="h-2.5 w-2.5 rounded-full bg-orange-accent" />
+          <span className="h-2.5 w-2.5 rounded-full bg-cyan-accent" />
+          <span className="h-2.5 w-2.5 rounded-full bg-electric" />
+          <div className="mx-auto flex items-center gap-1.5 rounded-md bg-background px-3 py-1 text-[10px] text-muted-foreground font-mono">
+            <Globe className="h-3 w-3 text-electric" /> ashholding.sa
+          </div>
+        </div>
+        {/* Fake site skeleton being "built" */}
+        <div className="p-4 bg-gradient-to-br from-navy to-electric/90 relative overflow-hidden">
+          <div className="absolute inset-0 opacity-25"
+               style={{ backgroundImage: "radial-gradient(circle at 20% 20%, white 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
+          {/* nav bar */}
+          <div className="relative flex items-center gap-2">
+            <div className="h-5 w-16 rounded-md bg-white/25" />
+            <div className="mr-auto flex gap-1.5">
+              {[0,1,2,3].map(i => (
+                <motion.div key={i}
+                  initial={{ opacity: 0, y: -4 }} whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 + i * 0.1 }} viewport={{ once: true }}
+                  className="h-3 w-10 rounded bg-white/20" />
+              ))}
+            </div>
+          </div>
+          {/* hero block */}
+          <div className="relative mt-4 grid grid-cols-5 gap-3">
+            <div className="col-span-3 space-y-2">
+              <motion.div initial={{ width: 0 }} whileInView={{ width: "80%" }} transition={{ duration: 1, delay: 0.4 }} viewport={{ once: true }}
+                className="h-4 rounded bg-white/85" />
+              <motion.div initial={{ width: 0 }} whileInView={{ width: "60%" }} transition={{ duration: 1, delay: 0.6 }} viewport={{ once: true }}
+                className="h-3 rounded bg-white/60" />
+              <motion.div initial={{ width: 0 }} whileInView={{ width: "45%" }} transition={{ duration: 1, delay: 0.8 }} viewport={{ once: true }}
+                className="h-3 rounded bg-white/50" />
+              <div className="pt-2 flex gap-2">
+                <motion.div initial={{ opacity: 0, scale: 0.6 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ delay: 1 }} viewport={{ once: true }}
+                  className="h-6 w-20 rounded-md bg-cyan-accent" />
+                <motion.div initial={{ opacity: 0, scale: 0.6 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ delay: 1.1 }} viewport={{ once: true }}
+                  className="h-6 w-14 rounded-md bg-white/25" />
+              </div>
+            </div>
+            <motion.div initial={{ opacity: 0, scale: 0.85 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ delay: 0.6 }} viewport={{ once: true }}
+              className="col-span-2 h-24 rounded-lg bg-white/15 backdrop-blur-sm border border-white/20 grid place-items-center">
+              <LayoutDashboard className="h-8 w-8 text-white/70" />
+            </motion.div>
+          </div>
+          {/* deploying strip */}
+          <div className="relative mt-4 flex items-center gap-2 text-[10px] text-white/85 font-mono">
+            <motion.span animate={{ opacity: [0.4, 1, 0.4] }} transition={{ duration: 1.4, repeat: Infinity }}
+              className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
+            deploying build #2026.11 …
+            <span className="mr-auto text-white/55">edge · ksa</span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ---- Card 2: Server rack with live metrics ---- */}
+      <motion.div
+        initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} viewport={{ once: true }}
+        className="absolute bottom-0 left-0 w-[62%] rounded-2xl overflow-hidden shadow-soft border border-border bg-card"
+      >
+        <div className="flex items-center justify-between px-4 py-2.5 border-b border-border bg-secondary/60">
+          <div className="flex items-center gap-2 text-xs font-bold">
+            <Server className="h-3.5 w-3.5 text-electric" /> بنية السيرفرات · مباشر
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+            <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1.2, repeat: Infinity }}
+              className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+            متصل
+          </div>
+        </div>
+        <div className="p-3 space-y-2">
+          {servers.map((s, i) => (
+            <motion.div key={s.label}
+              initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 + i * 0.08 }} viewport={{ once: true }}
+              className="flex items-center gap-3 rounded-lg bg-secondary/50 px-3 py-2"
+            >
+              <div className="grid h-8 w-8 place-items-center rounded-md bg-electric/10 text-electric">
+                <HardDrive className="h-4 w-4" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center justify-between text-[11px] font-bold">
+                  <span>{s.label}</span>
+                  <span className="text-muted-foreground font-normal">{s.region}</span>
+                </div>
+                <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-background">
+                  <motion.div
+                    initial={{ width: 0 }} whileInView={{ width: `${s.load}%` }}
+                    transition={{ duration: 1.1, delay: 0.4 + i * 0.1 }} viewport={{ once: true }}
+                    className={`h-full rounded-full ${s.load > 75 ? "bg-orange-accent" : s.load > 50 ? "bg-electric" : "bg-emerald-500"}`}
+                  />
+                </div>
+              </div>
+              <motion.span
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 1.4, repeat: Infinity, delay: i * 0.3 }}
+                className={`h-2 w-2 rounded-full ${s.load > 75 ? "bg-orange-accent" : "bg-emerald-500"}`}
+              />
+            </motion.div>
+          ))}
+          {/* Live throughput bars */}
+          <div className="pt-1 flex items-end gap-1 h-10">
+            {Array.from({ length: 22 }).map((_, i) => (
+              <motion.span key={i}
+                className="flex-1 rounded-sm bg-gradient-to-t from-electric to-cyan-accent"
+                animate={{ height: ["20%", `${30 + ((i * 17) % 70)}%`, "35%", "70%", "25%"] }}
+                transition={{ duration: 2.4, repeat: Infinity, delay: (i % 6) * 0.12, ease: "easeInOut" }}
+              />
+            ))}
+          </div>
+          <div className="flex justify-between text-[10px] text-muted-foreground pt-0.5">
+            <span>معدل الطلبات · req/s</span>
+            <span className="font-mono">1.2k ↑</span>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ---- Floating pill: data flow ---- */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.85 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ delay: 0.35 }} viewport={{ once: true }}
+        className="absolute top-[46%] left-[6%] glass rounded-2xl p-3 shadow-glow animate-float z-10"
+      >
+        <div className="flex items-center gap-3">
+          <div className="grid h-10 w-10 place-items-center rounded-xl bg-brand text-primary-foreground">
+            <Database className="h-5 w-5" />
+          </div>
+          <div>
+            <div className="text-xs font-bold flex items-center gap-1.5">
+              <motion.span animate={{ opacity: [0.3, 1, 0.3] }} transition={{ duration: 1, repeat: Infinity }}
+                className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              تدفق البيانات
+            </div>
+            <div className="text-[10px] text-muted-foreground font-mono">
+              <motion.span
+                animate={{ opacity: [0.5, 1, 0.5] }}
+                transition={{ duration: 1.6, repeat: Infinity }}
+              >
+                42.8 MB/s ↔
+              </motion.span>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ---- Floating pill: ISO ---- */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.85 }} whileInView={{ opacity: 1, scale: 1 }} transition={{ delay: 0.5 }} viewport={{ once: true }}
+        className="absolute top-[8%] left-[4%] glass rounded-2xl p-3 shadow-glow z-10"
+      >
+        <div className="flex items-center gap-2">
+          <div className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-500/15 text-emerald-500">
+            <ShieldCheck className="h-4.5 w-4.5" />
+          </div>
+          <div>
+            <div className="text-[11px] font-bold">ISO Ready</div>
+            <div className="text-[10px] text-muted-foreground">أمن مؤسسي</div>
+          </div>
+        </div>
+      </motion.div>
+
+      {/* ---- Animated connection lines (SVG) ---- */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 400 560" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="ashLine" x1="0" x2="1" y1="0" y2="1">
+            <stop offset="0%" stopColor="oklch(0.62 0.19 256)" stopOpacity="0.55" />
+            <stop offset="100%" stopColor="oklch(0.7 0.16 200)" stopOpacity="0.05" />
+          </linearGradient>
+        </defs>
+        <motion.path
+          d="M 300,180 C 240,260 180,320 90,420"
+          stroke="url(#ashLine)" strokeWidth="1.5" fill="none" strokeDasharray="4 6"
+          initial={{ pathLength: 0 }} whileInView={{ pathLength: 1 }}
+          transition={{ duration: 1.4, delay: 0.4 }} viewport={{ once: true }}
+        />
+        <motion.circle r="3" fill="oklch(0.7 0.16 200)"
+          animate={{ offsetDistance: ["0%", "100%"] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: "linear" }}
+          style={{ offsetPath: "path('M 300,180 C 240,260 180,320 90,420')" } as React.CSSProperties}
+        />
+      </svg>
+    </div>
+  );
+}
+
 
 /* ---------------- SERVICES ---------------- */
 export function Services() {
