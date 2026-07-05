@@ -32,12 +32,12 @@ const NAV: NavItem[] = [
   {
     label: "الشركة",
     items: [
-      { icon: Info, title: "من نحن", desc: "تعرف على ASH HOLDING ورؤيتنا في بناء الحلول الرقمية.", href: "#about", tone: "blue" },
-      { icon: Sparkles, title: "لماذا ASH", desc: "منهجية واضحة، تنفيذ احترافي، ودعم بعد الإطلاق.", href: "#why", tone: "violet" },
-      { icon: Workflow, title: "آلية العمل", desc: "خطوات منظمة من التحليل إلى التسليم.", href: "#process", tone: "cyan" },
-      { icon: HelpCircle, title: "الأسئلة الشائعة", desc: "إجابات واضحة حول الخدمات، العقود، والدعم.", href: "#faq", tone: "amber" },
-      { icon: Phone, title: "تواصل معنا", desc: "ابدأ مشروعك أو اطلب استشارة.", href: "#contact", tone: "emerald" },
-      { icon: LifeBuoy, title: "الدعم", desc: "الوصول إلى فريق الدعم ومتابعة الطلبات.", href: "#portal", tone: "rose" },
+      { icon: Info, title: "من نحن", desc: "تعرف على ASH HOLDING ورؤيتنا في بناء الحلول الرقمية.", href: "/about", tone: "blue" },
+      { icon: Sparkles, title: "لماذا ASH", desc: "منهجية واضحة، تنفيذ احترافي، ودعم بعد الإطلاق.", href: "/why", tone: "violet" },
+      { icon: Workflow, title: "آلية العمل", desc: "خطوات منظمة من التحليل إلى التسليم.", href: "/process", tone: "cyan" },
+      { icon: HelpCircle, title: "الأسئلة الشائعة", desc: "إجابات واضحة حول الخدمات، العقود، والدعم.", href: "/faq", tone: "amber" },
+      { icon: Phone, title: "تواصل معنا", desc: "ابدأ مشروعك أو اطلب استشارة.", href: "/contact", tone: "emerald" },
+      { icon: LifeBuoy, title: "الدعم", desc: "الوصول إلى فريق الدعم ومتابعة الطلبات.", href: "/support", tone: "rose" },
     ],
   },
   {
