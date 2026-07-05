@@ -109,95 +109,98 @@ export function Header() {
           </div>
         </a>
 
-        <nav
-          className="hidden lg:flex items-center gap-1"
-          onMouseLeave={() => setActiveMega(null)}
-        >
+        <nav className="hidden lg:flex items-center gap-1">
           {NAV.map((item) => {
             const isActive = activeMega === item.label;
+            if (!item.items) {
+              return (
+                <a
+                  key={item.label}
+                  href={item.href}
+                  onMouseEnter={scheduleClose.bind(null)}
+                  className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-secondary transition"
+                >
+                  {item.label === "الرئيسية" && <Home className="h-3.5 w-3.5 opacity-60" />}
+                  {item.label === "حسابي" && <User className="h-3.5 w-3.5 opacity-60" />}
+                  {item.label}
+                </a>
+              );
+            }
             return (
               <div
                 key={item.label}
                 className="relative"
-                onMouseEnter={() => item.items && setActiveMega(item.label)}
+                onMouseEnter={() => openMenu(item.label)}
+                onMouseLeave={scheduleClose}
               >
-                {item.items ? (
-                  <button
-                    onClick={() => setActiveMega(isActive ? null : item.label)}
-                    className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                      isActive
-                        ? "bg-secondary text-foreground"
-                        : "text-foreground/80 hover:text-foreground hover:bg-secondary"
-                    }`}
+                <button
+                  onClick={() => setActiveMega(isActive ? null : item.label)}
+                  aria-expanded={isActive}
+                  aria-haspopup="true"
+                  className={`flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
+                    isActive
+                      ? "bg-secondary text-foreground"
+                      : "text-foreground/80 hover:text-foreground hover:bg-secondary"
+                  }`}
+                >
+                  {item.label}
+                  <ChevronDown className={`h-3.5 w-3.5 opacity-60 transition ${isActive ? "rotate-180" : ""}`} />
+                </button>
+
+                {isActive && (
+                  <div
+                    className="absolute right-1/2 translate-x-1/2 top-full z-50 pt-3"
+                    style={{ pointerEvents: "auto" }}
                   >
-                    {item.label}
-                    <ChevronDown className={`h-3.5 w-3.5 opacity-60 transition ${isActive ? "rotate-180" : ""}`} />
-                  </button>
-                ) : (
-                  <a
-                    href={item.href}
-                    className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 hover:text-foreground hover:bg-secondary transition"
-                  >
-                    {item.label === "الرئيسية" && <Home className="h-3.5 w-3.5 opacity-60" />}
-                    {item.label === "حسابي" && <User className="h-3.5 w-3.5 opacity-60" />}
-                    {item.label}
-                  </a>
+                    {/* Invisible hover bridge covers the gap between button and panel */}
+                    <div aria-hidden className="absolute inset-x-0 -top-1 h-4" />
+                    <div
+                      role="menu"
+                      className="w-[min(90vw,880px)] rounded-3xl border border-slate-200/80 bg-white p-4 sm:p-6 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.25)] animate-in fade-in slide-in-from-top-2 duration-200"
+                    >
+                      <div className="mb-4 flex items-center justify-between px-2">
+                        <div>
+                          <div className="text-xs font-medium text-slate-500">ASH HOLDING</div>
+                          <div className="text-base font-bold text-slate-900">{item.label}</div>
+                        </div>
+                        <div className="h-px flex-1 mx-4 bg-gradient-to-l from-transparent via-slate-200 to-transparent" />
+                        <a
+                          href="#contact"
+                          onClick={() => setActiveMega(null)}
+                          className="text-xs font-semibold text-blue-600 hover:text-blue-700 shrink-0"
+                        >
+                          اطلب استشارة ←
+                        </a>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {item.items.map((m) => (
+                          <a
+                            key={m.title}
+                            href={m.href}
+                            onClick={() => setActiveMega(null)}
+                            className="group flex items-start gap-3 rounded-2xl p-3 hover:bg-slate-50 transition"
+                          >
+                            <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${TONE[m.tone]} transition group-hover:scale-105`}>
+                              <m.icon className="h-5 w-5" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition">
+                                {m.title}
+                              </div>
+                              <div className="text-[11px] leading-relaxed text-slate-500 mt-0.5">
+                                {m.desc}
+                              </div>
+                            </div>
+                          </a>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 )}
               </div>
             );
           })}
         </nav>
-
-        {/* Full-width mega panel — positioned outside nav so it never overflows */}
-        {activeMega && (
-          <div
-            className="hidden lg:block absolute right-0 left-0 top-full px-4 md:px-8 z-40"
-            onMouseEnter={() => setActiveMega(activeMega)}
-            onMouseLeave={() => setActiveMega(null)}
-          >
-            <div className="mx-auto max-w-6xl mt-3 animate-in fade-in slide-in-from-top-2 duration-200">
-              {NAV.filter((n) => n.label === activeMega && n.items).map((item) => (
-                <div
-                  key={item.label}
-                  className="rounded-3xl border border-slate-200/80 bg-white p-4 sm:p-6 shadow-[0_20px_60px_-15px_rgba(15,23,42,0.25)]"
-                >
-                  <div className="mb-4 flex items-center justify-between px-2">
-                    <div>
-                      <div className="text-xs font-medium text-slate-500">ASH HOLDING</div>
-                      <div className="text-base font-bold text-slate-900">{item.label}</div>
-                    </div>
-                    <div className="h-px flex-1 mx-4 bg-gradient-to-l from-transparent via-slate-200 to-transparent" />
-                    <a href="#contact" className="text-xs font-semibold text-blue-600 hover:text-blue-700">
-                      اطلب استشارة ←
-                    </a>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2">
-                    {item.items!.map((m) => (
-                      <a
-                        key={m.title}
-                        href={m.href}
-                        onClick={() => setActiveMega(null)}
-                        className="group flex items-start gap-3 rounded-2xl p-3 hover:bg-slate-50 transition"
-                      >
-                        <div className={`grid h-11 w-11 shrink-0 place-items-center rounded-xl ${TONE[m.tone]} transition group-hover:scale-105`}>
-                          <m.icon className="h-5 w-5" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition">
-                            {m.title}
-                          </div>
-                          <div className="text-[11px] leading-relaxed text-slate-500 mt-0.5">
-                            {m.desc}
-                          </div>
-                        </div>
-                      </a>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         <div className="flex items-center gap-2">
           <a
