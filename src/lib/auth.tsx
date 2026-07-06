@@ -23,6 +23,24 @@ type Ctx = {
 
 const AuthContext = createContext<Ctx | null>(null);
 
+const DEMO_ACCOUNTS: Array<{ email: string; password: string; user: AuthUser }> = [
+  {
+    email: "admin@ashholding.sa",
+    password: "Admin@12345",
+    user: { id: "demo-admin", email: "admin@ashholding.sa", name: "المدير التجريبي", role: "SUPER_ADMIN" },
+  },
+  {
+    email: "client@demo.sa",
+    password: "Client@12345",
+    user: { id: "demo-client", email: "client@demo.sa", name: "عميل تجريبي", role: "CLIENT", client: { id: "demo-c1", companyName: "شركة تجريبية" } },
+  },
+];
+
+function demoLogin(email: string, password: string): AuthUser | null {
+  const match = DEMO_ACCOUNTS.find((a) => a.email.toLowerCase() === email.toLowerCase() && a.password === password);
+  return match ? match.user : null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
