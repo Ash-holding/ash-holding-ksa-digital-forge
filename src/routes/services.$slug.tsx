@@ -9,13 +9,13 @@ export const Route = createFileRoute("/services/$slug")({
   loader: ({ params }) => {
     const svc = SERVICE_MAP[params.slug];
     if (!svc) throw notFound();
-    return { svc };
+    return { slug: params.slug, title: svc.eyebrow, description: svc.description };
   },
   head: ({ loaderData }) => ({
     meta: loaderData
       ? [
-          { title: `${loaderData.svc.eyebrow} | ASH HOLDING` },
-          { name: "description", content: loaderData.svc.description },
+          { title: `${loaderData.title} | ASH HOLDING` },
+          { name: "description", content: loaderData.description },
         ]
       : [{ title: "خدمة | ASH HOLDING" }],
   }),
