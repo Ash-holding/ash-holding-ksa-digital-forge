@@ -74,9 +74,10 @@ export function Money({
       dir="ltr"
       className={cn("inline-flex items-baseline gap-1 whitespace-nowrap", className)}
     >
-      <span>{formatSAR(value)}</span>
       <Riyal className={symbolClassName} />
+      <span>{formatSAR(value)}</span>
     </span>
+
   );
 }
 
