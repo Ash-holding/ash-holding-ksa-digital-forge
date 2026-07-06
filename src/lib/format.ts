@@ -1,7 +1,8 @@
 export function formatSAR(n: number | string | null | undefined): string {
   const v = Number(n ?? 0);
-  return new Intl.NumberFormat("ar-SA-u-nu-latn", { style: "currency", currency: "SAR", maximumFractionDigits: 0 }).format(v);
+  return new Intl.NumberFormat("en-US", { maximumFractionDigits: 0 }).format(v);
 }
+
 
 
 export function formatDate(d: string | Date | null | undefined, withTime = false): string {
