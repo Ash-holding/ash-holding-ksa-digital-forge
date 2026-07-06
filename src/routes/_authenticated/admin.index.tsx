@@ -126,7 +126,7 @@ function OverviewPage() {
               <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
             </span>
             <div className="min-w-0">
-              <div className="text-[10px] text-muted-foreground uppercase tracking-widest">مركز القيادة</div>
+              <div className="text-[10px] text-foreground/70 uppercase tracking-widest">مركز القيادة</div>
               <h1 className="text-base md:text-lg font-black truncate">
                 نظرة عامة · <span className="text-electric">{now.toLocaleDateString("ar-SA", { weekday: "long" })}</span>
               </h1>
@@ -201,7 +201,7 @@ function OverviewPage() {
         <Panel
           className="xl:col-span-4"
           title="توزيع المشاريع"
-          action={<span className="text-[10px] text-muted-foreground">{(data?.projectStatuses ?? []).reduce((s: number, x: any) => s + x.count, 0)} إجمالي</span>}
+          action={<span className="text-[10px] text-foreground/70">{(data?.projectStatuses ?? []).reduce((s: number, x: any) => s + x.count, 0)} إجمالي</span>}
         >
           <div className="flex items-center gap-3 h-full">
             <div className="h-40 w-40 shrink-0">
@@ -253,7 +253,7 @@ function OverviewPage() {
                     <span className="inline-flex items-center gap-1.5 min-w-0">
                       <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
                       <span className="font-semibold truncate">{s.status}</span>
-                      <span className="text-muted-foreground shrink-0">({s.count})</span>
+                      <span className="text-foreground/70 shrink-0">({s.count})</span>
                     </span>
                     <Money value={s.total} className="font-bold text-[11px] shrink-0" />
                   </div>
@@ -296,7 +296,7 @@ function OverviewPage() {
               );
             })}
             {(data?.topClients ?? []).length === 0 && !isLoading && (
-              <div className="text-[11px] text-muted-foreground text-center py-4">لا توجد بيانات</div>
+              <div className="text-[11px] text-foreground/70 text-center py-4">لا توجد بيانات</div>
             )}
           </div>
 
@@ -315,17 +315,17 @@ function OverviewPage() {
           <div className="space-y-1.5">
             {isLoading && Array.from({ length: 5 }).map((_, i) => <RowSkeleton key={i} />)}
             {!isLoading && (data?.upcomingDeadlines ?? []).length === 0 && (
-              <div className="text-[11px] text-muted-foreground text-center py-4">لا توجد مواعيد قادمة</div>
+              <div className="text-[11px] text-foreground/70 text-center py-4">لا توجد مواعيد قادمة</div>
             )}
             {!isLoading && (data?.upcomingDeadlines ?? []).slice(0, 5).map((p: any) => (
               <div key={p.id} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_auto_auto] gap-2 items-center rounded-lg bg-foreground/5 px-2.5 py-2 hover:bg-foreground/15 transition">
                 <div className="min-w-0">
                   <div className="text-[12px] font-bold truncate">{p.name}</div>
-                  <div className="text-[10px] text-muted-foreground truncate">{p.client} · {formatDate(p.dueDate)}</div>
+                  <div className="text-[10px] text-foreground/70 truncate">{p.client} · {formatDate(p.dueDate)}</div>
                 </div>
                 <div className="hidden sm:block w-24 shrink-0">
                   <div className="flex items-center justify-between text-[10px] mb-0.5">
-                    <span className="text-muted-foreground">تقدم</span>
+                    <span className="text-foreground/70">تقدم</span>
                     <span className="font-bold">{p.progress}%</span>
                   </div>
                   <Progress value={p.progress} className="h-1" />
@@ -359,17 +359,17 @@ function OverviewPage() {
                   </span>
                   <div className="min-w-0 flex-1">
                     <div className="text-[12px] font-semibold truncate">{item.label}</div>
-                    <div className="text-[10px] text-muted-foreground truncate">{item.sub}</div>
+                    <div className="text-[10px] text-foreground/70 truncate">{item.sub}</div>
                   </div>
                   <div className="text-left shrink-0">
                     {item.extra}
-                    <div className="text-[10px] text-muted-foreground">{fromNow(item.time)}</div>
+                    <div className="text-[10px] text-foreground/70">{fromNow(item.time)}</div>
                   </div>
                 </div>
               );
             })}
             {!isLoading && !(data?.recentClients?.length || data?.recentInvoices?.length || data?.recentTickets?.length) && (
-              <div className="text-[11px] text-muted-foreground text-center py-4">لا يوجد نشاط بعد</div>
+              <div className="text-[11px] text-foreground/70 text-center py-4">لا يوجد نشاط بعد</div>
             )}
           </div>
         </Panel>
