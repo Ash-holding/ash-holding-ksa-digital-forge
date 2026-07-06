@@ -65,7 +65,7 @@ function ClientsPage() {
         <ConfirmDialog
           title="تعطيل حساب العميل"
           description="سيتم تعطيل الحساب ولن يستطيع تسجيل الدخول. يمكن إعادة تفعيله لاحقاً."
-          onConfirm={() => del.mutateAsync(r.id)}
+          onConfirm={async () => { await del.mutateAsync(r.id); }}
           trigger={<Button size="sm" variant="ghost" className="text-rose-400 h-8 w-8 p-0"><Trash2 className="h-4 w-4" /></Button>}
         />
       </div>
