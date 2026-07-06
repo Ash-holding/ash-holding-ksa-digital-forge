@@ -21,8 +21,19 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
+import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated.client'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
+import { Route as AuthenticatedClientIndexRouteImport } from './routes/_authenticated.client.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
+import { Route as AuthenticatedClientSupportRouteImport } from './routes/_authenticated.client.support'
+import { Route as AuthenticatedClientServicesRouteImport } from './routes/_authenticated.client.services'
+import { Route as AuthenticatedClientProjectsRouteImport } from './routes/_authenticated.client.projects'
+import { Route as AuthenticatedClientProfileRouteImport } from './routes/_authenticated.client.profile'
+import { Route as AuthenticatedClientPaymentsRouteImport } from './routes/_authenticated.client.payments'
+import { Route as AuthenticatedClientNotificationsRouteImport } from './routes/_authenticated.client.notifications'
+import { Route as AuthenticatedClientInvoicesRouteImport } from './routes/_authenticated.client.invoices'
+import { Route as AuthenticatedClientFilesRouteImport } from './routes/_authenticated.client.files'
+import { Route as AuthenticatedClientContractsRouteImport } from './routes/_authenticated.client.contracts'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
 import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated.admin.support'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated.admin.settings'
@@ -96,16 +107,81 @@ const ServicesSlugRoute = ServicesSlugRouteImport.update({
   path: '/services/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedClientRoute = AuthenticatedClientRouteImport.update({
+  id: '/client',
+  path: '/client',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedClientIndexRoute =
+  AuthenticatedClientIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedClientSupportRoute =
+  AuthenticatedClientSupportRouteImport.update({
+    id: '/support',
+    path: '/support',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
+const AuthenticatedClientServicesRoute =
+  AuthenticatedClientServicesRouteImport.update({
+    id: '/services',
+    path: '/services',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
+const AuthenticatedClientProjectsRoute =
+  AuthenticatedClientProjectsRouteImport.update({
+    id: '/projects',
+    path: '/projects',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
+const AuthenticatedClientProfileRoute =
+  AuthenticatedClientProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
+const AuthenticatedClientPaymentsRoute =
+  AuthenticatedClientPaymentsRouteImport.update({
+    id: '/payments',
+    path: '/payments',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
+const AuthenticatedClientNotificationsRoute =
+  AuthenticatedClientNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
+const AuthenticatedClientInvoicesRoute =
+  AuthenticatedClientInvoicesRouteImport.update({
+    id: '/invoices',
+    path: '/invoices',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
+const AuthenticatedClientFilesRoute =
+  AuthenticatedClientFilesRouteImport.update({
+    id: '/files',
+    path: '/files',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
+const AuthenticatedClientContractsRoute =
+  AuthenticatedClientContractsRouteImport.update({
+    id: '/contracts',
+    path: '/contracts',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
 const AuthenticatedAdminUsersRoute = AuthenticatedAdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
@@ -194,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/support': typeof SupportRoute
   '/why': typeof WhyRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/client': typeof AuthenticatedClientRouteWithChildren
   '/services/$slug': typeof ServicesSlugRoute
   '/services/': typeof ServicesIndexRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
@@ -207,7 +284,17 @@ export interface FileRoutesByFullPath {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/client/contracts': typeof AuthenticatedClientContractsRoute
+  '/client/files': typeof AuthenticatedClientFilesRoute
+  '/client/invoices': typeof AuthenticatedClientInvoicesRoute
+  '/client/notifications': typeof AuthenticatedClientNotificationsRoute
+  '/client/payments': typeof AuthenticatedClientPaymentsRoute
+  '/client/profile': typeof AuthenticatedClientProfileRoute
+  '/client/projects': typeof AuthenticatedClientProjectsRoute
+  '/client/services': typeof AuthenticatedClientServicesRoute
+  '/client/support': typeof AuthenticatedClientSupportRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/client/': typeof AuthenticatedClientIndexRoute
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRoute
   '/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
 }
@@ -234,7 +321,17 @@ export interface FileRoutesByTo {
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/support': typeof AuthenticatedAdminSupportRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/client/contracts': typeof AuthenticatedClientContractsRoute
+  '/client/files': typeof AuthenticatedClientFilesRoute
+  '/client/invoices': typeof AuthenticatedClientInvoicesRoute
+  '/client/notifications': typeof AuthenticatedClientNotificationsRoute
+  '/client/payments': typeof AuthenticatedClientPaymentsRoute
+  '/client/profile': typeof AuthenticatedClientProfileRoute
+  '/client/projects': typeof AuthenticatedClientProjectsRoute
+  '/client/services': typeof AuthenticatedClientServicesRoute
+  '/client/support': typeof AuthenticatedClientSupportRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/client': typeof AuthenticatedClientIndexRoute
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRoute
   '/admin/clients': typeof AuthenticatedAdminClientsIndexRoute
 }
@@ -251,6 +348,7 @@ export interface FileRoutesById {
   '/support': typeof SupportRoute
   '/why': typeof WhyRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/client': typeof AuthenticatedClientRouteWithChildren
   '/services/$slug': typeof ServicesSlugRoute
   '/services/': typeof ServicesIndexRoute
   '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
@@ -264,7 +362,17 @@ export interface FileRoutesById {
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/support': typeof AuthenticatedAdminSupportRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
+  '/_authenticated/client/contracts': typeof AuthenticatedClientContractsRoute
+  '/_authenticated/client/files': typeof AuthenticatedClientFilesRoute
+  '/_authenticated/client/invoices': typeof AuthenticatedClientInvoicesRoute
+  '/_authenticated/client/notifications': typeof AuthenticatedClientNotificationsRoute
+  '/_authenticated/client/payments': typeof AuthenticatedClientPaymentsRoute
+  '/_authenticated/client/profile': typeof AuthenticatedClientProfileRoute
+  '/_authenticated/client/projects': typeof AuthenticatedClientProjectsRoute
+  '/_authenticated/client/services': typeof AuthenticatedClientServicesRoute
+  '/_authenticated/client/support': typeof AuthenticatedClientSupportRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/client/': typeof AuthenticatedClientIndexRoute
   '/_authenticated/admin/clients/$id': typeof AuthenticatedAdminClientsIdRoute
   '/_authenticated/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
 }
@@ -281,6 +389,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/why'
     | '/admin'
+    | '/client'
     | '/services/$slug'
     | '/services/'
     | '/admin/audit-log'
@@ -294,7 +403,17 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/support'
     | '/admin/users'
+    | '/client/contracts'
+    | '/client/files'
+    | '/client/invoices'
+    | '/client/notifications'
+    | '/client/payments'
+    | '/client/profile'
+    | '/client/projects'
+    | '/client/services'
+    | '/client/support'
     | '/admin/'
+    | '/client/'
     | '/admin/clients/$id'
     | '/admin/clients/'
   fileRoutesByTo: FileRoutesByTo
@@ -321,7 +440,17 @@ export interface FileRouteTypes {
     | '/admin/settings'
     | '/admin/support'
     | '/admin/users'
+    | '/client/contracts'
+    | '/client/files'
+    | '/client/invoices'
+    | '/client/notifications'
+    | '/client/payments'
+    | '/client/profile'
+    | '/client/projects'
+    | '/client/services'
+    | '/client/support'
     | '/admin'
+    | '/client'
     | '/admin/clients/$id'
     | '/admin/clients'
   id:
@@ -337,6 +466,7 @@ export interface FileRouteTypes {
     | '/support'
     | '/why'
     | '/_authenticated/admin'
+    | '/_authenticated/client'
     | '/services/$slug'
     | '/services/'
     | '/_authenticated/admin/audit-log'
@@ -350,7 +480,17 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/support'
     | '/_authenticated/admin/users'
+    | '/_authenticated/client/contracts'
+    | '/_authenticated/client/files'
+    | '/_authenticated/client/invoices'
+    | '/_authenticated/client/notifications'
+    | '/_authenticated/client/payments'
+    | '/_authenticated/client/profile'
+    | '/_authenticated/client/projects'
+    | '/_authenticated/client/services'
+    | '/_authenticated/client/support'
     | '/_authenticated/admin/'
+    | '/_authenticated/client/'
     | '/_authenticated/admin/clients/$id'
     | '/_authenticated/admin/clients/'
   fileRoutesById: FileRoutesById
@@ -456,6 +596,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ServicesSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/client': {
+      id: '/_authenticated/client'
+      path: '/client'
+      fullPath: '/client'
+      preLoaderRoute: typeof AuthenticatedClientRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -463,12 +610,82 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/client/': {
+      id: '/_authenticated/client/'
+      path: '/'
+      fullPath: '/client/'
+      preLoaderRoute: typeof AuthenticatedClientIndexRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
+    }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/client/support': {
+      id: '/_authenticated/client/support'
+      path: '/support'
+      fullPath: '/client/support'
+      preLoaderRoute: typeof AuthenticatedClientSupportRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
+    }
+    '/_authenticated/client/services': {
+      id: '/_authenticated/client/services'
+      path: '/services'
+      fullPath: '/client/services'
+      preLoaderRoute: typeof AuthenticatedClientServicesRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
+    }
+    '/_authenticated/client/projects': {
+      id: '/_authenticated/client/projects'
+      path: '/projects'
+      fullPath: '/client/projects'
+      preLoaderRoute: typeof AuthenticatedClientProjectsRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
+    }
+    '/_authenticated/client/profile': {
+      id: '/_authenticated/client/profile'
+      path: '/profile'
+      fullPath: '/client/profile'
+      preLoaderRoute: typeof AuthenticatedClientProfileRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
+    }
+    '/_authenticated/client/payments': {
+      id: '/_authenticated/client/payments'
+      path: '/payments'
+      fullPath: '/client/payments'
+      preLoaderRoute: typeof AuthenticatedClientPaymentsRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
+    }
+    '/_authenticated/client/notifications': {
+      id: '/_authenticated/client/notifications'
+      path: '/notifications'
+      fullPath: '/client/notifications'
+      preLoaderRoute: typeof AuthenticatedClientNotificationsRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
+    }
+    '/_authenticated/client/invoices': {
+      id: '/_authenticated/client/invoices'
+      path: '/invoices'
+      fullPath: '/client/invoices'
+      preLoaderRoute: typeof AuthenticatedClientInvoicesRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
+    }
+    '/_authenticated/client/files': {
+      id: '/_authenticated/client/files'
+      path: '/files'
+      fullPath: '/client/files'
+      preLoaderRoute: typeof AuthenticatedClientFilesRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
+    }
+    '/_authenticated/client/contracts': {
+      id: '/_authenticated/client/contracts'
+      path: '/contracts'
+      fullPath: '/client/contracts'
+      preLoaderRoute: typeof AuthenticatedClientContractsRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
     }
     '/_authenticated/admin/users': {
       id: '/_authenticated/admin/users'
@@ -601,12 +818,43 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedClientRouteChildren {
+  AuthenticatedClientContractsRoute: typeof AuthenticatedClientContractsRoute
+  AuthenticatedClientFilesRoute: typeof AuthenticatedClientFilesRoute
+  AuthenticatedClientInvoicesRoute: typeof AuthenticatedClientInvoicesRoute
+  AuthenticatedClientNotificationsRoute: typeof AuthenticatedClientNotificationsRoute
+  AuthenticatedClientPaymentsRoute: typeof AuthenticatedClientPaymentsRoute
+  AuthenticatedClientProfileRoute: typeof AuthenticatedClientProfileRoute
+  AuthenticatedClientProjectsRoute: typeof AuthenticatedClientProjectsRoute
+  AuthenticatedClientServicesRoute: typeof AuthenticatedClientServicesRoute
+  AuthenticatedClientSupportRoute: typeof AuthenticatedClientSupportRoute
+  AuthenticatedClientIndexRoute: typeof AuthenticatedClientIndexRoute
+}
+
+const AuthenticatedClientRouteChildren: AuthenticatedClientRouteChildren = {
+  AuthenticatedClientContractsRoute: AuthenticatedClientContractsRoute,
+  AuthenticatedClientFilesRoute: AuthenticatedClientFilesRoute,
+  AuthenticatedClientInvoicesRoute: AuthenticatedClientInvoicesRoute,
+  AuthenticatedClientNotificationsRoute: AuthenticatedClientNotificationsRoute,
+  AuthenticatedClientPaymentsRoute: AuthenticatedClientPaymentsRoute,
+  AuthenticatedClientProfileRoute: AuthenticatedClientProfileRoute,
+  AuthenticatedClientProjectsRoute: AuthenticatedClientProjectsRoute,
+  AuthenticatedClientServicesRoute: AuthenticatedClientServicesRoute,
+  AuthenticatedClientSupportRoute: AuthenticatedClientSupportRoute,
+  AuthenticatedClientIndexRoute: AuthenticatedClientIndexRoute,
+}
+
+const AuthenticatedClientRouteWithChildren =
+  AuthenticatedClientRoute._addFileChildren(AuthenticatedClientRouteChildren)
+
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedClientRoute: typeof AuthenticatedClientRouteWithChildren
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedClientRoute: AuthenticatedClientRouteWithChildren,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
