@@ -45,7 +45,7 @@ export function MetricChip({
         <span className={cn("grid h-6 w-6 sm:h-7 sm:w-7 place-items-center rounded-lg shrink-0", acc.chip)}>
           <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
         </span>
-        <span className="text-[10.5px] sm:text-[11px] leading-snug text-muted-foreground flex-1 min-w-0 break-words [overflow-wrap:anywhere]">
+        <span className="text-[11px] sm:text-[11.5px] font-semibold leading-snug text-foreground/80 flex-1 min-w-0 break-words [overflow-wrap:anywhere]">
           {label}
         </span>
       </div>
@@ -63,7 +63,7 @@ export function MetricChip({
           </span>
         )}
       </div>
-      {hint && <div className="mt-0.5 text-[10px] text-muted-foreground line-clamp-1">{hint}</div>}
+      {hint && <div className="mt-0.5 text-[10px] text-foreground/60 line-clamp-1">{hint}</div>}
 
       {sparkData.length > 0 && !loading && (
         <div className="mt-1.5 h-7 sm:h-8 -mx-2.5 -mb-2.5 sm:-mx-3 sm:-mb-3 opacity-80 group-hover:opacity-100 transition">
