@@ -103,7 +103,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
               </div>
               <nav className="flex-1 overflow-y-auto p-3 space-y-1">
                 {ITEMS.map((it) => {
-                  const active = isActive(it.to, "exact" in it && it.exact);
+                  const active = isActive(it.to, it.exact);
                   return (
                     <Link key={it.to} to={it.to} onClick={() => setOpen(false)}
                       className={cn("flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
