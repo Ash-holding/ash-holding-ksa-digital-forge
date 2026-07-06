@@ -11,7 +11,14 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { toast } from "sonner";
 
-const ITEMS = [
+type NavItem = {
+  to: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  exact?: boolean;
+};
+
+const ITEMS: NavItem[] = [
   { to: "/admin", label: "نظرة عامة", icon: LayoutDashboard, exact: true },
   { to: "/admin/clients", label: "العملاء", icon: Users },
   { to: "/admin/projects", label: "المشاريع", icon: FolderKanban },
@@ -25,7 +32,7 @@ const ITEMS = [
   { to: "/admin/reports", label: "التقارير", icon: BarChart3 },
   { to: "/admin/settings", label: "الإعدادات", icon: Settings },
   { to: "/admin/audit-log", label: "سجل التدقيق", icon: ClipboardList },
-] as const;
+];
 
 export function AdminLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -51,7 +58,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
         </div>
         <nav className="flex-1 overflow-y-auto p-3 space-y-1">
           {ITEMS.map((it) => {
-            const active = isActive(it.to, "exact" in it && it.exact);
+            const active = isActive(it.to, it.exact);
             return (
               <Link
                 key={it.to} to={it.to}
@@ -96,7 +103,7 @@ export function AdminLayout({ children }: { children: ReactNode }) {
               </div>
               <nav className="flex-1 overflow-y-auto p-3 space-y-1">
                 {ITEMS.map((it) => {
-                  const active = isActive(it.to, "exact" in it && it.exact);
+                  const active = isActive(it.to, it.exact);
                   return (
                     <Link key={it.to} to={it.to} onClick={() => setOpen(false)}
                       className={cn("flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium",
@@ -220,8 +227,7 @@ export function PageHeader({
 
 function buildCrumbs(pathname: string): Array<{ label: string; to?: string }> {
   const item = ITEMS.find((i) => {
-    const exact = (i as { exact?: boolean }).exact;
-    return exact ? pathname === i.to : pathname.startsWith(i.to) && !exact;
+    return i.exact ? pathname === i.to : pathname.startsWith(i.to);
   });
   const crumbs: Array<{ label: string; to?: string }> = [];
   if (item) {
