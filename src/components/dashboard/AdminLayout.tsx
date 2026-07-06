@@ -172,56 +172,47 @@ export function PageHeader({
   const crumbs = buildCrumbs(pathname);
 
   return (
-    <div className="relative">
-      {/* subtle top glow line */}
-      <div aria-hidden className="pointer-events-none absolute inset-x-0 -top-px h-px bg-gradient-to-r from-transparent via-electric/50 to-transparent" />
-
-      <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 pb-4 border-b border-border/50">
-        {/* Right accent bar + content */}
-        <div className="flex min-w-0 items-center gap-3">
-          {/* vertical accent bar (RTL: appears on the right) */}
-          <div aria-hidden className="shrink-0 h-10 w-1 rounded-full bg-gradient-to-b from-electric via-purple-500 to-electric/40 shadow-[0_0_12px_hsl(var(--electric)/0.5)]" />
-
-          {Icon && (
-            <div className="relative shrink-0">
-              <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-electric/15 to-purple-500/15 border border-electric/25 text-electric">
-                <Icon className="h-5 w-5" />
-              </div>
-              <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-background animate-pulse" />
+    <div className="relative -mx-4 md:-mx-6 -mt-4 md:-mt-6 mb-2 border-b border-border/60 bg-gradient-to-b from-card/40 to-transparent">
+      <div className="px-4 md:px-6 py-3.5 md:py-4 flex items-center gap-3">
+        {Icon && (
+          <div className="relative shrink-0 hidden xs:grid">
+            <div className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-electric to-purple-500 text-white shadow-md shadow-electric/25 ring-1 ring-white/10">
+              <Icon className="h-5 w-5" />
             </div>
-          )}
+          </div>
+        )}
 
-          <div className="min-w-0">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline gap-2 flex-wrap leading-tight">
+            <h1 className="text-base sm:text-lg md:text-xl font-black tracking-tight text-foreground truncate">
+              {title}
+            </h1>
             {crumbs.length > 0 && (
-              <nav aria-label="breadcrumb" className="mb-0.5 flex items-center gap-1 text-[10.5px] text-muted-foreground/70 leading-none">
+              <nav aria-label="breadcrumb" className="hidden sm:flex items-center gap-1 text-[11px] text-muted-foreground/70">
+                <span className="text-muted-foreground/40">·</span>
                 <Link to="/admin" className="hover:text-electric transition-colors">لوحة الإدارة</Link>
                 {crumbs.map((c, i) => (
                   <span key={i} className="flex items-center gap-1">
-                    <span className="text-muted-foreground/30">›</span>
+                    <span className="text-muted-foreground/40">/</span>
                     <span className={i === crumbs.length - 1 ? "text-foreground/70" : ""}>{c.label}</span>
                   </span>
                 ))}
               </nav>
             )}
-            <div className="flex items-center gap-2 min-w-0">
-              <h1 className="truncate text-lg sm:text-xl md:text-[1.375rem] font-black tracking-tight text-foreground">
-                {title}
-              </h1>
-              {badge}
-            </div>
-            {description && (
-              <p className="mt-0.5 text-[11.5px] sm:text-xs text-muted-foreground/90 truncate">{description}</p>
-            )}
+            {badge}
           </div>
+          {description && (
+            <p className="mt-0.5 text-[11.5px] sm:text-xs text-muted-foreground/80 truncate">{description}</p>
+          )}
         </div>
 
         {actions && (
-          <div className="hidden sm:flex flex-wrap items-center justify-end gap-2 shrink-0">{actions}</div>
+          <div className="hidden sm:flex items-center gap-2 shrink-0">{actions}</div>
         )}
       </div>
 
       {actions && (
-        <div className="sm:hidden mt-3 flex flex-wrap items-center gap-2">{actions}</div>
+        <div className="sm:hidden px-4 pb-3 flex flex-wrap items-center gap-2">{actions}</div>
       )}
     </div>
   );
