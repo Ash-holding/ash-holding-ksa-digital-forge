@@ -1,0 +1,172 @@
+// Demo data used as a fallback when the backend API is unreachable
+// (preview mode without deployed backend). Returns realistic sample data
+// so all admin/client pages render without 404 errors.
+
+type Handler = (url: string, method: string, body?: unknown) => unknown | undefined;
+
+const now = () => new Date().toISOString();
+const daysAgo = (n: number) => new Date(Date.now() - n * 86400000).toISOString();
+
+const clients = [
+  { id: "c1", companyName: "شركة الرياض للتقنية", contactName: "أحمد الشهري", email: "ahmed@riyadh-tech.sa", phone: "+966501112233", city: "الرياض", status: "ACTIVE", createdAt: daysAgo(90) },
+  { id: "c2", companyName: "متجر جدة الإلكتروني", contactName: "سارة العتيبي", email: "sara@jeddah-shop.sa", phone: "+966502223344", city: "جدة", status: "ACTIVE", createdAt: daysAgo(60) },
+  { id: "c3", companyName: "مؤسسة الدمام الرقمية", contactName: "خالد القحطاني", email: "khalid@dammam-digital.sa", phone: "+966503334455", city: "الدمام", status: "ACTIVE", createdAt: daysAgo(30) },
+  { id: "c4", companyName: "شركة النور للاستثمار", contactName: "فهد الغامدي", email: "fahd@alnoor.sa", phone: "+966504445566", city: "الرياض", status: "PENDING", createdAt: daysAgo(10) },
+];
+
+const projects = [
+  { id: "p1", name: "منصة إدارة المخزون", clientId: "c1", client: { companyName: clients[0].companyName }, status: "IN_PROGRESS", progress: 65, budget: 85000, startDate: daysAgo(45), dueDate: daysAgo(-30) },
+  { id: "p2", name: "متجر إلكتروني متكامل", clientId: "c2", client: { companyName: clients[1].companyName }, status: "IN_PROGRESS", progress: 40, budget: 120000, startDate: daysAgo(30), dueDate: daysAgo(-45) },
+  { id: "p3", name: "تطبيق جوال للحجوزات", clientId: "c3", client: { companyName: clients[2].companyName }, status: "PLANNING", progress: 15, budget: 95000, startDate: daysAgo(10), dueDate: daysAgo(-90) },
+  { id: "p4", name: "موقع تعريفي وهوية", clientId: "c1", client: { companyName: clients[0].companyName }, status: "COMPLETED", progress: 100, budget: 35000, startDate: daysAgo(120), dueDate: daysAgo(30) },
+  { id: "p5", name: "نظام إدارة العملاء CRM", clientId: "c4", client: { companyName: clients[3].companyName }, status: "PLANNING", progress: 5, budget: 150000, startDate: daysAgo(3), dueDate: daysAgo(-120) },
+];
+
+const invoices = [
+  { id: "i1", number: "INV-2026-001", clientId: "c1", client: { companyName: clients[0].companyName }, amount: 25000, currency: "SAR", status: "PAID", issueDate: daysAgo(60), dueDate: daysAgo(45) },
+  { id: "i2", number: "INV-2026-002", clientId: "c2", client: { companyName: clients[1].companyName }, amount: 40000, currency: "SAR", status: "PAID", issueDate: daysAgo(45), dueDate: daysAgo(30) },
+  { id: "i3", number: "INV-2026-003", clientId: "c1", client: { companyName: clients[0].companyName }, amount: 30000, currency: "SAR", status: "PENDING", issueDate: daysAgo(15), dueDate: daysAgo(-5) },
+  { id: "i4", number: "INV-2026-004", clientId: "c3", client: { companyName: clients[2].companyName }, amount: 55000, currency: "SAR", status: "PENDING", issueDate: daysAgo(7), dueDate: daysAgo(-15) },
+  { id: "i5", number: "INV-2026-005", clientId: "c4", client: { companyName: clients[3].companyName }, amount: 15000, currency: "SAR", status: "OVERDUE", issueDate: daysAgo(90), dueDate: daysAgo(60) },
+];
+
+const payments = [
+  { id: "pay1", invoiceId: "i1", amount: 25000, currency: "SAR", method: "BANK_TRANSFER", status: "COMPLETED", paidAt: daysAgo(50) },
+  { id: "pay2", invoiceId: "i2", amount: 40000, currency: "SAR", method: "MADA", status: "COMPLETED", paidAt: daysAgo(35) },
+  { id: "pay3", invoiceId: "i3", amount: 10000, currency: "SAR", method: "BANK_TRANSFER", status: "PENDING", paidAt: daysAgo(2) },
+];
+
+const contracts = [
+  { id: "co1", title: "عقد تطوير منصة المخزون", clientId: "c1", client: { companyName: clients[0].companyName }, status: "SIGNED", value: 85000, startDate: daysAgo(45), endDate: daysAgo(-90) },
+  { id: "co2", title: "عقد تطوير متجر إلكتروني", clientId: "c2", client: { companyName: clients[1].companyName }, status: "SIGNED", value: 120000, startDate: daysAgo(30), endDate: daysAgo(-150) },
+  { id: "co3", title: "عقد صيانة سنوي", clientId: "c3", client: { companyName: clients[2].companyName }, status: "PENDING", value: 24000, startDate: daysAgo(5), endDate: daysAgo(-360) },
+];
+
+const tickets = [
+  { id: "t1", subject: "طلب إضافة تقرير مبيعات جديد", clientId: "c1", client: { companyName: clients[0].companyName }, priority: "HIGH", status: "OPEN", createdAt: daysAgo(2), lastReplyAt: daysAgo(1) },
+  { id: "t2", subject: "استفسار حول صلاحيات المستخدمين", clientId: "c2", client: { companyName: clients[1].companyName }, priority: "MEDIUM", status: "IN_PROGRESS", createdAt: daysAgo(5), lastReplyAt: daysAgo(1) },
+  { id: "t3", subject: "بطء في تحميل لوحة التحكم", clientId: "c3", client: { companyName: clients[2].companyName }, priority: "HIGH", status: "RESOLVED", createdAt: daysAgo(10), lastReplyAt: daysAgo(3) },
+];
+
+const files = [
+  { id: "f1", name: "مواصفات-المشروع.pdf", size: 245000, mimeType: "application/pdf", clientId: "c1", projectId: "p1", uploadedAt: daysAgo(40), url: "#" },
+  { id: "f2", name: "تصاميم-الواجهات.zip", size: 1250000, mimeType: "application/zip", clientId: "c2", projectId: "p2", uploadedAt: daysAgo(25), url: "#" },
+  { id: "f3", name: "تقرير-التقدم.docx", size: 89000, mimeType: "application/vnd.openxmlformats", clientId: "c1", projectId: "p1", uploadedAt: daysAgo(10), url: "#" },
+];
+
+const users = [
+  { id: "u1", name: "المدير التجريبي", email: "admin@ashholding.sa", role: "SUPER_ADMIN", status: "ACTIVE", createdAt: daysAgo(365) },
+  { id: "u2", name: "منسق الدعم", email: "support@ashholding.sa", role: "SUPPORT", status: "ACTIVE", createdAt: daysAgo(180) },
+  { id: "u3", name: "المحاسب", email: "accounting@ashholding.sa", role: "ACCOUNTANT", status: "ACTIVE", createdAt: daysAgo(120) },
+];
+
+const services = [
+  { id: "s1", name: "تطوير مواقع", basePrice: 15000, active: true },
+  { id: "s2", name: "تطبيقات جوال", basePrice: 35000, active: true },
+  { id: "s3", name: "أنظمة إدارية", basePrice: 55000, active: true },
+  { id: "s4", name: "استضافة وسيرفرات", basePrice: 3000, active: true },
+];
+
+const notifications = [
+  { id: "n1", title: "فاتورة جديدة", message: "تم إصدار الفاتورة INV-2026-004", read: false, createdAt: daysAgo(1) },
+  { id: "n2", title: "تحديث المشروع", message: "تقدم مشروع 'منصة إدارة المخزون' إلى 65%", read: false, createdAt: daysAgo(3) },
+  { id: "n3", title: "تذكرة دعم", message: "تم الرد على تذكرتك #t1", read: true, createdAt: daysAgo(5) },
+];
+
+const auditLog = [
+  { id: "a1", actor: "admin@ashholding.sa", action: "LOGIN", target: "-", createdAt: daysAgo(0) },
+  { id: "a2", actor: "admin@ashholding.sa", action: "CREATE_INVOICE", target: "INV-2026-005", createdAt: daysAgo(1) },
+  { id: "a3", actor: "support@ashholding.sa", action: "REPLY_TICKET", target: "t1", createdAt: daysAgo(2) },
+  { id: "a4", actor: "admin@ashholding.sa", action: "UPDATE_PROJECT", target: "p1", createdAt: daysAgo(3) },
+];
+
+const adminStats = {
+  clients: { total: clients.length, active: clients.filter((c) => c.status === "ACTIVE").length },
+  projects: { total: projects.length, inProgress: projects.filter((p) => p.status === "IN_PROGRESS").length, completed: projects.filter((p) => p.status === "COMPLETED").length },
+  revenue: { total: invoices.filter((i) => i.status === "PAID").reduce((s, i) => s + i.amount, 0), pending: invoices.filter((i) => i.status !== "PAID").reduce((s, i) => s + i.amount, 0), currency: "SAR" },
+  tickets: { open: tickets.filter((t) => t.status !== "RESOLVED").length, resolved: tickets.filter((t) => t.status === "RESOLVED").length },
+  recentActivity: auditLog.slice(0, 5),
+  monthlyRevenue: [
+    { month: "يناير", value: 45000 },
+    { month: "فبراير", value: 62000 },
+    { month: "مارس", value: 78000 },
+    { month: "أبريل", value: 91000 },
+    { month: "مايو", value: 85000 },
+    { month: "يونيو", value: 105000 },
+  ],
+};
+
+const clientOverview = {
+  activeProjects: projects.filter((p) => p.clientId === "c1" && p.status === "IN_PROGRESS").length,
+  totalInvoices: invoices.filter((i) => i.clientId === "c1").length,
+  pendingInvoices: invoices.filter((i) => i.clientId === "c1" && i.status !== "PAID").length,
+  openTickets: tickets.filter((t) => t.clientId === "c1" && t.status !== "RESOLVED").length,
+  recentProjects: projects.filter((p) => p.clientId === "c1").slice(0, 3),
+  recentInvoices: invoices.filter((i) => i.clientId === "c1").slice(0, 3),
+};
+
+const settings = {
+  companyName: "ASH HOLDING - شركة علي صالح الشهري القابضة",
+  email: "info@ashholding.sa",
+  phone: "+966500000000",
+  currency: "SAR",
+  taxRate: 15,
+  invoicePrefix: "INV-2026-",
+  timezone: "Asia/Riyadh",
+};
+
+const handlers: Array<[RegExp, Handler]> = [
+  [/^\/admin\/stats$/, () => adminStats],
+  [/^\/admin\/clients$/, () => ({ items: clients, total: clients.length })],
+  [/^\/admin\/clients\/([^/]+)$/, (u) => {
+    const id = u.split("/").pop();
+    const c = clients.find((x) => x.id === id);
+    return c ? { ...c, projects: projects.filter((p) => p.clientId === id), invoices: invoices.filter((i) => i.clientId === id) } : null;
+  }],
+  [/^\/admin\/projects$/, () => ({ items: projects, total: projects.length })],
+  [/^\/admin\/invoices$/, () => ({ items: invoices, total: invoices.length })],
+  [/^\/admin\/support$/, () => ({ items: tickets, total: tickets.length })],
+  [/^\/admin\/audit-log$/, () => ({ items: auditLog, total: auditLog.length })],
+  [/^\/clients$/, () => ({ items: clients, total: clients.length })],
+  [/^\/clients\/me$/, () => clients[0]],
+  [/^\/clients\/me\/overview$/, () => clientOverview],
+  [/^\/projects$/, () => ({ items: projects, total: projects.length })],
+  [/^\/invoices$/, () => ({ items: invoices, total: invoices.length })],
+  [/^\/payments$/, () => ({ items: payments, total: payments.length })],
+  [/^\/contracts$/, () => ({ items: contracts, total: contracts.length })],
+  [/^\/support\/tickets$/, () => ({ items: tickets, total: tickets.length })],
+  [/^\/files$/, () => ({ items: files, total: files.length })],
+  [/^\/files\/upload$/, () => ({ id: `f${Date.now()}`, url: "#", uploadedAt: now() })],
+  [/^\/client\/projects$/, () => ({ items: projects.filter((p) => p.clientId === "c1"), total: 2 })],
+  [/^\/client\/files$/, () => ({ items: files.filter((f) => f.clientId === "c1"), total: 2 })],
+  [/^\/users$/, () => ({ items: users, total: users.length })],
+  [/^\/services$/, () => ({ items: services, total: services.length })],
+  [/^\/settings$/, () => settings],
+  [/^\/notifications$/, () => ({ items: notifications, total: notifications.length, unread: notifications.filter((n) => !n.read).length })],
+  [/^\/notifications\/read-all$/, () => ({ ok: true })],
+  [/^\/auth\/me$/, () => {
+    if (typeof window === "undefined") return null;
+    const raw = localStorage.getItem("ash_demo_user");
+    return raw ? { user: JSON.parse(raw) } : null;
+  }],
+];
+
+export function demoResolve(url: string, method: string, body?: unknown): unknown | undefined {
+  // normalize: strip baseURL prefix and query string
+  const path = url.replace(/^https?:\/\/[^/]+/, "").replace(/^\/api/, "").split("?")[0];
+  for (const [re, fn] of handlers) {
+    if (re.test(path)) {
+      const result = fn(path, method, body);
+      return result ?? { ok: true };
+    }
+  }
+  // Generic fallback for unknown GETs → empty list
+  if (method === "GET") return { items: [], total: 0 };
+  // Non-GETs succeed silently
+  return { ok: true };
+}
+
+export function isDemoMode(): boolean {
+  if (typeof window === "undefined") return false;
+  return localStorage.getItem("ash_demo_user") !== null;
+}
