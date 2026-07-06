@@ -17,36 +17,36 @@ import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AboutRouteImport } from './routes/about'
-import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
-import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated.client'
-import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
-import { Route as AuthenticatedClientIndexRouteImport } from './routes/_authenticated.client.index'
-import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
-import { Route as AuthenticatedClientSupportRouteImport } from './routes/_authenticated.client.support'
-import { Route as AuthenticatedClientServicesRouteImport } from './routes/_authenticated.client.services'
-import { Route as AuthenticatedClientProjectsRouteImport } from './routes/_authenticated.client.projects'
-import { Route as AuthenticatedClientProfileRouteImport } from './routes/_authenticated.client.profile'
-import { Route as AuthenticatedClientPaymentsRouteImport } from './routes/_authenticated.client.payments'
-import { Route as AuthenticatedClientNotificationsRouteImport } from './routes/_authenticated.client.notifications'
-import { Route as AuthenticatedClientInvoicesRouteImport } from './routes/_authenticated.client.invoices'
-import { Route as AuthenticatedClientFilesRouteImport } from './routes/_authenticated.client.files'
-import { Route as AuthenticatedClientContractsRouteImport } from './routes/_authenticated.client.contracts'
-import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
-import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated.admin.support'
-import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated.admin.settings'
-import { Route as AuthenticatedAdminServicesRouteImport } from './routes/_authenticated.admin.services'
-import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated.admin.reports'
-import { Route as AuthenticatedAdminProjectsRouteImport } from './routes/_authenticated.admin.projects'
-import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated.admin.payments'
-import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated.admin.invoices'
-import { Route as AuthenticatedAdminFilesRouteImport } from './routes/_authenticated.admin.files'
-import { Route as AuthenticatedAdminContractsRouteImport } from './routes/_authenticated.admin.contracts'
-import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authenticated.admin.audit-log'
-import { Route as AuthenticatedAdminClientsIndexRouteImport } from './routes/_authenticated.admin.clients.index'
-import { Route as AuthenticatedAdminClientsIdRouteImport } from './routes/_authenticated.admin.clients.$id'
+import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated/client'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
+import { Route as AuthenticatedClientIndexRouteImport } from './routes/_authenticated/client.index'
+import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedClientSupportRouteImport } from './routes/_authenticated/client.support'
+import { Route as AuthenticatedClientServicesRouteImport } from './routes/_authenticated/client.services'
+import { Route as AuthenticatedClientProjectsRouteImport } from './routes/_authenticated/client.projects'
+import { Route as AuthenticatedClientProfileRouteImport } from './routes/_authenticated/client.profile'
+import { Route as AuthenticatedClientPaymentsRouteImport } from './routes/_authenticated/client.payments'
+import { Route as AuthenticatedClientNotificationsRouteImport } from './routes/_authenticated/client.notifications'
+import { Route as AuthenticatedClientInvoicesRouteImport } from './routes/_authenticated/client.invoices'
+import { Route as AuthenticatedClientFilesRouteImport } from './routes/_authenticated/client.files'
+import { Route as AuthenticatedClientContractsRouteImport } from './routes/_authenticated/client.contracts'
+import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
+import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin.support'
+import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
+import { Route as AuthenticatedAdminServicesRouteImport } from './routes/_authenticated/admin.services'
+import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
+import { Route as AuthenticatedAdminProjectsRouteImport } from './routes/_authenticated/admin.projects'
+import { Route as AuthenticatedAdminPaymentsRouteImport } from './routes/_authenticated/admin.payments'
+import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authenticated/admin.invoices'
+import { Route as AuthenticatedAdminFilesRouteImport } from './routes/_authenticated/admin.files'
+import { Route as AuthenticatedAdminContractsRouteImport } from './routes/_authenticated/admin.contracts'
+import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authenticated/admin.audit-log'
+import { Route as AuthenticatedAdminClientsIndexRouteImport } from './routes/_authenticated/admin.clients.index'
+import { Route as AuthenticatedAdminClientsIdRouteImport } from './routes/_authenticated/admin.clients.$id'
 
 const WhyRoute = WhyRouteImport.update({
   id: '/why',
@@ -88,7 +88,7 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRoute = AuthenticatedRouteImport.update({
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
@@ -110,12 +110,12 @@ const ServicesSlugRoute = ServicesSlugRouteImport.update({
 const AuthenticatedClientRoute = AuthenticatedClientRouteImport.update({
   id: '/client',
   path: '/client',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
-  getParentRoute: () => AuthenticatedRoute,
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedClientIndexRoute =
   AuthenticatedClientIndexRouteImport.update({
@@ -338,7 +338,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
@@ -497,7 +497,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
@@ -572,7 +572,7 @@ declare module '@tanstack/react-router' {
       id: '/_authenticated'
       path: ''
       fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteImport
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -601,14 +601,14 @@ declare module '@tanstack/react-router' {
       path: '/client'
       fullPath: '/client'
       preLoaderRoute: typeof AuthenticatedClientRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRoute
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/client/': {
       id: '/_authenticated/client/'
@@ -847,23 +847,22 @@ const AuthenticatedClientRouteChildren: AuthenticatedClientRouteChildren = {
 const AuthenticatedClientRouteWithChildren =
   AuthenticatedClientRoute._addFileChildren(AuthenticatedClientRouteChildren)
 
-interface AuthenticatedRouteChildren {
+interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedClientRoute: typeof AuthenticatedClientRouteWithChildren
 }
 
-const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedClientRoute: AuthenticatedClientRouteWithChildren,
 }
 
-const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
-  AuthenticatedRouteChildren,
-)
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
