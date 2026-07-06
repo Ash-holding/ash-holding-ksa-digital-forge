@@ -43,14 +43,14 @@ const NAV: NavItem[] = [
   {
     label: "الخدمات",
     items: [
-      { icon: Code2, title: "تطوير المواقع والمنصات", desc: "مواقع تعريفية، بوابات أعمال، ومتاجر إلكترونية مخصصة.", href: "#services", tone: "blue" },
-      { icon: Smartphone, title: "تطبيقات الجوال", desc: "تطبيقات iOS و Android بتجربة استخدام متقدمة.", href: "#services", tone: "cyan" },
-      { icon: LayoutDashboard, title: "الأنظمة ولوحات التحكم", desc: "أنظمة إدارية، صلاحيات، تقارير، وفواتير.", href: "#services", tone: "indigo" },
-      { icon: Brain, title: "الذكاء الاصطناعي والأتمتة", desc: "حلول ذكية لتسريع التشغيل وتحسين الإنتاجية.", href: "#services", tone: "violet" },
-      { icon: Palette, title: "التصميم والهوية", desc: "UI/UX، هوية بصرية، وصفحات هبوط.", href: "#services", tone: "rose" },
-      { icon: GraduationCap, title: "خدمات الطلاب والأعمال", desc: "حلول تعليمية وخدمات رقمية مخصصة.", href: "#services", tone: "amber" },
-      { icon: Plug, title: "التكاملات البرمجية", desc: "ربط API، بوابات دفع، SMS، بريد، وأنظمة خارجية.", href: "#services", tone: "teal" },
-      { icon: Wrench, title: "الدعم والتشغيل", desc: "صيانة، تحديثات، مراقبة، وتحسين مستمر.", href: "#services", tone: "emerald" },
+      { icon: Code2, title: "تطوير المواقع والمنصات", desc: "مواقع تعريفية، بوابات أعمال، ومتاجر إلكترونية مخصصة.", href: "/services/web", tone: "blue" },
+      { icon: Smartphone, title: "تطبيقات الجوال", desc: "تطبيقات iOS و Android بتجربة استخدام متقدمة.", href: "/services/mobile", tone: "cyan" },
+      { icon: LayoutDashboard, title: "الأنظمة ولوحات التحكم", desc: "أنظمة إدارية، صلاحيات، تقارير، وفواتير.", href: "/services/systems", tone: "indigo" },
+      { icon: Brain, title: "الذكاء الاصطناعي والأتمتة", desc: "حلول ذكية لتسريع التشغيل وتحسين الإنتاجية.", href: "/services/ai", tone: "violet" },
+      { icon: Palette, title: "التصميم والهوية", desc: "UI/UX، هوية بصرية، وصفحات هبوط.", href: "/services/design", tone: "rose" },
+      { icon: GraduationCap, title: "خدمات الطلاب والأعمال", desc: "حلول تعليمية وخدمات رقمية مخصصة.", href: "/services/education", tone: "amber" },
+      { icon: Plug, title: "التكاملات البرمجية", desc: "ربط API، بوابات دفع، SMS، بريد، وأنظمة خارجية.", href: "/services/integrations", tone: "teal" },
+      { icon: Wrench, title: "الدعم والتشغيل", desc: "صيانة، تحديثات، مراقبة، وتحسين مستمر.", href: "/services/support-ops", tone: "emerald" },
     ],
   },
   {
