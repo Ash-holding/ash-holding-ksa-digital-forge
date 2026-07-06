@@ -113,7 +113,7 @@ function InfoCard({ icon: Icon, label, value }: { icon: any; label: string; valu
   );
 }
 
-function Row({ title, meta, badge, extra }: { title: string; meta?: string; badge?: string; extra?: React.ReactNode }) {
+function Row({ title, meta, badge, extra }: { title: React.ReactNode; meta?: string; badge?: string; extra?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card px-4 py-3 mb-2">
       <div className="min-w-0">
