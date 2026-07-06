@@ -40,30 +40,30 @@ export function MetricChip({
   const sparkData = (spark ?? []).map((v, i) => ({ i, v }));
   const gradId = `mc-${accent}-${label.replace(/\s+/g, "")}`;
   return (
-    <div className={cn("group relative overflow-hidden rounded-xl border border-border bg-card px-3 py-2.5", acc.glow)}>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-1.5 min-w-0">
-          <span className={cn("grid h-6 w-6 place-items-center rounded-md shrink-0", acc.chip)}>
-            <Icon className="h-3.5 w-3.5" />
-          </span>
-          <span className="text-[11px] text-muted-foreground truncate">{label}</span>
-        </div>
+    <div className={cn("group relative overflow-hidden rounded-xl border border-border bg-card p-3", acc.glow)}>
+      <div className="flex items-center gap-2 min-w-0">
+        <span className={cn("grid h-7 w-7 place-items-center rounded-lg shrink-0", acc.chip)}>
+          <Icon className="h-3.5 w-3.5" />
+        </span>
+        <span className="text-[11px] text-muted-foreground truncate flex-1">{label}</span>
+      </div>
+      <div className="mt-2 flex items-baseline gap-1.5 min-w-0">
+        <span className="text-lg md:text-xl font-black tracking-tight leading-none truncate flex-1">
+          {loading ? <span className="inline-block h-5 w-14 rounded bg-muted animate-pulse" /> : value}
+        </span>
         {typeof trend === "number" && !loading && (
           <span className={cn(
-            "inline-flex items-center gap-0.5 rounded px-1 py-0.5 text-[10px] font-bold shrink-0",
-            trend >= 0 ? "bg-emerald-500/10 text-emerald-400" : "bg-rose-500/10 text-rose-400",
+            "inline-flex items-center gap-0.5 text-[10px] font-bold shrink-0",
+            trend >= 0 ? "text-emerald-400" : "text-rose-400",
           )}>
             {trend >= 0 ? <TrendingUp className="h-2.5 w-2.5" /> : <TrendingDown className="h-2.5 w-2.5" />}
             {Math.abs(trend).toFixed(0)}%
           </span>
         )}
       </div>
-      <div className="mt-1.5 text-lg md:text-xl font-black tracking-tight leading-none whitespace-nowrap overflow-hidden text-ellipsis">
-        {loading ? <span className="inline-block h-5 w-14 rounded bg-muted animate-pulse" /> : value}
-      </div>
       {hint && <div className="mt-0.5 text-[10px] text-muted-foreground truncate">{hint}</div>}
       {sparkData.length > 0 && !loading && (
-        <div className="mt-1 h-7 -mx-3 -mb-2.5 opacity-80 group-hover:opacity-100 transition">
+        <div className="mt-1.5 h-8 -mx-3 -mb-3 opacity-80 group-hover:opacity-100 transition">
           <ResponsiveContainer>
             <AreaChart data={sparkData} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
               <defs>
