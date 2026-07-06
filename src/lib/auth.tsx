@@ -23,12 +23,33 @@ type Ctx = {
 
 const AuthContext = createContext<Ctx | null>(null);
 
+const DEMO_ACCOUNTS: Array<{ email: string; password: string; user: AuthUser }> = [
+  {
+    email: "admin@ashholding.sa",
+    password: "Admin@12345",
+    user: { id: "demo-admin", email: "admin@ashholding.sa", name: "المدير التجريبي", role: "SUPER_ADMIN" },
+  },
+  {
+    email: "client@demo.sa",
+    password: "Client@12345",
+    user: { id: "demo-client", email: "client@demo.sa", name: "عميل تجريبي", role: "CLIENT", client: { id: "demo-c1", companyName: "شركة تجريبية" } },
+  },
+];
+
+function demoLogin(email: string, password: string): AuthUser | null {
+  const match = DEMO_ACCOUNTS.find((a) => a.email.toLowerCase() === email.toLowerCase() && a.password === password);
+  return match ? match.user : null;
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
     if (!getAccessToken()) { setUser(null); setLoading(false); return; }
+    // Demo mode fallback
+    const demo = typeof window !== "undefined" ? localStorage.getItem("ash_demo_user") : null;
+    if (demo) { try { setUser(JSON.parse(demo)); } catch { setUser(null); } setLoading(false); return; }
     try {
       const { data } = await api.get("/auth/me");
       setUser(data.user);
@@ -49,11 +70,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setTokens(data.accessToken, data.refreshToken);
       setUser(data.user);
       return data.user as AuthUser;
-    } catch (e) { throw new Error(apiError(e)); }
+    } catch (e) {
+      // Demo fallback when backend is not deployed (preview mode)
+      const demo = demoLogin(email, password);
+      if (demo) {
+        setTokens("demo-access", "demo-refresh");
+        if (typeof window !== "undefined") localStorage.setItem("ash_demo_user", JSON.stringify(demo));
+        setUser(demo);
+        return demo;
+      }
+      throw new Error(apiError(e));
+    }
   }, []);
 
   const logout = useCallback(async () => {
     try { await api.post("/auth/logout", {}); } catch { /* ignore */ }
+    if (typeof window !== "undefined") localStorage.removeItem("ash_demo_user");
     setTokens(null, null);
     setUser(null);
   }, []);
