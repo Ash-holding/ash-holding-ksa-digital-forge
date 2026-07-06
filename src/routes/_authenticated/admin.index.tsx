@@ -264,7 +264,7 @@ function AlertPill({ type, message, link }: { type: string; message: string; lin
   );
 }
 
-function KpiTile({ icon: Icon, label, value, progress, sub, color }: { icon: any; label: string; value: string; progress?: number; sub?: string; color: "emerald" | "electric" | "rose" | "purple" }) {
+function KpiTile({ icon: Icon, label, value, progress, sub, color }: { icon: any; label: string; value: React.ReactNode; progress?: number; sub?: string; color: "emerald" | "electric" | "rose" | "purple" }) {
   const colors: Record<string, { bar: string; ring: string }> = {
     emerald: { bar: "bg-emerald-500", ring: "text-emerald-400 bg-emerald-500/10" },
     electric: { bar: "bg-electric", ring: "text-electric bg-electric/10" },

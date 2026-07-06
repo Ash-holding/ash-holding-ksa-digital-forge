@@ -248,7 +248,7 @@ function QuickAction({ icon: Icon, label, to, color }: { icon: any; label: strin
   );
 }
 
-function FinTile({ icon: Icon, label, value, progress, color }: { icon: any; label: string; value: string; progress?: number; color: "emerald" | "amber" | "rose" | "purple" }) {
+function FinTile({ icon: Icon, label, value, progress, color }: { icon: any; label: string; value: React.ReactNode; progress?: number; color: "emerald" | "amber" | "rose" | "purple" }) {
   const colors: Record<string, { chip: string; bar: string }> = {
     emerald: { chip: "bg-emerald-500/10 text-emerald-400", bar: "bg-emerald-500" },
     amber: { chip: "bg-amber-500/10 text-amber-400", bar: "bg-amber-500" },
