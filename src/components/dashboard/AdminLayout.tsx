@@ -235,7 +235,10 @@ export function PageHeader({
 }
 
 function buildCrumbs(pathname: string): Array<{ label: string; to?: string }> {
-  const item = ITEMS.find((i) => (i.exact ? pathname === i.to : pathname.startsWith(i.to)) && !i.exact);
+  const item = ITEMS.find((i) => {
+    const exact = (i as { exact?: boolean }).exact;
+    return exact ? pathname === i.to : pathname.startsWith(i.to) && !exact;
+  });
   const crumbs: Array<{ label: string; to?: string }> = [];
   if (item) {
     crumbs.push({ label: item.label, to: item.to });
