@@ -89,8 +89,8 @@ function OverviewPage() {
         </div>
       </motion.header>
 
-      {/* Row 1 — 6 MetricChips (Bento 12-col) */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3">
+      {/* Row 1 — 6 MetricChips: auto-reflow 2→3→4→6 cols with consistent gap */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2.5 sm:gap-3">
         <MetricChip icon={Wallet} label="إيرادات الشهر" value={<Money value={c?.monthRevenue ?? 0} />} loading={isLoading} accent="emerald" trend={t.revenue} spark={sp.revenue} />
         <MetricChip icon={Users} label="إجمالي العملاء" value={c?.clientsTotal ?? 0} loading={isLoading} accent="electric" trend={t.clients} spark={sp.clients} />
         <MetricChip icon={FolderKanban} label="مشاريع نشطة" value={c?.activeProjects ?? 0} loading={isLoading} accent="purple" trend={t.projects} spark={sp.projects} />
@@ -99,13 +99,14 @@ function OverviewPage() {
         <MetricChip icon={LifeBuoy} label="تذاكر مفتوحة" value={c?.openTickets ?? 0} loading={isLoading} accent="rose" trend={t.tickets} spark={sp.tickets} />
       </div>
 
-      {/* Row 2 — KPI mini-strip: 4 more MetricChips (same shell, no rings/rows) */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
+      {/* Row 2 — KPI mini-strip: 2→2→4 cols */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3">
         <MetricChip icon={Trophy} label="معدل التحصيل" value={`${k?.collectionsRate ?? 0}%`} accent="emerald" hint="من إجمالي الفواتير" loading={isLoading} />
         <MetricChip icon={Activity} label="تقدم المشاريع" value={`${k?.avgProjectProgress ?? 0}%`} accent="electric" hint={`${c?.activeProjects ?? 0} مشروع نشط`} loading={isLoading} />
         <MetricChip icon={AlertTriangle} label="مبالغ متأخرة" value={<Money value={k?.overdueAmount ?? 0} />} accent="rose" hint="بحاجة متابعة" loading={isLoading} />
         <MetricChip icon={Trophy} label="عقود فعالة" value={<Money value={k?.activeContractsValue ?? 0} />} accent="purple" hint={`متوسط رد ${k?.avgTicketResponseHours ?? 0} س`} loading={isLoading} />
       </div>
+
 
       {/* Row 3 — Revenue chart (8) + Project statuses donut (4) */}
       <div className="grid gap-4 xl:grid-cols-12">
