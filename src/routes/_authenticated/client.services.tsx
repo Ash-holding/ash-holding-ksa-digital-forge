@@ -5,7 +5,8 @@ import { Boxes } from "lucide-react";
 import { api } from "@/lib/api";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { formatSAR, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 const TYPE_AR: Record<string, string> = { WEBSITE:"موقع", MOBILE_APP:"تطبيق", ADMIN_SYSTEM:"نظام", HOSTING:"استضافة", VPS:"VPS", DEDICATED_SERVER:"سيرفر", SMTP:"SMTP", MARKETING:"تسويق", DESIGN:"تصميم", SUPPORT:"دعم", OTHER:"أخرى" };
 
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/client/services")({
       { key: "name", header: "الخدمة", render: (r) => <div className="font-semibold">{r.name}</div> },
       { key: "type", header: "النوع", render: (r) => TYPE_AR[r.type] || r.type },
       { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
-      { key: "price", header: "السعر", render: (r) => r.price ? formatSAR(r.price) : "—" },
+      { key: "price", header: "السعر", render: (r) => r.price ? <Money value={r.price} /> : "—" },
       { key: "renewal", header: "التجديد", render: (r) => formatDate(r.renewalDate), hideOnMobile: true },
     ];
     return (

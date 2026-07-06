@@ -12,7 +12,8 @@ import { FormSheet } from "@/components/dashboard/FormSheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatSAR, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 export const Route = createFileRoute("/_authenticated/admin/invoices")({
   component: InvoicesPage,
@@ -51,7 +52,7 @@ function InvoicesPage() {
     { key: "number", header: "الرقم", render: (r) => <span dir="ltr" className="font-mono text-sm">{r.invoiceNumber}</span> },
     { key: "client", header: "العميل", render: (r) => r.client.user.name },
     { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
-    { key: "total", header: "الإجمالي", render: (r) => <span className="font-bold">{formatSAR(r.total)}</span> },
+    { key: "total", header: "الإجمالي", render: (r) => <Money value={r.total} className="font-bold" /> },
     { key: "due", header: "الاستحقاق", render: (r) => formatDate(r.dueAt), hideOnMobile: true },
     { key: "actions", header: "", render: (r) => (
       <div className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
@@ -121,9 +122,9 @@ function InvoicesPage() {
           </div>
 
           <div className="rounded-xl bg-muted/40 p-3 text-sm space-y-1">
-            <div className="flex justify-between"><span className="text-muted-foreground">المجموع الفرعي</span><span>{formatSAR(subtotal)}</span></div>
-            <div className="flex justify-between"><span className="text-muted-foreground">الضريبة ({taxRate}%)</span><span>{formatSAR(tax)}</span></div>
-            <div className="flex justify-between font-bold text-base pt-2 border-t border-border"><span>الإجمالي</span><span>{formatSAR(total)}</span></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">المجموع الفرعي</span><Money value={subtotal} /></div>
+            <div className="flex justify-between"><span className="text-muted-foreground">الضريبة ({taxRate}%)</span><Money value={tax} /></div>
+            <div className="flex justify-between font-bold text-base pt-2 border-t border-border"><span>الإجمالي</span><Money value={total} /></div>
           </div>
         </div>
       </FormSheet>

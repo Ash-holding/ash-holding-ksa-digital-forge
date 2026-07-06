@@ -14,7 +14,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
-import { formatSAR, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 export const Route = createFileRoute("/_authenticated/admin/projects")({
   component: ProjectsPage,
@@ -62,7 +63,7 @@ function ProjectsPage() {
         <div className="text-[10px] text-muted-foreground mt-1">{r.progress}%</div>
       </div>
     ) },
-    { key: "budget", header: "الميزانية", render: (r) => r.budget ? formatSAR(r.budget) : "—", hideOnMobile: true },
+    { key: "budget", header: "الميزانية", render: (r) => r.budget ? <Money value={r.budget} /> : "—", hideOnMobile: true },
     { key: "due", header: "الاستحقاق", render: (r) => formatDate(r.dueDate), hideOnMobile: true },
     { key: "actions", header: "", render: (r) => (
       <div onClick={(e) => e.stopPropagation()}>

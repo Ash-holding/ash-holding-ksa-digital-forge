@@ -6,7 +6,8 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Progress } from "@/components/ui/progress";
-import { formatSAR, formatDate, fromNow } from "@/lib/format";
+import { formatDate, fromNow } from "@/lib/format";
+import { Money, moneyText } from "@/components/ui/money";
 import {
   Users, FolderKanban, FileText, ScrollText, LifeBuoy, Wallet,
   LayoutDashboard, AlertTriangle, AlertCircle, Info, ArrowUpRight,
@@ -54,7 +55,7 @@ function OverviewPage() {
 
       {/* Stats grid with sparklines */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <StatCard icon={Wallet} label="إيرادات الشهر" value={formatSAR(c?.monthRevenue ?? 0)} loading={isLoading} accent="emerald" trend={t.revenue} spark={sp.revenue} />
+        <StatCard icon={Wallet} label="إيرادات الشهر" value={<Money value={c?.monthRevenue ?? 0} />} loading={isLoading} accent="emerald" trend={t.revenue} spark={sp.revenue} />
         <StatCard icon={Users} label="إجمالي العملاء" value={c?.clientsTotal ?? 0} loading={isLoading} accent="electric" trend={t.clients} spark={sp.clients} />
         <StatCard icon={FolderKanban} label="مشاريع نشطة" value={c?.activeProjects ?? 0} loading={isLoading} accent="purple" trend={t.projects} spark={sp.projects} />
         <StatCard icon={FileText} label="فواتير غير مدفوعة" value={c?.unpaidInvoices ?? 0} loading={isLoading} accent="amber" trend={t.invoices} spark={sp.invoices} />
@@ -66,8 +67,8 @@ function OverviewPage() {
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiTile icon={Target} label="معدل التحصيل" value={`${k?.collectionsRate ?? 0}%`} progress={k?.collectionsRate ?? 0} color="emerald" />
         <KpiTile icon={TrendingUp} label="متوسط تقدم المشاريع" value={`${k?.avgProjectProgress ?? 0}%`} progress={k?.avgProjectProgress ?? 0} color="electric" />
-        <KpiTile icon={AlertTriangle} label="مبالغ متأخرة" value={formatSAR(k?.overdueAmount ?? 0)} sub={`${data?.invoiceStatuses?.find((s: any) => s.status === "متأخرة")?.count ?? 0} فاتورة`} color="rose" />
-        <KpiTile icon={Trophy} label="قيمة العقود الفعالة" value={formatSAR(k?.activeContractsValue ?? 0)} sub={`متوسط استجابة ${k?.avgTicketResponseHours ?? 0} س`} color="purple" />
+        <KpiTile icon={AlertTriangle} label="مبالغ متأخرة" value={<Money value={k?.overdueAmount ?? 0} />} sub={`${data?.invoiceStatuses?.find((s: any) => s.status === "متأخرة")?.count ?? 0} فاتورة`} color="rose" />
+        <KpiTile icon={Trophy} label="قيمة العقود الفعالة" value={<Money value={k?.activeContractsValue ?? 0} />} sub={`متوسط استجابة ${k?.avgTicketResponseHours ?? 0} س`} color="purple" />
       </div>
 
       {/* Charts row 1 */}
@@ -96,7 +97,7 @@ function OverviewPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} reversed />
                 <YAxis stroke="#94a3b8" fontSize={11} orientation="right" tickFormatter={(v) => `${v / 1000}k`} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatSAR(v)} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => moneyText(v)} />
                 <Area type="monotone" dataKey="total" name="فعلي" stroke="#3b82f6" strokeWidth={2.5} fill="url(#revFill)" />
                 <Line type="monotone" dataKey="target" name="مستهدف" stroke="#a855f7" strokeWidth={2} strokeDasharray="4 4" dot={false} />
               </ComposedChart>
@@ -140,7 +141,7 @@ function OverviewPage() {
                       <span className="font-semibold">{s.status}</span>
                       <span className="text-muted-foreground">({s.count})</span>
                     </span>
-                    <span className="font-bold">{formatSAR(s.total)}</span>
+                    <Money value={s.total} className="font-bold" />
                   </div>
                   <div className="h-2 rounded-full bg-muted/40 overflow-hidden">
                     <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, background: PIE_COLORS[i % PIE_COLORS.length] }} />
@@ -162,7 +163,7 @@ function OverviewPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" horizontal={false} />
                 <XAxis type="number" stroke="#94a3b8" fontSize={11} tickFormatter={(v) => `${v / 1000}k`} />
                 <YAxis type="category" dataKey="name" stroke="#94a3b8" fontSize={11} width={140} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatSAR(v)} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => moneyText(v)} />
                 <Bar dataKey="revenue" fill="#3b82f6" radius={[0, 6, 6, 0]} />
               </BarChart>
             </ResponsiveContainer>
@@ -225,7 +226,7 @@ function OverviewPage() {
                 <div className="text-[11px] text-muted-foreground truncate">{iv.client?.user?.name}</div>
               </div>
               <div className="text-left shrink-0">
-                <div className="text-sm font-bold">{formatSAR(iv.total)}</div>
+                <Money value={iv.total} className="text-sm font-bold" />
                 <StatusBadge value={iv.status} />
               </div>
             </div>
@@ -263,7 +264,7 @@ function AlertPill({ type, message, link }: { type: string; message: string; lin
   );
 }
 
-function KpiTile({ icon: Icon, label, value, progress, sub, color }: { icon: any; label: string; value: string; progress?: number; sub?: string; color: "emerald" | "electric" | "rose" | "purple" }) {
+function KpiTile({ icon: Icon, label, value, progress, sub, color }: { icon: any; label: string; value: React.ReactNode; progress?: number; sub?: string; color: "emerald" | "electric" | "rose" | "purple" }) {
   const colors: Record<string, { bar: string; ring: string }> = {
     emerald: { bar: "bg-emerald-500", ring: "text-emerald-400 bg-emerald-500/10" },
     electric: { bar: "bg-electric", ring: "text-electric bg-electric/10" },

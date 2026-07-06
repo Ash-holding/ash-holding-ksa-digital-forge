@@ -12,7 +12,8 @@ import { FormSheet } from "@/components/dashboard/FormSheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatSAR, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 export const Route = createFileRoute("/_authenticated/admin/services")({
   component: ServicesPage,
@@ -50,7 +51,7 @@ function ServicesPage() {
     ) },
     { key: "type", header: "النوع", render: (r) => <span className="text-sm">{TYPE_AR[r.type] || r.type}</span> },
     { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
-    { key: "price", header: "السعر", render: (r) => r.price ? formatSAR(r.price) : "—" },
+    { key: "price", header: "السعر", render: (r) => r.price ? <Money value={r.price} /> : "—" },
     { key: "renewal", header: "التجديد", render: (r) => formatDate(r.renewalDate), hideOnMobile: true },
     { key: "actions", header: "", render: (r) => (
       <div onClick={(e) => e.stopPropagation()}>

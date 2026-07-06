@@ -7,7 +7,8 @@ import { api } from "@/lib/api";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Button } from "@/components/ui/button";
-import { formatSAR, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 export const Route = createFileRoute("/_authenticated/client/invoices")({
   component: () => {
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/client/invoices")({
     const columns: Column<any>[] = [
       { key: "num", header: "الرقم", render: (r) => <span dir="ltr" className="font-mono text-sm">{r.invoiceNumber}</span> },
       { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
-      { key: "total", header: "الإجمالي", render: (r) => <span className="font-bold">{formatSAR(r.total)}</span> },
+      { key: "total", header: "الإجمالي", render: (r) => <Money value={r.total} className="font-bold" /> },
       { key: "due", header: "الاستحقاق", render: (r) => formatDate(r.dueAt), hideOnMobile: true },
       { key: "actions", header: "", render: (r) => (
         <Button size="sm" variant="ghost" onClick={(e) => { e.stopPropagation(); toast.info("قريباً — بوابة الدفع"); }}

@@ -6,7 +6,7 @@ import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Users, FolderKanban, FileText, Wallet } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, LineChart, Line } from "recharts";
-import { formatSAR } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   component: ReportsPage,
@@ -22,7 +22,7 @@ function ReportsPage() {
         <StatCard icon={Users} label="إجمالي العملاء" value={c?.clientsTotal ?? 0} loading={isLoading} accent="electric" />
         <StatCard icon={FolderKanban} label="مشاريع نشطة" value={c?.activeProjects ?? 0} loading={isLoading} accent="purple" />
         <StatCard icon={FileText} label="فواتير غير مدفوعة" value={c?.unpaidInvoices ?? 0} loading={isLoading} accent="amber" />
-        <StatCard icon={Wallet} label="إيرادات الشهر" value={formatSAR(c?.monthRevenue ?? 0)} loading={isLoading} accent="emerald" />
+        <StatCard icon={Wallet} label="إيرادات الشهر" value={<Money value={c?.monthRevenue ?? 0} />} loading={isLoading} accent="emerald" />
       </div>
       <div className="grid gap-4 lg:grid-cols-2">
         <div className="rounded-2xl border border-border bg-card p-5">
