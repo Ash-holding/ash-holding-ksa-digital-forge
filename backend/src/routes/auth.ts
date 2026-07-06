@@ -2,8 +2,14 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
-import { signToken } from "../lib/jwt.js";
+import {
+  signAccessToken,
+  generateRefreshToken,
+  hashRefreshToken,
+} from "../lib/jwt.js";
 import { requireAuth } from "../middleware/auth.js";
+import { authLimiter } from "../middleware/rate-limit.js";
+import { logAudit } from "../lib/audit.js";
 
 export const authRouter = Router();
 
@@ -11,72 +17,88 @@ const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6),
 });
-
-const registerSchema = z.object({
-  name: z.string().min(2),
-  email: z.string().email(),
-  password: z.string().min(8),
-  phone: z.string().optional(),
-  companyName: z.string().optional(),
+const refreshSchema = z.object({
+  refreshToken: z.string().min(20),
 });
 
-authRouter.post("/register", async (req, res) => {
-  const parsed = registerSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "Invalid input", details: parsed.error.flatten() });
-
-  const exists = await prisma.user.findUnique({ where: { email: parsed.data.email } });
-  if (exists) return res.status(409).json({ error: "Email already registered" });
-
-  const passwordHash = await bcrypt.hash(parsed.data.password, 10);
-  const user = await prisma.user.create({
+async function issueTokens(req: import("express").Request, user: { id: string; role: import("@prisma/client").UserRole; email: string }) {
+  const access = signAccessToken({ sub: user.id, role: user.role, email: user.email });
+  const { token: refresh, hash, expiresAt } = generateRefreshToken();
+  await prisma.refreshToken.create({
     data: {
-      email: parsed.data.email,
-      name: parsed.data.name,
-      phone: parsed.data.phone,
-      passwordHash,
-      role: "CLIENT",
-      client: { create: { companyName: parsed.data.companyName, country: "SA" } },
+      userId: user.id,
+      tokenHash: hash,
+      expiresAt,
+      userAgent: req.headers["user-agent"] || null,
+      ipAddress: (req.headers["x-forwarded-for"] as string) || req.ip || null,
     },
   });
+  return { accessToken: access, refreshToken: refresh };
+}
 
-  const token = signToken({ sub: user.id, role: user.role, email: user.email });
-  res.status(201).json({ token, user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+authRouter.post("/login", authLimiter, async (req, res, next) => {
+  try {
+    const { email, password } = loginSchema.parse(req.body);
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user || user.status !== "ACTIVE") return res.status(401).json({ error: "بيانات الدخول غير صحيحة" });
+    const ok = await bcrypt.compare(password, user.passwordHash);
+    if (!ok) return res.status(401).json({ error: "بيانات الدخول غير صحيحة" });
+
+    await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+    const tokens = await issueTokens(req, user);
+    await logAudit(req, "auth.login", "User", user.id);
+    return res.json({
+      ...tokens,
+      user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: user.avatarUrl },
+    });
+  } catch (e) { next(e); }
 });
 
-authRouter.post("/login", async (req, res) => {
-  const parsed = loginSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "Invalid input" });
-
-  const user = await prisma.user.findUnique({ where: { email: parsed.data.email } });
-  if (!user || !user.isActive) return res.status(401).json({ error: "Invalid credentials" });
-
-  const ok = await bcrypt.compare(parsed.data.password, user.passwordHash);
-  if (!ok) return res.status(401).json({ error: "Invalid credentials" });
-
-  await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
-
-  const token = signToken({ sub: user.id, role: user.role, email: user.email });
-  res.cookie("ash_token", token, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 7 * 24 * 60 * 60 * 1000,
-  });
-  res.json({
-    token,
-    user: { id: user.id, email: user.email, name: user.name, role: user.role },
-  });
+authRouter.post("/refresh", async (req, res, next) => {
+  try {
+    const { refreshToken } = refreshSchema.parse(req.body);
+    const hash = hashRefreshToken(refreshToken);
+    const row = await prisma.refreshToken.findUnique({ where: { tokenHash: hash }, include: { user: true } });
+    if (!row || row.revokedAt || row.expiresAt < new Date() || !row.user || row.user.status !== "ACTIVE") {
+      return res.status(401).json({ error: "Refresh token غير صالح" });
+    }
+    // Rotate: revoke old, issue new
+    await prisma.refreshToken.update({ where: { id: row.id }, data: { revokedAt: new Date() } });
+    const tokens = await issueTokens(req, row.user);
+    return res.json(tokens);
+  } catch (e) { next(e); }
 });
 
-authRouter.post("/logout", (_req, res) => {
-  res.clearCookie("ash_token");
-  res.json({ ok: true });
+authRouter.post("/logout", requireAuth, async (req, res, next) => {
+  try {
+    const { refreshToken } = z.object({ refreshToken: z.string().optional() }).parse(req.body ?? {});
+    if (refreshToken) {
+      const hash = hashRefreshToken(refreshToken);
+      await prisma.refreshToken.updateMany({ where: { tokenHash: hash }, data: { revokedAt: new Date() } });
+    } else if (req.user) {
+      await prisma.refreshToken.updateMany({ where: { userId: req.user.sub, revokedAt: null }, data: { revokedAt: new Date() } });
+    }
+    await logAudit(req, "auth.logout", "User", req.user?.sub);
+    return res.json({ ok: true });
+  } catch (e) { next(e); }
 });
 
 authRouter.get("/me", requireAuth, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user!.sub },
-    select: { id: true, email: true, name: true, role: true, avatarUrl: true, phone: true },
+    select: {
+      id: true, email: true, name: true, role: true, phone: true, avatarUrl: true, status: true, lastLoginAt: true,
+      client: { select: { id: true, companyName: true, city: true } },
+    },
   });
   res.json({ user });
+});
+
+// Forgot password – placeholder (no email transport wired). Stores nothing; returns ok always.
+authRouter.post("/forgot-password", authLimiter, async (req, res) => {
+  const schema = z.object({ email: z.string().email() });
+  const parsed = schema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: "بريد غير صالح" });
+  // TODO: integrate mail service to send reset link
+  return res.json({ ok: true, message: "إذا كان البريد مسجلاً فسيصلك رابط إعادة التعيين." });
 });
