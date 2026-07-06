@@ -19,7 +19,7 @@ export function StatCard({
 }: {
   icon: LucideIcon;
   label: string;
-  value: React.ReactNode;
+  value: ReactNode;
   hint?: string;
   accent?: "electric" | "purple" | "cyan" | "amber" | "rose" | "emerald";
   loading?: boolean;
