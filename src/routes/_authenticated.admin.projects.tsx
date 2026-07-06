@@ -16,7 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { formatSAR, formatDate } from "@/lib/format";
 
-export const Route = createFileRoute("/_authenticated/admin/projects/")({
+export const Route = createFileRoute("/_authenticated/admin/projects")({
   component: ProjectsPage,
 });
 
