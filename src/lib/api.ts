@@ -1,4 +1,6 @@
-import axios, { AxiosError, type AxiosRequestConfig } from "axios";
+import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from "axios";
+import { demoResolve, isDemoMode } from "./demo-data";
+
 
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) || "/api";
 
