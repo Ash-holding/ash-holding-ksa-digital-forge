@@ -4,6 +4,7 @@ import { TrendingUp, TrendingDown } from "lucide-react";
 import type { ReactNode } from "react";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
+import { AutoFitText } from "@/components/ui/auto-fit-text";
 
 
 export function StatCard({
@@ -48,8 +49,12 @@ export function StatCard({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="text-xs text-muted-foreground">{label}</div>
-          <div className="mt-2 text-xl md:text-2xl font-black tracking-tight leading-tight break-words">
-            {loading ? <span className="inline-block h-6 w-16 rounded bg-muted animate-pulse" /> : value}
+          <div className="mt-2 font-black tracking-tight leading-tight">
+            {loading ? (
+              <span className="inline-block h-6 w-16 rounded bg-muted animate-pulse" />
+            ) : (
+              <AutoFitText min={14} max={28}>{value}</AutoFitText>
+            )}
           </div>
 
           <div className="mt-1 flex items-center gap-2 text-[11px]">
