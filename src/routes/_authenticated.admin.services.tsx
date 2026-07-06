@@ -1,0 +1,101 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Boxes, Plus, Trash2 } from "lucide-react";
+import { api, apiError } from "@/lib/api";
+import { PageHeader } from "@/components/dashboard/AdminLayout";
+import { DataTable, type Column } from "@/components/dashboard/DataTable";
+import { StatusBadge, statusLabel } from "@/components/dashboard/StatusBadge";
+import { ConfirmDialog } from "@/components/dashboard/ConfirmDialog";
+import { FormSheet } from "@/components/dashboard/FormSheet";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { formatSAR, formatDate } from "@/lib/format";
+
+export const Route = createFileRoute("/_authenticated/admin/services")({
+  component: ServicesPage,
+});
+
+const TYPES = ["WEBSITE","MOBILE_APP","ADMIN_SYSTEM","HOSTING","VPS","DEDICATED_SERVER","SMTP","MARKETING","DESIGN","SUPPORT","OTHER"];
+const TYPE_AR: Record<string, string> = { WEBSITE:"موقع إلكتروني", MOBILE_APP:"تطبيق جوال", ADMIN_SYSTEM:"نظام إداري", HOSTING:"استضافة", VPS:"VPS", DEDICATED_SERVER:"سيرفر مخصص", SMTP:"SMTP", MARKETING:"تسويق رقمي", DESIGN:"تصميم وهوية", SUPPORT:"دعم وصيانة", OTHER:"أخرى" };
+
+type Row = { id: string; name: string; type: string; status: string; price?: string | null; renewalDate?: string | null;
+  client: { user: { name: string } }; project?: { title: string } | null };
+
+function ServicesPage() {
+  const qc = useQueryClient();
+  const [page, setPage] = useState(1);
+  const [open, setOpen] = useState(false);
+  const list = useQuery({ queryKey: ["services", page], queryFn: async () => (await api.get("/services", { params: { page } })).data });
+  const clients = useQuery({ queryKey: ["clients-lite"], queryFn: async () => (await api.get("/clients", { params: { pageSize: 100 } })).data });
+  const del = useMutation({
+    mutationFn: (id: string) => api.delete(`/services/${id}`),
+    onSuccess: () => { toast.success("تم الحذف"); qc.invalidateQueries({ queryKey: ["services"] }); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const create = useMutation({
+    mutationFn: (d: Record<string, unknown>) => api.post("/services", d),
+    onSuccess: () => { toast.success("تمت الإضافة"); qc.invalidateQueries({ queryKey: ["services"] }); setOpen(false); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+
+  const columns: Column<Row>[] = [
+    { key: "name", header: "الخدمة", render: (r) => (
+      <div className="min-w-0">
+        <div className="font-semibold truncate">{r.name}</div>
+        <div className="text-[11px] text-muted-foreground truncate">{r.client.user.name}</div>
+      </div>
+    ) },
+    { key: "type", header: "النوع", render: (r) => <span className="text-sm">{TYPE_AR[r.type] || r.type}</span> },
+    { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
+    { key: "price", header: "السعر", render: (r) => r.price ? formatSAR(r.price) : "—" },
+    { key: "renewal", header: "التجديد", render: (r) => formatDate(r.renewalDate), hideOnMobile: true },
+    { key: "actions", header: "", render: (r) => (
+      <div onClick={(e) => e.stopPropagation()}>
+        <ConfirmDialog title="حذف الخدمة" onConfirm={async () => { await del.mutateAsync(r.id); }}
+          trigger={<Button size="sm" variant="ghost" className="text-rose-400 h-8 w-8 p-0"><Trash2 className="h-4 w-4" /></Button>} />
+      </div>
+    ) },
+  ];
+
+  return (
+    <>
+      <PageHeader icon={Boxes} title="الخدمات" description="خدمات العملاء الفعّالة والمنتهية وتواريخ التجديد."
+        actions={<Button onClick={() => setOpen(true)} className="gap-2"><Plus className="h-4 w-4" />إضافة خدمة</Button>}
+      />
+      <DataTable<Row> columns={columns} rows={list.data?.rows} loading={list.isLoading}
+        total={list.data?.total} page={page} pageSize={20} onPageChange={setPage} />
+      <FormSheet open={open} onOpenChange={setOpen} title="إضافة خدمة" submitText="حفظ"
+        onSubmit={async (e) => {
+          const fd = new FormData(e.currentTarget);
+          const raw = Object.fromEntries(fd.entries());
+          await create.mutateAsync({ ...raw, price: raw.price ? Number(raw.price) : undefined });
+        }}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5 sm:col-span-2"><Label>العميل *</Label>
+            <select name="clientId" required className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+              <option value="">اختر</option>
+              {clients.data?.rows?.map((c: any) => <option key={c.id} value={c.id}>{c.user.name}</option>)}
+            </select>
+          </div>
+          <div className="space-y-1.5 sm:col-span-2"><Label>اسم الخدمة *</Label><Input name="name" required /></div>
+          <div className="space-y-1.5"><Label>النوع</Label>
+            <select name="type" className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+              {TYPES.map((t) => <option key={t} value={t}>{TYPE_AR[t]}</option>)}
+            </select>
+          </div>
+          <div className="space-y-1.5"><Label>الحالة</Label>
+            <select name="status" className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+              {["ACTIVE","SUSPENDED","AWAITING_PAYMENT","EXPIRED"].map((s) => <option key={s} value={s}>{statusLabel(s)}</option>)}
+            </select>
+          </div>
+          <div className="space-y-1.5"><Label>السعر</Label><Input type="number" step="0.01" name="price" /></div>
+          <div className="space-y-1.5"><Label>تاريخ التجديد</Label><Input name="renewalDate" type="date" /></div>
+        </div>
+      </FormSheet>
+    </>
+  );
+}
