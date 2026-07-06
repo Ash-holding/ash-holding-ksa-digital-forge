@@ -216,7 +216,8 @@ const files: DemoFile[] = [
 // Users (staff) — matches admin.users.tsx: name, email, role, status, phone, lastLoginAt
 // ============================================================================
 
-const users = [
+type DemoStaff = { id: string; name: string; email: string; role: string; status: string; phone: string | null; lastLoginAt: string | null; createdAt: string; lastIpAddress: string | null };
+const users: DemoStaff[] = [
   { id: "u_admin1", name: "علي القحطاني", email: "admin@ashholding.sa", role: "SUPER_ADMIN", status: "ACTIVE", phone: "+966500000001", lastLoginAt: daysAgo(0), createdAt: daysAgo(365), lastIpAddress: "212.107.192.10" },
   { id: "u_admin2", name: "منسق الدعم", email: "support@ashholding.sa", role: "SUPPORT", status: "ACTIVE", phone: "+966500000002", lastLoginAt: daysAgo(0), createdAt: daysAgo(180), lastIpAddress: "94.98.14.55" },
   { id: "u_admin3", name: "المحاسب", email: "accounting@ashholding.sa", role: "ACCOUNTANT", status: "ACTIVE", phone: "+966500000003", lastLoginAt: daysAgo(1), createdAt: daysAgo(120), lastIpAddress: "188.55.100.20" },
