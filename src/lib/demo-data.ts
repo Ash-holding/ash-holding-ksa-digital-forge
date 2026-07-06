@@ -80,30 +80,194 @@ const auditLog = [
   { id: "a4", actor: "admin@ashholding.sa", action: "UPDATE_PROJECT", target: "p1", createdAt: daysAgo(3) },
 ];
 
+const monthNames = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو"];
+const revenueMonths = [
+  { month: "يناير", total: 45000, target: 60000, invoices: 4 },
+  { month: "فبراير", total: 62000, target: 65000, invoices: 5 },
+  { month: "مارس", total: 78000, target: 70000, invoices: 6 },
+  { month: "أبريل", total: 91000, target: 80000, invoices: 7 },
+  { month: "مايو", total: 85000, target: 90000, invoices: 6 },
+  { month: "يونيو", total: 105000, target: 95000, invoices: 8 },
+];
+
+const paidInvoices = invoices.filter((i) => i.status === "PAID");
+const pendingInvoicesArr = invoices.filter((i) => i.status === "PENDING");
+const overdueInvoicesArr = invoices.filter((i) => i.status === "OVERDUE");
+const monthRevenue = paidInvoices.reduce((s, i) => s + i.amount, 0);
+const overdueAmount = overdueInvoicesArr.reduce((s, i) => s + i.amount, 0);
+const activeContractsValue = contracts.filter((c) => c.status === "SIGNED").reduce((s, c) => s + c.value, 0);
+const avgProjectProgress = Math.round(projects.reduce((s, p) => s + p.progress, 0) / projects.length);
+const collectionsRate = Math.round((monthRevenue / (monthRevenue + overdueAmount + pendingInvoicesArr.reduce((s, i) => s + i.amount, 0))) * 100);
+
 const adminStats = {
-  clients: { total: clients.length, active: clients.filter((c) => c.status === "ACTIVE").length },
-  projects: { total: projects.length, inProgress: projects.filter((p) => p.status === "IN_PROGRESS").length, completed: projects.filter((p) => p.status === "COMPLETED").length },
-  revenue: { total: invoices.filter((i) => i.status === "PAID").reduce((s, i) => s + i.amount, 0), pending: invoices.filter((i) => i.status !== "PAID").reduce((s, i) => s + i.amount, 0), currency: "SAR" },
-  tickets: { open: tickets.filter((t) => t.status !== "RESOLVED").length, resolved: tickets.filter((t) => t.status === "RESOLVED").length },
-  recentActivity: auditLog.slice(0, 5),
-  monthlyRevenue: [
-    { month: "يناير", value: 45000 },
-    { month: "فبراير", value: 62000 },
-    { month: "مارس", value: 78000 },
-    { month: "أبريل", value: 91000 },
-    { month: "مايو", value: 85000 },
-    { month: "يونيو", value: 105000 },
+  cards: {
+    clientsTotal: clients.length,
+    activeProjects: projects.filter((p) => p.status === "IN_PROGRESS").length,
+    unpaidInvoices: pendingInvoicesArr.length + overdueInvoicesArr.length,
+    pendingContracts: contracts.filter((c) => c.status === "PENDING").length,
+    openTickets: tickets.filter((t) => t.status !== "RESOLVED").length,
+    monthRevenue,
+  },
+  trends: {
+    revenue: 12.4,
+    clients: 8.3,
+    projects: 4.2,
+    invoices: -3.1,
+    contracts: 0,
+    tickets: -18.5,
+  },
+  sparks: {
+    revenue: revenueMonths.map((m) => m.total),
+    clients: [1, 2, 2, 3, 3, 4],
+    projects: [1, 2, 2, 3, 4, 3],
+    invoices: [2, 3, 2, 4, 3, 2],
+    contracts: [0, 1, 1, 1, 2, 1],
+    tickets: [3, 2, 2, 1, 2, 1],
+  },
+  kpis: {
+    collectionsRate,
+    avgProjectProgress,
+    newClientsThisMonth: 2,
+    overdueAmount,
+    activeContractsValue,
+    avgTicketResponseHours: 4.2,
+  },
+  revenueMonths,
+  projectStatuses: [
+    { status: "قيد التنفيذ", count: projects.filter((p) => p.status === "IN_PROGRESS").length },
+    { status: "تخطيط", count: projects.filter((p) => p.status === "PLANNING").length },
+    { status: "مكتمل", count: projects.filter((p) => p.status === "COMPLETED").length },
   ],
+  invoiceStatuses: [
+    { status: "مدفوعة", count: paidInvoices.length, total: paidInvoices.reduce((s, i) => s + i.amount, 0) },
+    { status: "معلقة", count: pendingInvoicesArr.length, total: pendingInvoicesArr.reduce((s, i) => s + i.amount, 0) },
+    { status: "متأخرة", count: overdueInvoicesArr.length, total: overdueAmount },
+  ],
+  topClients: clients.map((c) => {
+    const clInv = invoices.filter((i) => i.clientId === c.id && i.status === "PAID");
+    const clProj = projects.filter((p) => p.clientId === c.id);
+    return {
+      id: c.id,
+      name: c.companyName,
+      revenue: clInv.reduce((s, i) => s + i.amount, 0),
+      projects: clProj.length,
+    };
+  }).sort((a, b) => b.revenue - a.revenue).slice(0, 5),
+  upcomingDeadlines: projects
+    .filter((p) => p.status !== "COMPLETED")
+    .map((p) => ({
+      id: p.id,
+      name: p.name,
+      client: p.client.companyName,
+      dueDate: p.dueDate,
+      progress: p.progress,
+      status: p.status,
+    }))
+    .slice(0, 5),
+  alerts: [
+    { type: "danger", message: `${overdueInvoicesArr.length} فاتورة متأخرة بقيمة ${overdueAmount.toLocaleString("ar-SA")} ريال`, link: "/admin/invoices" },
+    { type: "warning", message: `${contracts.filter((c) => c.status === "PENDING").length} عقد بانتظار التوقيع`, link: "/admin/contracts" },
+    { type: "info", message: `${tickets.filter((t) => t.status === "OPEN").length} تذكرة دعم جديدة تحتاج للمراجعة`, link: "/admin/support" },
+  ],
+  recentClients: clients.slice(0, 5).map((c) => ({
+    id: c.id,
+    companyName: c.companyName,
+    createdAt: c.createdAt,
+    user: { name: c.contactName, email: c.email },
+  })),
+  recentInvoices: invoices.slice(0, 5).map((i) => ({
+    id: i.id,
+    invoiceNumber: i.number,
+    total: i.amount,
+    status: i.status,
+    client: { user: { name: clients.find((c) => c.id === i.clientId)?.contactName ?? "—" } },
+  })),
+  recentTickets: tickets.slice(0, 5).map((t) => ({
+    id: t.id,
+    subject: t.subject,
+    status: t.status,
+    updatedAt: t.lastReplyAt,
+    client: { user: { name: clients.find((c) => c.id === t.clientId)?.contactName ?? "—" } },
+  })),
 };
 
+const clientProjects = projects.filter((p) => p.clientId === "c1");
+const clientInvoices = invoices.filter((i) => i.clientId === "c1");
+const clientTickets = tickets.filter((t) => t.clientId === "c1");
+const clientPaidTotal = clientInvoices.filter((i) => i.status === "PAID").reduce((s, i) => s + i.amount, 0);
+const clientPendingTotal = clientInvoices.filter((i) => i.status === "PENDING").reduce((s, i) => s + i.amount, 0);
+const clientOverdueTotal = clientInvoices.filter((i) => i.status === "OVERDUE").reduce((s, i) => s + i.amount, 0);
+
 const clientOverview = {
-  activeProjects: projects.filter((p) => p.clientId === "c1" && p.status === "IN_PROGRESS").length,
-  totalInvoices: invoices.filter((i) => i.clientId === "c1").length,
-  pendingInvoices: invoices.filter((i) => i.clientId === "c1" && i.status !== "PAID").length,
-  openTickets: tickets.filter((t) => t.clientId === "c1" && t.status !== "RESOLVED").length,
-  recentProjects: projects.filter((p) => p.clientId === "c1").slice(0, 3),
-  recentInvoices: invoices.filter((i) => i.clientId === "c1").slice(0, 3),
+  stats: {
+    activeProjects: clientProjects.filter((p) => p.status === "IN_PROGRESS").length,
+    activeServices: 3,
+    unpaidInvoices: clientInvoices.filter((i) => i.status !== "PAID").length,
+    pendingContracts: contracts.filter((c) => c.clientId === "c1" && c.status === "PENDING").length,
+    openTickets: clientTickets.filter((t) => t.status !== "RESOLVED").length,
+    unreadNotifications: notifications.filter((n) => !n.read).length,
+  },
+  trends: { projects: 25, invoices: -12.5, tickets: 0, notifications: 33.3 },
+  sparks: {
+    projects: [1, 1, 2, 2, 2, 2],
+    invoices: [1, 2, 2, 3, 2, 2],
+    tickets: [1, 0, 1, 1, 0, 1],
+    notifications: [1, 2, 1, 3, 2, 3],
+  },
+  kpis: {
+    totalSpent: clientPaidTotal,
+    pendingAmount: clientPendingTotal,
+    overdueAmount: clientOverdueTotal,
+    avgResponseHours: 3.5,
+    satisfactionScore: 92,
+    projectsCompleted: clientProjects.filter((p) => p.status === "COMPLETED").length,
+  },
+  spendingMonths: [
+    { month: monthNames[0], amount: 12000 },
+    { month: monthNames[1], amount: 8500 },
+    { month: monthNames[2], amount: 25000 },
+    { month: monthNames[3], amount: 15000 },
+    { month: monthNames[4], amount: 22000 },
+    { month: monthNames[5], amount: 30000 },
+  ],
+  projectProgress: clientProjects.map((p) => ({ id: p.id, name: p.name, progress: p.progress, status: p.status, dueDate: p.dueDate })),
+  invoiceBreakdown: [
+    { status: "مدفوعة", count: clientInvoices.filter((i) => i.status === "PAID").length, total: clientPaidTotal },
+    { status: "معلقة", count: clientInvoices.filter((i) => i.status === "PENDING").length, total: clientPendingTotal },
+    { status: "متأخرة", count: clientInvoices.filter((i) => i.status === "OVERDUE").length, total: clientOverdueTotal },
+  ],
+  upcomingPayments: clientInvoices
+    .filter((i) => i.status !== "PAID")
+    .map((i) => ({
+      id: i.id,
+      invoiceNumber: i.number,
+      amount: i.amount,
+      dueDate: i.dueDate,
+      daysLeft: Math.ceil((new Date(i.dueDate).getTime() - Date.now()) / 86400000),
+      status: i.status,
+    })),
+  recentActivity: [
+    { type: "invoice", message: "تم إصدار فاتورة INV-2026-003 بقيمة 30,000 ريال", time: daysAgo(1) },
+    { type: "project", message: "تحديث مشروع 'منصة إدارة المخزون' إلى 65%", time: daysAgo(3) },
+    { type: "ticket", message: "تم الرد على تذكرة الدعم #t1", time: daysAgo(5) },
+    { type: "contract", message: "تم توقيع عقد تطوير منصة المخزون", time: daysAgo(45) },
+  ],
+  recentProjects: clientProjects.slice(0, 4).map((p) => ({
+    id: p.id,
+    name: p.name,
+    status: p.status,
+    progress: p.progress,
+    updatedAt: p.startDate,
+  })),
+  recentFiles: files.filter((f) => f.clientId === "c1").slice(0, 4).map((f) => ({
+    id: f.id,
+    originalName: f.name,
+    size: f.size,
+    createdAt: f.uploadedAt,
+    path: f.url,
+  })),
 };
+
 
 const settings = {
   companyName: "ASH HOLDING - شركة علي صالح الشهري القابضة",
