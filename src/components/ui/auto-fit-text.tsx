@@ -30,14 +30,22 @@ export function AutoFitText({
     const inner = innerRef.current;
     if (!wrap || !inner) return;
 
-    const fit = () => {
+    let rafId = 0;
+    let lastWidth = 0;
+    let lastSize = -1;
+
+    const measure = () => {
+      rafId = 0;
       const available = wrap.clientWidth;
       if (!available) return;
-      // Start from max and shrink until it fits (or hits min).
+      // Skip work when nothing meaningful changed (sub-pixel jitter).
+      if (Math.abs(available - lastWidth) < 1) return;
+      lastWidth = available;
+
+      // Binary search the largest font-size that fits on one line.
       let lo = min;
       let hi = max;
       let best = min;
-      // Binary search font-size that fits.
       for (let i = 0; i < 8; i++) {
         const mid = (lo + hi) / 2;
         inner.style.fontSize = `${mid}px`;
@@ -48,13 +56,26 @@ export function AutoFitText({
           hi = mid;
         }
       }
-      setSize(Math.floor(best));
+      const next = Math.floor(best);
+      if (next !== lastSize) {
+        lastSize = next;
+        setSize(next);
+      }
     };
 
-    fit();
-    const ro = new ResizeObserver(fit);
+    // Debounce: coalesce bursts of ResizeObserver callbacks into one rAF tick.
+    const schedule = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(measure);
+    };
+
+    schedule();
+    const ro = new ResizeObserver(schedule);
     ro.observe(wrap);
-    return () => ro.disconnect();
+    return () => {
+      ro.disconnect();
+      if (rafId) window.cancelAnimationFrame(rafId);
+    };
   }, [children, min, max]);
 
   return (
