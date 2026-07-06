@@ -368,7 +368,7 @@ export function Services() {
     { icon: LayoutDashboard, title: "الأنظمة ولوحات التحكم", desc: "أنظمة إدارية مخصصة تربط عملياتك في مكان واحد.", color: "purple-accent", tags: ["ERP", "CRM", "Dashboards"] },
     { icon: Brain, title: "الذكاء الاصطناعي والأتمتة", desc: "حلول AI وأتمتة تسرّع أعمالك وتحسّن اتخاذ القرار.", color: "orange-accent", tags: ["AI Agents", "RAG", "Automation"] },
     { icon: Palette, title: "التصميم والهوية", desc: "هويات بصرية وواجهات UI/UX تنقل قيمة علامتك بوضوح.", color: "electric", tags: ["Branding", "UI/UX", "Design System"] },
-    { icon: GraduationCap, title: "خدمات الطلاب والأعمال", desc: "حلول متخصصة للطلاب ورواد الأعمال بأسعار مدروسة.", color: "cyan-accent", tags: ["MVP", "بحوث", "استشارات"] },
+    
     { icon: Wrench, title: "الدعم الفني والتشغيل", desc: "دعم مستمر وتشغيل موثوق بعد الإطلاق على مدار الساعة.", color: "purple-accent", tags: ["24/7", "SLA", "Monitoring"] },
     { icon: Plug, title: "التكاملات والربط البرمجي", desc: "ربط الأنظمة عبر APIs بأمان وكفاءة عالية.", color: "orange-accent", tags: ["REST", "GraphQL", "Webhooks"] },
   ];

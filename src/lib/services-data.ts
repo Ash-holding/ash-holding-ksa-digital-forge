@@ -184,38 +184,6 @@ export const SERVICES: ServiceItem[] = [
     ],
   },
   {
-    slug: "education",
-    icon: GraduationCap,
-    eyebrow: "خدمات الطلاب والأعمال",
-    title: "حلول تعليمية",
-    gradient: "ورقمية مخصصة",
-    tone: "amber",
-    tagline: "حلول تعليمية وخدمات رقمية مخصصة.",
-    description:
-      "نساعد الطلاب ورواد الأعمال على تحويل أفكارهم إلى مشاريع رقمية ناجحة، بدعم فني كامل وأسعار مناسبة.",
-    stats: [
-      { value: "+500", label: "مشروع طلابي" },
-      { value: "24h", label: "استجابة سريعة" },
-      { value: "MVP", label: "بأسعار خاصة" },
-      { value: "دعم", label: "طوال المشروع" },
-    ],
-    features: [
-      { icon: BookOpen, title: "مشاريع التخرج", desc: "دعم كامل من الفكرة للتسليم." },
-      { icon: Rocket, title: "MVP للشركات الناشئة", desc: "منتج أولي جاهز للسوق." },
-      { icon: Users, title: "ورش تدريبية", desc: "برمجة، تصميم، وإدارة مشاريع." },
-      { icon: PenTool, title: "أبحاث علمية", desc: "تنسيق ومساعدة أكاديمية." },
-      { icon: MessageSquare, title: "استشارات تقنية", desc: "توجيه من خبراء الصناعة." },
-      { icon: GitBranch, title: "توثيق فني", desc: "SRS و UML ومخططات كاملة." },
-    ],
-    stack: ["React", "Python", "Java", "Flutter", "SQL", "LaTeX"],
-    process: [
-      { t: "استماع", d: "فهم متطلباتك." },
-      { t: "خطة", d: "جدول زمني وميزانية." },
-      { t: "تنفيذ", d: "مع متابعة دورية." },
-      { t: "تسليم", d: "مع توثيق كامل." },
-    ],
-  },
-  {
     slug: "integrations",
     icon: Plug,
     eyebrow: "التكاملات البرمجية",

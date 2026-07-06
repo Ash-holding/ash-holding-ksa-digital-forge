@@ -48,7 +48,7 @@ const NAV: NavItem[] = [
       { icon: LayoutDashboard, title: "الأنظمة ولوحات التحكم", desc: "أنظمة إدارية، صلاحيات، تقارير، وفواتير.", href: "/services/systems", tone: "indigo" },
       { icon: Brain, title: "الذكاء الاصطناعي والأتمتة", desc: "حلول ذكية لتسريع التشغيل وتحسين الإنتاجية.", href: "/services/ai", tone: "violet" },
       { icon: Palette, title: "التصميم والهوية", desc: "UI/UX، هوية بصرية، وصفحات هبوط.", href: "/services/design", tone: "rose" },
-      { icon: GraduationCap, title: "خدمات الطلاب والأعمال", desc: "حلول تعليمية وخدمات رقمية مخصصة.", href: "/services/education", tone: "amber" },
+      
       { icon: Plug, title: "التكاملات البرمجية", desc: "ربط API، بوابات دفع، SMS، بريد، وأنظمة خارجية.", href: "/services/integrations", tone: "teal" },
       { icon: Wrench, title: "الدعم والتشغيل", desc: "صيانة، تحديثات، مراقبة، وتحسين مستمر.", href: "/services/support-ops", tone: "emerald" },
     ],
