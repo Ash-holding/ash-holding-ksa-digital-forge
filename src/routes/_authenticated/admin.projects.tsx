@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -10,9 +10,13 @@ import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { ConfirmDialog } from "@/components/dashboard/ConfirmDialog";
+import { FormSheet } from "@/components/dashboard/FormSheet";
 import { AdminStatsRow } from "@/components/admin/AdminStatsRow";
 import { FilterChips } from "@/components/admin/FilterChips";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { formatDate } from "@/lib/format";
 import { Money } from "@/components/ui/money";
@@ -26,36 +30,37 @@ type Row = {
   budget?: string | null; dueDate?: string | null;
   client: { id: string; user: { name: string; email: string } };
 };
-
-type Stats = {
-  total: number; active: number; completed: number; onHold: number; overdue: number;
-  avgProgress: number; totalBudget: number;
-};
+type Stats = { total: number; active: number; completed: number; onHold: number; overdue: number; avgProgress: number; totalBudget: number };
 
 function ProjectsPage() {
   const qc = useQueryClient();
-  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<string | null>(null);
+  const [open, setOpen] = useState(false);
 
   const list = useQuery({
     queryKey: ["projects", { page, q, status }],
     queryFn: async () => (await api.get("/projects", { params: { page, pageSize: 20, q, status } })).data,
-    refetchInterval: 15000,
-    refetchOnWindowFocus: true,
+    refetchInterval: 15000, refetchOnWindowFocus: true,
+  });
+  const clients = useQuery({
+    queryKey: ["clients-lite"],
+    queryFn: async () => (await api.get("/clients", { params: { pageSize: 100 } })).data,
   });
 
   const stats = list.data?.stats as Stats | undefined;
   const rows = (list.data?.rows ?? []) as Row[];
-  const filtered = useMemo(
-    () => (status ? rows.filter((r) => r.status === status) : rows),
-    [rows, status],
-  );
+  const filtered = useMemo(() => (status ? rows.filter((r) => r.status === status) : rows), [rows, status]);
 
   const del = useMutation({
     mutationFn: (id: string) => api.delete(`/projects/${id}`),
     onSuccess: () => { toast.success("تم الحذف"); qc.invalidateQueries({ queryKey: ["projects"] }); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+  const create = useMutation({
+    mutationFn: (data: Record<string, unknown>) => api.post("/projects", data),
+    onSuccess: () => { toast.success("تم إنشاء المشروع"); qc.invalidateQueries({ queryKey: ["projects"] }); setOpen(false); },
     onError: (e) => toast.error(apiError(e)),
   });
 
@@ -89,12 +94,8 @@ function ProjectsPage() {
     <>
       <PageHeader
         icon={FolderKanban} title="المشاريع"
-        description="متابعة جميع مشاريع العملاء، حالتها ونسب الإنجاز."
-        actions={
-          <Button onClick={() => navigate({ to: "/admin/projects" })} className="gap-2">
-            <Plus className="h-4 w-4" />مشروع جديد
-          </Button>
-        }
+        description="متابعة جميع مشاريع العملاء، حالتها ونسب الإنجاز — يتحدث تلقائياً كل 15 ثانية."
+        actions={<Button onClick={() => setOpen(true)} className="gap-2"><Plus className="h-4 w-4" />مشروع جديد</Button>}
       />
 
       <AdminStatsRow
@@ -110,16 +111,15 @@ function ProjectsPage() {
       />
 
       <FilterChips
-        value={status}
-        onChange={setStatus}
+        value={status} onChange={setStatus}
         chips={[
-          { key: "", label: "الكل" },
+          { key: "", label: "الكل", count: stats?.total },
           { key: "PLANNING", label: "تخطيط" },
           { key: "DESIGN", label: "تصميم" },
           { key: "DEVELOPMENT", label: "تطوير" },
           { key: "TESTING", label: "اختبار" },
-          { key: "COMPLETED", label: "مكتمل" },
-          { key: "ON_HOLD", label: "متوقف" },
+          { key: "COMPLETED", label: "مكتمل", count: stats?.completed },
+          { key: "ON_HOLD", label: "متوقف", count: stats?.onHold },
         ]}
       />
 
@@ -129,6 +129,40 @@ function ProjectsPage() {
         onSearchChange={(v) => { setQ(v); setPage(1); }}
         emptyTitle="لا توجد مشاريع بعد"
       />
+
+      <FormSheet open={open} onOpenChange={setOpen} title="مشروع جديد" submitText="إنشاء"
+        onSubmit={async (e) => {
+          const fd = new FormData(e.currentTarget);
+          const raw = Object.fromEntries(fd.entries());
+          await create.mutateAsync({
+            ...raw, progress: Number(raw.progress || 0),
+            budget: raw.budget ? Number(raw.budget) : undefined,
+          });
+        }}
+      >
+        <div className="space-y-3">
+          <div className="space-y-1.5"><Label>العميل *</Label>
+            <select name="clientId" required className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+              <option value="">اختر العميل</option>
+              {(clients.data?.rows ?? []).map((c: { id: string; user: { name: string; email: string }; companyName?: string | null }) => (
+                <option key={c.id} value={c.id}>{c.user.name} — {c.companyName || c.user.email}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-1.5"><Label>عنوان المشروع *</Label><Input name="title" required /></div>
+          <div className="space-y-1.5"><Label>الوصف</Label><Textarea name="description" rows={3} /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5"><Label>الحالة</Label>
+              <select name="status" className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
+                {["NEW","PLANNING","DESIGN","DEVELOPMENT","WAITING_CLIENT","TESTING","COMPLETED","ON_HOLD"].map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5"><Label>التقدم %</Label><Input name="progress" type="number" min={0} max={100} defaultValue={0} /></div>
+            <div className="space-y-1.5"><Label>الميزانية (﷼)</Label><Input name="budget" type="number" step="0.01" /></div>
+            <div className="space-y-1.5"><Label>تاريخ الاستحقاق</Label><Input name="dueDate" type="date" /></div>
+          </div>
+        </div>
+      </FormSheet>
     </>
   );
 }
