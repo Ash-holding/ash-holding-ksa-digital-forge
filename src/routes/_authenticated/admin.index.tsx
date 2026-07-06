@@ -45,6 +45,59 @@ function Panel({
   );
 }
 
+/** Reusable skeleton primitives — match rendered heights to avoid layout shift. */
+function ChartSkeleton() {
+  return (
+    <div className="h-full w-full rounded-lg bg-gradient-to-t from-muted/30 to-muted/10 animate-pulse flex items-end gap-1.5 p-2">
+      {[40, 65, 50, 80, 55, 70, 90, 60, 75, 85, 65, 95].map((h, i) => (
+        <div key={i} className="flex-1 rounded-t bg-muted/40" style={{ height: `${h}%` }} />
+      ))}
+    </div>
+  );
+}
+function LineSkeleton() {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <div className="h-2.5 flex-1 rounded bg-muted/40 animate-pulse" />
+      <div className="h-2.5 w-8 rounded bg-muted/40 animate-pulse" />
+    </div>
+  );
+}
+function BarSkeleton() {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="h-2.5 w-24 rounded bg-muted/40 animate-pulse" />
+        <div className="h-2.5 w-14 rounded bg-muted/40 animate-pulse" />
+      </div>
+      <div className="h-1.5 rounded-full bg-muted/40 animate-pulse" />
+    </div>
+  );
+}
+function RowSkeleton() {
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 items-center rounded-lg bg-muted/20 px-2.5 py-2">
+      <div className="space-y-1.5">
+        <div className="h-3 w-2/3 rounded bg-muted/40 animate-pulse" />
+        <div className="h-2.5 w-1/2 rounded bg-muted/40 animate-pulse" />
+      </div>
+      <div className="h-5 w-14 rounded bg-muted/40 animate-pulse" />
+    </div>
+  );
+}
+function ActivitySkeleton() {
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className="h-7 w-7 rounded-lg bg-muted/40 animate-pulse shrink-0" />
+      <div className="flex-1 space-y-1.5">
+        <div className="h-3 w-2/3 rounded bg-muted/40 animate-pulse" />
+        <div className="h-2.5 w-1/2 rounded bg-muted/40 animate-pulse" />
+      </div>
+      <div className="h-2.5 w-10 rounded bg-muted/40 animate-pulse shrink-0" />
+    </div>
+  );
+}
+
 function OverviewPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "stats"],
@@ -121,6 +174,9 @@ function OverviewPage() {
           }
         >
           <div className="h-56 md:h-64">
+            {isLoading ? (
+              <ChartSkeleton />
+            ) : (
             <ResponsiveContainer>
               <ComposedChart data={data?.revenueMonths ?? []} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                 <defs>
@@ -137,7 +193,9 @@ function OverviewPage() {
                 <Line type="monotone" dataKey="target" name="مستهدف" stroke="#a855f7" strokeWidth={2} strokeDasharray="4 4" dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
+            )}
           </div>
+
         </Panel>
 
         <Panel
@@ -147,6 +205,9 @@ function OverviewPage() {
         >
           <div className="flex items-center gap-3 h-full">
             <div className="h-40 w-40 shrink-0">
+              {isLoading ? (
+                <div className="h-40 w-40 rounded-full border-[14px] border-muted/40 animate-pulse" />
+              ) : (
               <ResponsiveContainer>
                 <PieChart>
                   <Pie data={data?.projectStatuses ?? []} dataKey="count" nameKey="status" innerRadius={42} outerRadius={72} paddingAngle={2} strokeWidth={0}>
@@ -157,9 +218,12 @@ function OverviewPage() {
                   <Tooltip contentStyle={tooltipStyle} />
                 </PieChart>
               </ResponsiveContainer>
+              )}
             </div>
             <div className="flex-1 space-y-1.5 min-w-0">
-              {(data?.projectStatuses ?? []).slice(0, 6).map((s: any, i: number) => (
+              {isLoading
+                ? Array.from({ length: 5 }).map((_, i) => <LineSkeleton key={i} />)
+                : (data?.projectStatuses ?? []).slice(0, 6).map((s: any, i: number) => (
                 <div key={s.status} className="flex items-center justify-between gap-2 text-[11px]">
                   <span className="inline-flex items-center gap-1.5 min-w-0">
                     <span className="h-1.5 w-1.5 rounded-full shrink-0" style={{ background: PIE_COLORS[i % PIE_COLORS.length] }} />
@@ -170,6 +234,7 @@ function OverviewPage() {
               ))}
             </div>
           </div>
+
         </Panel>
       </div>
 
@@ -177,7 +242,9 @@ function OverviewPage() {
       <div className="grid gap-4 xl:grid-cols-12">
         <Panel className="xl:col-span-6" title="حالة الفواتير">
           <div className="space-y-2.5">
-            {(data?.invoiceStatuses ?? []).map((s: any, i: number) => {
+            {isLoading
+              ? Array.from({ length: 4 }).map((_, i) => <BarSkeleton key={i} />)
+              : (data?.invoiceStatuses ?? []).map((s: any, i: number) => {
               const total = (data?.invoiceStatuses ?? []).reduce((sum: number, x: any) => sum + x.count, 0) || 1;
               const pct = Math.round((s.count / total) * 100);
               return (
@@ -199,6 +266,7 @@ function OverviewPage() {
           </div>
         </Panel>
 
+
         <Panel
           className="xl:col-span-6"
           title="أعلى العملاء"
@@ -207,7 +275,9 @@ function OverviewPage() {
           action={<Link to="/admin/clients" className="text-[10px] text-electric hover:underline">الكل ←</Link>}
         >
           <div className="space-y-2">
-            {(data?.topClients ?? []).slice(0, 5).map((cl: any, i: number) => {
+            {isLoading
+              ? Array.from({ length: 5 }).map((_, i) => <BarSkeleton key={i} />)
+              : (data?.topClients ?? []).slice(0, 5).map((cl: any, i: number) => {
               const max = Math.max(...(data?.topClients ?? []).map((x: any) => x.revenue), 1);
               const pct = (cl.revenue / max) * 100;
               return (
@@ -229,6 +299,7 @@ function OverviewPage() {
               <div className="text-[11px] text-muted-foreground text-center py-4">لا توجد بيانات</div>
             )}
           </div>
+
         </Panel>
       </div>
 
@@ -242,10 +313,11 @@ function OverviewPage() {
           action={<Link to="/admin/projects" className="text-[10px] text-electric hover:underline">كل المشاريع ←</Link>}
         >
           <div className="space-y-1.5">
-            {(data?.upcomingDeadlines ?? []).length === 0 && !isLoading && (
+            {isLoading && Array.from({ length: 5 }).map((_, i) => <RowSkeleton key={i} />)}
+            {!isLoading && (data?.upcomingDeadlines ?? []).length === 0 && (
               <div className="text-[11px] text-muted-foreground text-center py-4">لا توجد مواعيد قادمة</div>
             )}
-            {(data?.upcomingDeadlines ?? []).slice(0, 5).map((p: any) => (
+            {!isLoading && (data?.upcomingDeadlines ?? []).slice(0, 5).map((p: any) => (
               <div key={p.id} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_auto_auto] gap-2 items-center rounded-lg bg-muted/20 px-2.5 py-2 hover:bg-muted/40 transition">
                 <div className="min-w-0">
                   <div className="text-[12px] font-bold truncate">{p.name}</div>
@@ -262,11 +334,14 @@ function OverviewPage() {
               </div>
             ))}
           </div>
+
         </Panel>
 
         <Panel className="xl:col-span-5" title="آخر النشاطات" icon={Activity} iconColor="text-purple-accent">
           <div className="space-y-2">
-            {[
+            {isLoading && Array.from({ length: 6 }).map((_, i) => <ActivitySkeleton key={i} />)}
+            {!isLoading && [
+
               ...(data?.recentClients ?? []).slice(0, 2).map((cl: any) => ({ label: cl.user?.name, sub: cl.companyName || cl.user?.email, time: cl.createdAt, icon: Users, color: "electric" })),
               ...(data?.recentInvoices ?? []).slice(0, 2).map((iv: any) => ({ label: iv.invoiceNumber, sub: iv.client?.user?.name, time: iv.createdAt, icon: FileText, color: "amber", extra: <Money value={iv.total} className="text-[11px] font-bold" /> })),
               ...(data?.recentTickets ?? []).slice(0, 2).map((tk: any) => ({ label: tk.subject, sub: tk.client?.user?.name, time: tk.updatedAt, icon: LifeBuoy, color: "rose" })),
