@@ -160,20 +160,90 @@ export function AdminLayout({ children }: { children: ReactNode }) {
 }
 
 export function PageHeader({
-  title, description, actions, icon: Icon,
-}: { title: string; description?: string; actions?: ReactNode; icon?: React.ComponentType<{ className?: string }> }) {
+  title, description, actions, icon: Icon, badge,
+}: {
+  title: string;
+  description?: string;
+  actions?: ReactNode;
+  icon?: React.ComponentType<{ className?: string }>;
+  badge?: ReactNode;
+}) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const crumbs = buildCrumbs(pathname);
+
   return (
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-      <div className="min-w-0">
-        <h1 className="text-xl md:text-2xl font-black tracking-tight flex items-center gap-2">
-          {Icon && <Icon className="h-5 w-5 text-electric" />}
-          {title}
-        </h1>
-        {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+    <div className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-card/80 via-card/50 to-card/30 backdrop-blur-xl shadow-[0_1px_0_0_hsl(var(--border))] ring-1 ring-white/[0.02]">
+      {/* decorative gradient blobs */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 opacity-60">
+        <div className="absolute -top-16 -left-10 h-40 w-40 rounded-full bg-electric/20 blur-3xl" />
+        <div className="absolute -bottom-20 -right-10 h-48 w-48 rounded-full bg-purple-500/15 blur-3xl" />
+        <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-electric/40 to-transparent" />
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+
+      <div className="relative p-4 md:p-5">
+        {/* Breadcrumb */}
+        {crumbs.length > 0 && (
+          <nav aria-label="breadcrumb" className="mb-3 flex items-center gap-1.5 text-[11px] text-muted-foreground/80">
+            <Link to="/admin" className="hover:text-electric transition-colors">لوحة الإدارة</Link>
+            {crumbs.map((c, i) => (
+              <span key={i} className="flex items-center gap-1.5">
+                <span className="text-muted-foreground/40">/</span>
+                <span className={i === crumbs.length - 1 ? "text-foreground/80 font-medium" : ""}>{c.label}</span>
+              </span>
+            ))}
+          </nav>
+        )}
+
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:gap-4">
+          <div className="flex min-w-0 items-center gap-3 md:gap-4">
+            {Icon && (
+              <div className="relative shrink-0">
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-electric/40 to-purple-500/40 blur-lg opacity-70" />
+                <div className="relative grid h-11 w-11 md:h-12 md:w-12 place-items-center rounded-2xl bg-gradient-to-br from-electric to-purple-500 text-white shadow-lg shadow-electric/20 ring-1 ring-white/20">
+                  <Icon className="h-5 w-5 md:h-6 md:w-6" />
+                </div>
+                <span className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-background animate-pulse" />
+              </div>
+            )}
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 min-w-0">
+                <h1 className="truncate text-lg sm:text-xl md:text-2xl font-black tracking-tight bg-gradient-to-l from-foreground via-foreground to-foreground/70 bg-clip-text text-transparent">
+                  {title}
+                </h1>
+                {badge}
+              </div>
+              {description && (
+                <p className="mt-0.5 text-xs sm:text-sm text-muted-foreground line-clamp-2">{description}</p>
+              )}
+            </div>
+          </div>
+          {actions && (
+            <div className="hidden md:flex flex-wrap items-center justify-end gap-2 shrink-0">{actions}</div>
+          )}
+        </div>
+
+        {actions && (
+          <div className="md:hidden mt-3 flex flex-wrap items-center gap-2">{actions}</div>
+        )}
+      </div>
     </div>
   );
+}
+
+function buildCrumbs(pathname: string): Array<{ label: string; to?: string }> {
+  const item = ITEMS.find((i) => {
+    const exact = (i as { exact?: boolean }).exact;
+    return exact ? pathname === i.to : pathname.startsWith(i.to) && !exact;
+  });
+  const crumbs: Array<{ label: string; to?: string }> = [];
+  if (item) {
+    crumbs.push({ label: item.label, to: item.to });
+    const rest = pathname.slice(item.to.length).split("/").filter(Boolean);
+    if (rest[0] === "new") crumbs.push({ label: "جديد" });
+    else if (rest[0] && rest[1] === "edit") crumbs.push({ label: "تعديل" });
+    else if (rest[0]) crumbs.push({ label: "تفاصيل" });
+  }
+  return crumbs;
 }
 
 // Re-export unused imports to satisfy linter noise
