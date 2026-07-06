@@ -194,3 +194,69 @@ clientsRouter.delete("/:id", requireAdmin, async (req, res, next) => {
     res.json({ ok: true });
   } catch (e) { next(e); }
 });
+
+// Admin: verify client identity
+clientsRouter.post("/:id/verify", requireAdmin, async (req, res, next) => {
+  try {
+    const { note } = z.object({ note: z.string().optional() }).parse(req.body ?? {});
+    const client = await prisma.client.update({
+      where: { id: req.params.id },
+      data: {
+        verificationStatus: "VERIFIED",
+        verifiedAt: new Date(),
+        verifiedById: req.user!.sub,
+        verificationNote: note ?? null,
+      },
+    });
+    await logAudit(req, "client.verify", "Client", client.id);
+    res.json({ client });
+  } catch (e) { next(e); }
+});
+
+// Admin: unverify / reject
+clientsRouter.post("/:id/unverify", requireAdmin, async (req, res, next) => {
+  try {
+    const { reject, note } = z.object({
+      reject: z.boolean().optional(),
+      note: z.string().optional(),
+    }).parse(req.body ?? {});
+    const client = await prisma.client.update({
+      where: { id: req.params.id },
+      data: {
+        verificationStatus: reject ? "REJECTED" : "UNVERIFIED",
+        verifiedAt: null,
+        verifiedById: null,
+        verificationNote: note ?? null,
+      },
+    });
+    await logAudit(req, "client.unverify", "Client", client.id);
+    res.json({ client });
+  } catch (e) { next(e); }
+});
+
+// Admin: refresh geo from stored IP (or new IP)
+clientsRouter.post("/:id/refresh-geo", requireAdmin, async (req, res, next) => {
+  try {
+    const body = z.object({ ip: z.string().optional() }).parse(req.body ?? {});
+    const existing = await prisma.client.findUnique({ where: { id: req.params.id } });
+    if (!existing) return res.status(404).json({ error: "غير موجود" });
+    const ip = normalizeIp(body.ip || existing.lastIpAddress);
+    if (!ip) return res.status(400).json({ error: "لا يوجد عنوان IP صالح" });
+    const geo = await lookupIp(ip);
+    if (!geo) return res.status(502).json({ error: "تعذّر جلب بيانات الموقع" });
+    const client = await prisma.client.update({
+      where: { id: req.params.id },
+      data: {
+        lastIpAddress: ip,
+        lastIpCountry: geo.countryCode,
+        lastIpCity: geo.city,
+        lastIpRegion: geo.region,
+        lat: geo.lat ?? undefined,
+        lng: geo.lng ?? undefined,
+      },
+    });
+    await logAudit(req, "client.refresh-geo", "Client", client.id);
+    res.json({ client });
+  } catch (e) { next(e); }
+});
+
