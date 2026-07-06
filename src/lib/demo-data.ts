@@ -165,7 +165,7 @@ const adminStats = {
     }))
     .slice(0, 5),
   alerts: [
-    { type: "danger", message: `${overdueInvoicesArr.length} فاتورة متأخرة بقيمة ${overdueAmount.toLocaleString("ar-SA")} ريال`, link: "/admin/invoices" },
+    { type: "danger", message: `${overdueInvoicesArr.length} فاتورة متأخرة بقيمة ${overdueAmount.toLocaleString("en-US")} ريال`, link: "/admin/invoices" },
     { type: "warning", message: `${contracts.filter((c) => c.status === "PENDING").length} عقد بانتظار التوقيع`, link: "/admin/contracts" },
     { type: "info", message: `${tickets.filter((t) => t.status === "OPEN").length} تذكرة دعم جديدة تحتاج للمراجعة`, link: "/admin/support" },
   ],
