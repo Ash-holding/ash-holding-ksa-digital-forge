@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { verifyToken, type JwtPayload } from "../lib/jwt.js";
+import { verifyAccessToken, type JwtPayload } from "../lib/jwt.js";
 import type { UserRole } from "@prisma/client";
 
 declare global {
@@ -17,10 +17,10 @@ export function requireAuth(req: Request, res: Response, next: NextFunction) {
   const token = bearer || req.cookies?.["ash_token"];
   if (!token) return res.status(401).json({ error: "Unauthorized" });
   try {
-    req.user = verifyToken(token);
+    req.user = verifyAccessToken(token);
     next();
   } catch {
-    return res.status(401).json({ error: "Invalid token" });
+    return res.status(401).json({ error: "Invalid or expired token" });
   }
 }
 
@@ -31,3 +31,7 @@ export function requireRole(...roles: UserRole[]) {
     next();
   };
 }
+
+// Staff = anyone except CLIENT
+export const requireStaff = requireRole("SUPER_ADMIN", "ADMIN", "SUPPORT", "ACCOUNTANT");
+export const requireAdmin = requireRole("SUPER_ADMIN", "ADMIN");

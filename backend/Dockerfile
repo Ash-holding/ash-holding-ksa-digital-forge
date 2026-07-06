@@ -1,26 +1,26 @@
-FROM node:20-alpine AS base
+# Deps
+FROM node:20-alpine AS deps
 WORKDIR /app
-RUN apk add --no-cache openssl
+COPY package.json package-lock.json* ./
+RUN npm ci || npm install
 
-# Dependencies
-COPY package.json ./
-RUN npm install --no-audit --no-fund
-
-# Source
-COPY tsconfig.json ./
-COPY prisma ./prisma
-COPY src ./src
-
+# Build
+FROM node:20-alpine AS build
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
 RUN npx prisma generate
 RUN npm run build
 
 # Runtime
+FROM node:20-alpine
+WORKDIR /app
 ENV NODE_ENV=production
-ENV PORT=4000
-ENV UPLOAD_DIR=/data/uploads
-
-RUN mkdir -p /data/uploads
-VOLUME ["/data/uploads"]
-
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=build /app/dist ./dist
+COPY --from=build /app/prisma ./prisma
+COPY package.json ./
+RUN mkdir -p /app/uploads
 EXPOSE 4000
+# Run migrations then start
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/server.js"]

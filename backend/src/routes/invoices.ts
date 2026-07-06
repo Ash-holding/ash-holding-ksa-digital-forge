@@ -1,114 +1,139 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
-import { requireAuth, requireRole } from "../middleware/auth.js";
-import { currentClientId, isStaff } from "../lib/scope.js";
+import { requireAuth, requireStaff } from "../middleware/auth.js";
+import { currentClientId, isStaff, paging } from "../lib/scope.js";
+import { logAudit } from "../lib/audit.js";
 
 export const invoicesRouter = Router();
 invoicesRouter.use(requireAuth);
 
+const INVOICE_STATUSES = ["DRAFT", "UNPAID", "PAID", "OVERDUE", "CANCELLED"] as const;
+
 const itemSchema = z.object({
-  description: z.string(),
-  quantity: z.number().int().min(1).default(1),
+  title: z.string().min(1),
+  description: z.string().optional().nullable(),
+  quantity: z.number().int().positive(),
   unitPrice: z.number().nonnegative(),
 });
-const createSchema = z.object({
+
+const invoiceSchema = z.object({
   clientId: z.string(),
-  projectId: z.string().optional(),
-  invoiceNumber: z.string().optional(),
-  status: z.enum(["DRAFT", "SENT", "PAID", "OVERDUE", "CANCELLED"]).optional(),
-  currency: z.string().default("SAR"),
-  vatRate: z.number().min(0).max(1).default(0.15),
-  dueAt: z.string().datetime().optional(),
-  notes: z.string().optional(),
+  projectId: z.string().optional().nullable(),
+  discount: z.number().nonnegative().default(0),
+  taxRate: z.number().min(0).max(100).default(15),
+  dueAt: z.coerce.date().optional().nullable(),
+  notes: z.string().optional().nullable(),
   items: z.array(itemSchema).min(1),
 });
 
-function nextInvoiceNumber() {
+async function nextInvoiceNumber(): Promise<string> {
   const y = new Date().getFullYear();
-  const rand = Math.floor(Math.random() * 900000 + 100000);
-  return `INV-${y}-${rand}`;
+  const count = await prisma.invoice.count({ where: { invoiceNumber: { startsWith: `INV-${y}-` } } });
+  return `INV-${y}-${String(count + 1).padStart(4, "0")}`;
 }
 
-invoicesRouter.get("/", async (req, res) => {
-  const where = isStaff(req) ? {} : { clientId: (await currentClientId(req)) ?? "__none__" };
-  const invoices = await prisma.invoice.findMany({
-    where,
-    include: { items: true, client: { include: { user: { select: { name: true } } } } },
-    orderBy: { issuedAt: "desc" },
-  });
-  res.json({ invoices });
+function computeTotals(items: { quantity: number; unitPrice: number }[], discount: number, taxRate: number) {
+  const subtotal = items.reduce((s, i) => s + i.quantity * i.unitPrice, 0);
+  const taxable = Math.max(0, subtotal - discount);
+  const taxAmount = +(taxable * (taxRate / 100)).toFixed(2);
+  const total = +(taxable + taxAmount).toFixed(2);
+  return { subtotal: +subtotal.toFixed(2), taxAmount, total };
+}
+
+invoicesRouter.get("/", async (req, res, next) => {
+  try {
+    const { skip, take, page, pageSize } = paging(req);
+    let where: import("@prisma/client").Prisma.InvoiceWhereInput = {};
+    if (!isStaff(req)) {
+      const cid = await currentClientId(req);
+      if (!cid) return res.json({ rows: [], total: 0, page, pageSize });
+      where.clientId = cid;
+    } else if (req.query.clientId) where.clientId = req.query.clientId as string;
+    if (req.query.status) where.status = req.query.status as never;
+
+    const [rows, total] = await Promise.all([
+      prisma.invoice.findMany({
+        where,
+        include: { client: { include: { user: { select: { name: true, email: true } } } }, project: { select: { title: true } } },
+        orderBy: { createdAt: "desc" }, skip, take,
+      }),
+      prisma.invoice.count({ where }),
+    ]);
+    res.json({ rows, total, page, pageSize });
+  } catch (e) { next(e); }
 });
 
-invoicesRouter.get("/:id", async (req, res) => {
-  const invoice = await prisma.invoice.findUnique({
-    where: { id: req.params.id },
-    include: { items: true, client: true, payments: true },
-  });
-  if (!invoice) return res.status(404).json({ error: "Not found" });
-  if (!isStaff(req)) {
-    const clientId = await currentClientId(req);
-    if (invoice.clientId !== clientId) return res.status(403).json({ error: "Forbidden" });
-  }
-  res.json({ invoice });
-});
-
-invoicesRouter.post("/", requireRole("ADMIN", "ACCOUNTANT"), async (req, res) => {
-  const parsed = createSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "Invalid input", details: parsed.error.flatten() });
-
-  const subtotal = parsed.data.items.reduce((s, it) => s + it.unitPrice * it.quantity, 0);
-  const vatAmount = +(subtotal * parsed.data.vatRate).toFixed(2);
-  const total = +(subtotal + vatAmount).toFixed(2);
-
-  const invoice = await prisma.invoice.create({
-    data: {
-      invoiceNumber: parsed.data.invoiceNumber ?? nextInvoiceNumber(),
-      clientId: parsed.data.clientId,
-      projectId: parsed.data.projectId,
-      status: parsed.data.status ?? "DRAFT",
-      currency: parsed.data.currency,
-      subtotal,
-      vatAmount,
-      total,
-      dueAt: parsed.data.dueAt ? new Date(parsed.data.dueAt) : undefined,
-      notes: parsed.data.notes,
-      items: {
-        create: parsed.data.items.map((it) => ({
-          description: it.description,
-          quantity: it.quantity,
-          unitPrice: it.unitPrice,
-          total: +(it.unitPrice * it.quantity).toFixed(2),
-        })),
+invoicesRouter.get("/:id", async (req, res, next) => {
+  try {
+    const inv = await prisma.invoice.findUnique({
+      where: { id: req.params.id },
+      include: {
+        items: true, payments: true,
+        client: { include: { user: { select: { name: true, email: true, phone: true } } } },
+        project: { select: { id: true, title: true } },
       },
-    },
-    include: { items: true },
-  });
-  res.status(201).json({ invoice });
+    });
+    if (!inv) return res.status(404).json({ error: "غير موجود" });
+    if (!isStaff(req)) {
+      const cid = await currentClientId(req);
+      if (inv.clientId !== cid) return res.status(403).json({ error: "Forbidden" });
+    }
+    res.json({ invoice: inv });
+  } catch (e) { next(e); }
 });
 
-invoicesRouter.patch("/:id", requireRole("ADMIN", "ACCOUNTANT"), async (req, res) => {
-  const patch = z
-    .object({
-      status: z.enum(["DRAFT", "SENT", "PAID", "OVERDUE", "CANCELLED"]).optional(),
-      dueAt: z.string().datetime().optional(),
-      paidAt: z.string().datetime().optional(),
-      notes: z.string().optional(),
-    })
-    .safeParse(req.body);
-  if (!patch.success) return res.status(400).json({ error: "Invalid input" });
-  const invoice = await prisma.invoice.update({
-    where: { id: req.params.id },
-    data: {
-      ...patch.data,
-      dueAt: patch.data.dueAt ? new Date(patch.data.dueAt) : undefined,
-      paidAt: patch.data.paidAt ? new Date(patch.data.paidAt) : undefined,
-    },
-  });
-  res.json({ invoice });
+invoicesRouter.post("/", requireStaff, async (req, res, next) => {
+  try {
+    const data = invoiceSchema.parse(req.body);
+    const totals = computeTotals(data.items, data.discount, data.taxRate);
+    const invoice = await prisma.invoice.create({
+      data: {
+        invoiceNumber: await nextInvoiceNumber(),
+        clientId: data.clientId,
+        projectId: data.projectId || null,
+        discount: data.discount, taxRate: data.taxRate,
+        subtotal: totals.subtotal, taxAmount: totals.taxAmount, total: totals.total,
+        dueAt: data.dueAt || null, notes: data.notes || null,
+        items: { create: data.items.map((i) => ({ ...i, total: +(i.quantity * i.unitPrice).toFixed(2) })) },
+      },
+      include: { items: true },
+    });
+    await logAudit(req, "invoice.create", "Invoice", invoice.id);
+    res.status(201).json({ invoice });
+  } catch (e) { next(e); }
 });
 
-invoicesRouter.delete("/:id", requireRole("ADMIN"), async (req, res) => {
-  await prisma.invoice.delete({ where: { id: req.params.id } });
-  res.json({ ok: true });
+invoicesRouter.patch("/:id", requireStaff, async (req, res, next) => {
+  try {
+    const body = z.object({
+      status: z.enum(INVOICE_STATUSES).optional(),
+      notes: z.string().optional().nullable(),
+      dueAt: z.coerce.date().optional().nullable(),
+      paidAt: z.coerce.date().optional().nullable(),
+    }).parse(req.body);
+    if (body.status === "PAID" && !body.paidAt) body.paidAt = new Date();
+    const updated = await prisma.invoice.update({ where: { id: req.params.id }, data: body });
+    await logAudit(req, "invoice.update", "Invoice", updated.id, body as never);
+    res.json({ invoice: updated });
+  } catch (e) { next(e); }
+});
+
+invoicesRouter.post("/:id/mark-paid", requireStaff, async (req, res, next) => {
+  try {
+    const inv = await prisma.invoice.update({
+      where: { id: req.params.id },
+      data: { status: "PAID", paidAt: new Date() },
+    });
+    await logAudit(req, "invoice.mark_paid", "Invoice", inv.id);
+    res.json({ invoice: inv });
+  } catch (e) { next(e); }
+});
+
+invoicesRouter.delete("/:id", requireStaff, async (req, res, next) => {
+  try {
+    await prisma.invoice.delete({ where: { id: req.params.id } });
+    await logAudit(req, "invoice.delete", "Invoice", req.params.id);
+    res.json({ ok: true });
+  } catch (e) { next(e); }
 });

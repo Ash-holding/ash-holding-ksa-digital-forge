@@ -1,10 +1,6 @@
 import type { Request } from "express";
 import { prisma } from "./prisma.js";
 
-/**
- * Resolve the Client row id for the authenticated user (CLIENT role).
- * Returns null if none.
- */
 export async function currentClientId(req: Request): Promise<string | null> {
   if (!req.user) return null;
   const c = await prisma.client.findUnique({
@@ -14,11 +10,19 @@ export async function currentClientId(req: Request): Promise<string | null> {
   return c?.id ?? null;
 }
 
-/**
- * True when the caller is admin/support/accountant staff.
- * Staff can read across all clients; a CLIENT is scoped to their own data.
- */
 export function isStaff(req: Request): boolean {
   const r = req.user?.role;
-  return r === "ADMIN" || r === "SUPPORT" || r === "ACCOUNTANT";
+  return r === "SUPER_ADMIN" || r === "ADMIN" || r === "SUPPORT" || r === "ACCOUNTANT";
+}
+
+export function isAdmin(req: Request): boolean {
+  const r = req.user?.role;
+  return r === "SUPER_ADMIN" || r === "ADMIN";
+}
+
+/** Paging helper: parses ?page=1&pageSize=20 */
+export function paging(req: Request, defaultSize = 20) {
+  const page = Math.max(1, Number(req.query.page || 1));
+  const pageSize = Math.min(100, Math.max(1, Number(req.query.pageSize || defaultSize)));
+  return { page, pageSize, skip: (page - 1) * pageSize, take: pageSize };
 }
