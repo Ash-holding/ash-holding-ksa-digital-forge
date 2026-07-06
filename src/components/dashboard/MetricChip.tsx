@@ -40,15 +40,17 @@ export function MetricChip({
   const sparkData = (spark ?? []).map((v, i) => ({ i, v }));
   const gradId = `mc-${accent}-${label.replace(/\s+/g, "")}`;
   return (
-    <div className={cn("group relative overflow-hidden rounded-xl border border-border bg-card p-3", acc.glow)}>
-      <div className="flex items-center gap-2 min-w-0">
-        <span className={cn("grid h-7 w-7 place-items-center rounded-lg shrink-0", acc.chip)}>
-          <Icon className="h-3.5 w-3.5" />
+    <div className={cn("group relative overflow-hidden rounded-xl border border-border bg-card p-2.5 sm:p-3", acc.glow)}>
+      <div className="flex items-start gap-2 min-w-0">
+        <span className={cn("grid h-6 w-6 sm:h-7 sm:w-7 place-items-center rounded-lg shrink-0", acc.chip)}>
+          <Icon className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
         </span>
-        <span className="text-[11px] text-muted-foreground truncate flex-1">{label}</span>
+        <span className="text-[10.5px] sm:text-[11px] leading-snug text-muted-foreground flex-1 min-w-0 break-words [overflow-wrap:anywhere]">
+          {label}
+        </span>
       </div>
-      <div className="mt-2 flex items-baseline gap-1.5 min-w-0">
-        <span className="text-lg md:text-xl font-black tracking-tight leading-none truncate flex-1">
+      <div className="mt-1.5 sm:mt-2 flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 min-w-0">
+        <span className="text-base sm:text-lg md:text-xl font-black tracking-tight leading-none min-w-0 break-words [overflow-wrap:anywhere]">
           {loading ? <span className="inline-block h-5 w-14 rounded bg-muted animate-pulse" /> : value}
         </span>
         {typeof trend === "number" && !loading && (
@@ -61,9 +63,11 @@ export function MetricChip({
           </span>
         )}
       </div>
-      {hint && <div className="mt-0.5 text-[10px] text-muted-foreground truncate">{hint}</div>}
+      {hint && <div className="mt-0.5 text-[10px] text-muted-foreground line-clamp-1">{hint}</div>}
+
       {sparkData.length > 0 && !loading && (
-        <div className="mt-1.5 h-8 -mx-3 -mb-3 opacity-80 group-hover:opacity-100 transition">
+        <div className="mt-1.5 h-7 sm:h-8 -mx-2.5 -mb-2.5 sm:-mx-3 sm:-mb-3 opacity-80 group-hover:opacity-100 transition">
+
           <ResponsiveContainer>
             <AreaChart data={sparkData} margin={{ top: 2, right: 0, bottom: 0, left: 0 }}>
               <defs>
