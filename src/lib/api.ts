@@ -45,11 +45,22 @@ async function tryRefresh(): Promise<string | null> {
   return refreshPromise;
 }
 
+function demoResponse(config: AxiosRequestConfig): AxiosResponse {
+  const url = (config.url ?? "").toString();
+  const method = (config.method ?? "get").toUpperCase();
+  let body: unknown;
+  try { body = typeof config.data === "string" ? JSON.parse(config.data) : config.data; } catch { body = config.data; }
+  const data = demoResolve(url, method, body);
+  return { data, status: 200, statusText: "OK (demo)", headers: {}, config } as AxiosResponse;
+}
+
 api.interceptors.response.use(
   (r) => r,
   async (error: AxiosError) => {
     const original = error.config as (AxiosRequestConfig & { _retry?: boolean }) | undefined;
-    if (error.response?.status === 401 && original && !original._retry && !original.url?.includes("/auth/")) {
+    const status = error.response?.status;
+    // Auth refresh
+    if (status === 401 && original && !original._retry && !original.url?.includes("/auth/")) {
       original._retry = true;
       const fresh = await tryRefresh();
       if (fresh) {
@@ -57,9 +68,16 @@ api.interceptors.response.use(
         return api.request(original);
       }
     }
+    // Demo-mode fallback: backend unreachable → serve mock data so preview UI works
+    const isNetwork = !error.response;
+    const isMissing = status === 404 || status === 502 || status === 503 || status === 504;
+    if (original && (isNetwork || isMissing) && isDemoMode() && !original.url?.includes("/auth/")) {
+      return demoResponse(original);
+    }
     return Promise.reject(error);
   },
 );
+
 
 export function apiError(e: unknown): string {
   if (axios.isAxiosError(e)) {
