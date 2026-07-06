@@ -45,6 +45,59 @@ function Panel({
   );
 }
 
+/** Reusable skeleton primitives — match rendered heights to avoid layout shift. */
+function ChartSkeleton() {
+  return (
+    <div className="h-full w-full rounded-lg bg-gradient-to-t from-muted/30 to-muted/10 animate-pulse flex items-end gap-1.5 p-2">
+      {[40, 65, 50, 80, 55, 70, 90, 60, 75, 85, 65, 95].map((h, i) => (
+        <div key={i} className="flex-1 rounded-t bg-muted/40" style={{ height: `${h}%` }} />
+      ))}
+    </div>
+  );
+}
+function LineSkeleton() {
+  return (
+    <div className="flex items-center justify-between gap-2">
+      <div className="h-2.5 flex-1 rounded bg-muted/40 animate-pulse" />
+      <div className="h-2.5 w-8 rounded bg-muted/40 animate-pulse" />
+    </div>
+  );
+}
+function BarSkeleton() {
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <div className="h-2.5 w-24 rounded bg-muted/40 animate-pulse" />
+        <div className="h-2.5 w-14 rounded bg-muted/40 animate-pulse" />
+      </div>
+      <div className="h-1.5 rounded-full bg-muted/40 animate-pulse" />
+    </div>
+  );
+}
+function RowSkeleton() {
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 items-center rounded-lg bg-muted/20 px-2.5 py-2">
+      <div className="space-y-1.5">
+        <div className="h-3 w-2/3 rounded bg-muted/40 animate-pulse" />
+        <div className="h-2.5 w-1/2 rounded bg-muted/40 animate-pulse" />
+      </div>
+      <div className="h-5 w-14 rounded bg-muted/40 animate-pulse" />
+    </div>
+  );
+}
+function ActivitySkeleton() {
+  return (
+    <div className="flex items-center gap-2.5">
+      <div className="h-7 w-7 rounded-lg bg-muted/40 animate-pulse shrink-0" />
+      <div className="flex-1 space-y-1.5">
+        <div className="h-3 w-2/3 rounded bg-muted/40 animate-pulse" />
+        <div className="h-2.5 w-1/2 rounded bg-muted/40 animate-pulse" />
+      </div>
+      <div className="h-2.5 w-10 rounded bg-muted/40 animate-pulse shrink-0" />
+    </div>
+  );
+}
+
 function OverviewPage() {
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "stats"],
