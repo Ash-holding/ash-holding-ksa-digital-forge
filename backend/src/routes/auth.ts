@@ -10,6 +10,8 @@ import {
 import { requireAuth } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rate-limit.js";
 import { logAudit } from "../lib/audit.js";
+import { normalizeIp, lookupIp } from "../lib/geo.js";
+
 
 export const authRouter = Router();
 
@@ -39,12 +41,41 @@ async function issueTokens(req: import("express").Request, user: { id: string; r
 authRouter.post("/login", authLimiter, async (req, res, next) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({ where: { email }, include: { client: true } });
     if (!user || user.status !== "ACTIVE") return res.status(401).json({ error: "بيانات الدخول غير صحيحة" });
     const ok = await bcrypt.compare(password, user.passwordHash);
     if (!ok) return res.status(401).json({ error: "بيانات الدخول غير صحيحة" });
 
-    await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+    const ip = normalizeIp((req.headers["x-forwarded-for"] as string) || req.ip || null);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date(), lastIpAddress: ip },
+    });
+
+    // Fire-and-forget: update client geo if applicable
+    if (ip && user.client) {
+      lookupIp(ip).then(async (geo) => {
+        try {
+          await prisma.client.update({
+            where: { id: user.client!.id },
+            data: {
+              lastIpAddress: ip,
+              lastSeenAt: new Date(),
+              ...(geo ? {
+                lastIpCountry: geo.countryCode,
+                lastIpCity: geo.city,
+                lastIpRegion: geo.region,
+                lat: geo.lat ?? undefined,
+                lng: geo.lng ?? undefined,
+              } : {}),
+            },
+          });
+        } catch { /* ignore */ }
+      });
+    } else if (user.client) {
+      await prisma.client.update({ where: { id: user.client.id }, data: { lastSeenAt: new Date() } });
+    }
+
     const tokens = await issueTokens(req, user);
     await logAudit(req, "auth.login", "User", user.id);
     return res.json({
@@ -53,6 +84,7 @@ authRouter.post("/login", authLimiter, async (req, res, next) => {
     });
   } catch (e) { next(e); }
 });
+
 
 authRouter.post("/refresh", async (req, res, next) => {
   try {
