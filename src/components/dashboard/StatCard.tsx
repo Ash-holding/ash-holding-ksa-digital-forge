@@ -1,8 +1,10 @@
 import { motion } from "framer-motion";
 import type { LucideIcon } from "lucide-react";
 import { TrendingUp, TrendingDown } from "lucide-react";
+import type { ReactNode } from "react";
 import { Area, AreaChart, ResponsiveContainer } from "recharts";
 import { cn } from "@/lib/utils";
+
 
 export function StatCard({
   icon: Icon,
