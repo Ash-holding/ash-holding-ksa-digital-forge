@@ -229,7 +229,8 @@ const users: DemoStaff[] = [
 // Audit log
 // ============================================================================
 
-const auditLog = [
+type DemoAudit = { id: string; action: string; entityType: string | null; entityId: string | null; ipAddress: string | null; createdAt: string; user: { name: string; email: string; role: string } | null };
+const auditLog: DemoAudit[] = [
   { id: "a1", action: "USER_LOGIN", entityType: "User", entityId: "u_admin1", ipAddress: "212.107.192.10", createdAt: daysAgo(0), user: { name: "علي القحطاني", email: "admin@ashholding.sa", role: "SUPER_ADMIN" } },
   { id: "a2", action: "INVOICE_CREATE", entityType: "Invoice", entityId: "i7", ipAddress: "212.107.192.10", createdAt: daysAgo(0), user: { name: "علي القحطاني", email: "admin@ashholding.sa", role: "SUPER_ADMIN" } },
   { id: "a3", action: "CLIENT_VERIFIED", entityType: "Client", entityId: "c5", ipAddress: "212.107.192.10", createdAt: daysAgo(1), user: { name: "علي القحطاني", email: "admin@ashholding.sa", role: "SUPER_ADMIN" } },
