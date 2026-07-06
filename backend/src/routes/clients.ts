@@ -5,9 +5,11 @@ import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireStaff, requireAdmin } from "../middleware/auth.js";
 import { currentClientId, paging } from "../lib/scope.js";
 import { logAudit } from "../lib/audit.js";
+import { lookupIp, normalizeIp } from "../lib/geo.js";
 
 export const clientsRouter = Router();
 clientsRouter.use(requireAuth);
+
 
 const clientSchema = z.object({
   companyName: z.string().optional().nullable(),
@@ -27,14 +29,16 @@ const createClientSchema = clientSchema.extend({
   password: z.string().min(8),
 });
 
-// Staff: list all clients (search + pagination)
+// Staff: list all clients (search + filters + pagination)
 clientsRouter.get("/", requireStaff, async (req, res, next) => {
   try {
     const q = String(req.query.q || "").trim();
     const status = req.query.status as string | undefined;
+    const verification = req.query.verification as string | undefined;
     const { skip, take, page, pageSize } = paging(req);
     const where = {
       ...(status ? { status: status as never } : {}),
+      ...(verification ? { verificationStatus: verification as never } : {}),
       ...(q
         ? {
             OR: [
@@ -49,7 +53,7 @@ clientsRouter.get("/", requireStaff, async (req, res, next) => {
     const [rows, total] = await Promise.all([
       prisma.client.findMany({
         where,
-        include: { user: { select: { id: true, email: true, name: true, phone: true, status: true, avatarUrl: true } } },
+        include: { user: { select: { id: true, email: true, name: true, phone: true, status: true, avatarUrl: true, lastLoginAt: true } } },
         orderBy: { createdAt: "desc" },
         skip, take,
       }),
@@ -58,6 +62,7 @@ clientsRouter.get("/", requireStaff, async (req, res, next) => {
     res.json({ rows, total, page, pageSize });
   } catch (e) { next(e); }
 });
+
 
 // Client: own profile
 clientsRouter.get("/me", async (req, res) => {
@@ -107,7 +112,8 @@ clientsRouter.get("/:id", requireStaff, async (req, res, next) => {
     const client = await prisma.client.findUnique({
       where: { id: req.params.id },
       include: {
-        user: { select: { id: true, email: true, name: true, phone: true, status: true, avatarUrl: true, lastLoginAt: true } },
+        user: { select: { id: true, email: true, name: true, phone: true, status: true, avatarUrl: true, lastLoginAt: true, lastIpAddress: true } },
+        verifiedBy: { select: { id: true, name: true } },
         projects: { orderBy: { createdAt: "desc" } },
         services: { orderBy: { createdAt: "desc" } },
         invoices: { orderBy: { createdAt: "desc" }, take: 20 },
@@ -118,9 +124,13 @@ clientsRouter.get("/:id", requireStaff, async (req, res, next) => {
       },
     });
     if (!client) return res.status(404).json({ error: "غير موجود" });
-    res.json({ client });
+    const activeSessions = await prisma.refreshToken.count({
+      where: { userId: client.userId, revokedAt: null, expiresAt: { gt: new Date() } },
+    });
+    res.json({ client: { ...client, activeSessions } });
   } catch (e) { next(e); }
 });
+
 
 // Admin: create new client (creates user + client profile)
 clientsRouter.post("/", requireAdmin, async (req, res, next) => {
