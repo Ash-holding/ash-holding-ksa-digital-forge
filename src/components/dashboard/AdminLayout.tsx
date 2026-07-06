@@ -188,11 +188,7 @@ export function PageHeader({
             {crumbs.map((c, i) => (
               <span key={i} className="flex items-center gap-1.5">
                 <span className="text-muted-foreground/40">/</span>
-                {c.to && i < crumbs.length - 1 ? (
-                  <Link to={c.to} className="hover:text-electric transition-colors">{c.label}</Link>
-                ) : (
-                  <span className="text-foreground/80 font-medium">{c.label}</span>
-                )}
+                <span className={i === crumbs.length - 1 ? "text-foreground/80 font-medium" : ""}>{c.label}</span>
               </span>
             ))}
           </nav>
