@@ -110,7 +110,7 @@ export function DataTable<T extends { id?: string }>(props: Props<T>) {
 
       {onPageChange && total > pageSize && (
         <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
-          <div>الصفحة {page} من {pageCount} · إجمالي {total.toLocaleString("ar-SA")}</div>
+          <div>الصفحة {page} من {pageCount} · إجمالي {total.toLocaleString("en-US")}</div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => onPageChange(page - 1)} disabled={page <= 1}
