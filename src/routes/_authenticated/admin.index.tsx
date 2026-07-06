@@ -48,9 +48,9 @@ function Panel({
 /** Reusable skeleton primitives — match rendered heights to avoid layout shift. */
 function ChartSkeleton() {
   return (
-    <div className="h-full w-full rounded-lg bg-gradient-to-t from-muted/30 to-muted/10 animate-pulse flex items-end gap-1.5 p-2">
+    <div className="h-full w-full rounded-lg bg-gradient-to-t from-foreground/10 to-foreground/5 animate-pulse flex items-end gap-1.5 p-2">
       {[40, 65, 50, 80, 55, 70, 90, 60, 75, 85, 65, 95].map((h, i) => (
-        <div key={i} className="flex-1 rounded-t bg-muted/40" style={{ height: `${h}%` }} />
+        <div key={i} className="flex-1 rounded-t bg-foreground/15" style={{ height: `${h}%` }} />
       ))}
     </div>
   );
@@ -58,8 +58,8 @@ function ChartSkeleton() {
 function LineSkeleton() {
   return (
     <div className="flex items-center justify-between gap-2">
-      <div className="h-2.5 flex-1 rounded bg-muted/40 animate-pulse" />
-      <div className="h-2.5 w-8 rounded bg-muted/40 animate-pulse" />
+      <div className="h-2.5 flex-1 rounded bg-foreground/15 animate-pulse" />
+      <div className="h-2.5 w-8 rounded bg-foreground/15 animate-pulse" />
     </div>
   );
 }
@@ -67,33 +67,33 @@ function BarSkeleton() {
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between gap-2">
-        <div className="h-2.5 w-24 rounded bg-muted/40 animate-pulse" />
-        <div className="h-2.5 w-14 rounded bg-muted/40 animate-pulse" />
+        <div className="h-2.5 w-24 rounded bg-foreground/15 animate-pulse" />
+        <div className="h-2.5 w-14 rounded bg-foreground/15 animate-pulse" />
       </div>
-      <div className="h-1.5 rounded-full bg-muted/40 animate-pulse" />
+      <div className="h-1.5 rounded-full bg-foreground/15 animate-pulse" />
     </div>
   );
 }
 function RowSkeleton() {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 items-center rounded-lg bg-muted/20 px-2.5 py-2">
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2 items-center rounded-lg bg-foreground/5 px-2.5 py-2">
       <div className="space-y-1.5">
-        <div className="h-3 w-2/3 rounded bg-muted/40 animate-pulse" />
-        <div className="h-2.5 w-1/2 rounded bg-muted/40 animate-pulse" />
+        <div className="h-3 w-2/3 rounded bg-foreground/15 animate-pulse" />
+        <div className="h-2.5 w-1/2 rounded bg-foreground/15 animate-pulse" />
       </div>
-      <div className="h-5 w-14 rounded bg-muted/40 animate-pulse" />
+      <div className="h-5 w-14 rounded bg-foreground/15 animate-pulse" />
     </div>
   );
 }
 function ActivitySkeleton() {
   return (
     <div className="flex items-center gap-2.5">
-      <div className="h-7 w-7 rounded-lg bg-muted/40 animate-pulse shrink-0" />
+      <div className="h-7 w-7 rounded-lg bg-foreground/15 animate-pulse shrink-0" />
       <div className="flex-1 space-y-1.5">
-        <div className="h-3 w-2/3 rounded bg-muted/40 animate-pulse" />
-        <div className="h-2.5 w-1/2 rounded bg-muted/40 animate-pulse" />
+        <div className="h-3 w-2/3 rounded bg-foreground/15 animate-pulse" />
+        <div className="h-2.5 w-1/2 rounded bg-foreground/15 animate-pulse" />
       </div>
-      <div className="h-2.5 w-10 rounded bg-muted/40 animate-pulse shrink-0" />
+      <div className="h-2.5 w-10 rounded bg-foreground/15 animate-pulse shrink-0" />
     </div>
   );
 }
@@ -257,7 +257,7 @@ function OverviewPage() {
                     </span>
                     <Money value={s.total} className="font-bold text-[11px] shrink-0" />
                   </div>
-                  <div className="h-1.5 rounded-full bg-muted/40 overflow-hidden">
+                  <div className="h-1.5 rounded-full bg-foreground/15 overflow-hidden">
                     <div className="h-full rounded-full transition-all duration-700" style={{ width: `${pct}%`, background: PIE_COLORS[i % PIE_COLORS.length] }} />
                   </div>
                 </div>
@@ -289,7 +289,7 @@ function OverviewPage() {
                     </span>
                     <Money value={cl.revenue} className="text-[11px] font-bold shrink-0" />
                   </div>
-                  <div className="h-1 rounded-full bg-muted/40 overflow-hidden">
+                  <div className="h-1 rounded-full bg-foreground/15 overflow-hidden">
                     <div className="h-full rounded-full bg-gradient-to-r from-electric to-purple-accent transition-all duration-700" style={{ width: `${pct}%` }} />
                   </div>
                 </div>
@@ -318,7 +318,7 @@ function OverviewPage() {
               <div className="text-[11px] text-muted-foreground text-center py-4">لا توجد مواعيد قادمة</div>
             )}
             {!isLoading && (data?.upcomingDeadlines ?? []).slice(0, 5).map((p: any) => (
-              <div key={p.id} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_auto_auto] gap-2 items-center rounded-lg bg-muted/20 px-2.5 py-2 hover:bg-muted/40 transition">
+              <div key={p.id} className="grid grid-cols-[minmax(0,1fr)_auto] sm:grid-cols-[minmax(0,1fr)_auto_auto] gap-2 items-center rounded-lg bg-foreground/5 px-2.5 py-2 hover:bg-foreground/15 transition">
                 <div className="min-w-0">
                   <div className="text-[12px] font-bold truncate">{p.name}</div>
                   <div className="text-[10px] text-muted-foreground truncate">{p.client} · {formatDate(p.dueDate)}</div>
