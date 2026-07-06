@@ -3,7 +3,8 @@ import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { formatSAR, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 import { Users, Building2, Mail, Phone, MapPin, ArrowRight } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SkeletonRows, EmptyState } from "@/components/dashboard/EmptyState";
@@ -68,17 +69,17 @@ function ClientDetail() {
         </TabsContent>
         <TabsContent value="services" className="mt-4">
           {c.services?.length ? c.services.map((s: any) => (
-            <Row key={s.id} title={s.name} meta={`تجديد: ${formatDate(s.renewalDate)}`} badge={s.status} extra={s.price ? formatSAR(s.price) : ""} />
+            <Row key={s.id} title={s.name} meta={`تجديد: ${formatDate(s.renewalDate)}`} badge={s.status} extra={s.price ? <Money value={s.price} /> : ""} />
           )) : <EmptyState title="لا توجد خدمات" />}
         </TabsContent>
         <TabsContent value="invoices" className="mt-4">
           {c.invoices?.length ? c.invoices.map((iv: any) => (
-            <Row key={iv.id} title={iv.invoiceNumber} meta={`تاريخ الاستحقاق: ${formatDate(iv.dueAt)}`} badge={iv.status} extra={formatSAR(iv.total)} />
+            <Row key={iv.id} title={iv.invoiceNumber} meta={`تاريخ الاستحقاق: ${formatDate(iv.dueAt)}`} badge={iv.status} extra={<Money value={iv.total} />} />
           )) : <EmptyState title="لا توجد فواتير" />}
         </TabsContent>
         <TabsContent value="contracts" className="mt-4">
           {c.contracts?.length ? c.contracts.map((ct: any) => (
-            <Row key={ct.id} title={ct.title} meta={ct.contractNumber} badge={ct.status} extra={ct.value ? formatSAR(ct.value) : ""} />
+            <Row key={ct.id} title={ct.title} meta={ct.contractNumber} badge={ct.status} extra={ct.value ? <Money value={ct.value} /> : ""} />
           )) : <EmptyState title="لا توجد عقود" />}
         </TabsContent>
         <TabsContent value="tickets" className="mt-4">
@@ -88,7 +89,7 @@ function ClientDetail() {
         </TabsContent>
         <TabsContent value="payments" className="mt-4">
           {c.payments?.length ? c.payments.map((p: any) => (
-            <Row key={p.id} title={formatSAR(p.amount)} meta={`${p.method} · ${formatDate(p.paidAt || p.createdAt)}`} badge={p.status} />
+            <Row key={p.id} title={<Money value={p.amount} />} meta={`${p.method} · ${formatDate(p.paidAt || p.createdAt)}`} badge={p.status} />
           )) : <EmptyState title="لا توجد مدفوعات" />}
         </TabsContent>
         <TabsContent value="files" className="mt-4">

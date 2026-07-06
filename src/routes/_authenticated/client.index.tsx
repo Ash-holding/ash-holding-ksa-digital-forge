@@ -13,7 +13,8 @@ import {
 import { api } from "@/lib/api";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { formatDate, formatSAR, fromNow } from "@/lib/format";
+import { formatDate, fromNow } from "@/lib/format";
+import { Money, moneyText } from "@/components/ui/money";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/lib/auth";
 
@@ -73,9 +74,9 @@ function ClientOverview() {
 
       {/* Financial KPI strip */}
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <FinTile icon={Wallet} label="إجمالي المدفوع" value={formatSAR(k?.totalSpent ?? 0)} color="emerald" />
-        <FinTile icon={Clock} label="مستحقات معلقة" value={formatSAR(k?.pendingAmount ?? 0)} color="amber" />
-        <FinTile icon={AlertTriangle} label="مبالغ متأخرة" value={formatSAR(k?.overdueAmount ?? 0)} color="rose" />
+        <FinTile icon={Wallet} label="إجمالي المدفوع" value={<Money value={k?.totalSpent ?? 0} />} color="emerald" />
+        <FinTile icon={Clock} label="مستحقات معلقة" value={<Money value={k?.pendingAmount ?? 0} />} color="amber" />
+        <FinTile icon={AlertTriangle} label="مبالغ متأخرة" value={<Money value={k?.overdueAmount ?? 0} />} color="rose" />
         <FinTile icon={Sparkles} label="مؤشر الرضا" value={`${k?.satisfactionScore ?? 0}%`} progress={k?.satisfactionScore} color="purple" />
       </div>
 
@@ -100,7 +101,7 @@ function ClientOverview() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={11} reversed />
                 <YAxis stroke="#94a3b8" fontSize={11} orientation="right" tickFormatter={(v) => `${v / 1000}k`} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => formatSAR(v)} />
+                <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => moneyText(v)} />
                 <Area type="monotone" dataKey="amount" name="المصروفات" stroke="#a855f7" strokeWidth={2.5} fill="url(#spendFill)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -148,7 +149,7 @@ function ClientOverview() {
                     </div>
                   </div>
                   <div className="text-left">
-                    <div className="text-sm font-bold">{formatSAR(p.amount)}</div>
+                    <Money value={p.amount} className="text-sm font-bold" />
                     <StatusBadge value={p.status} />
                   </div>
                 </div>

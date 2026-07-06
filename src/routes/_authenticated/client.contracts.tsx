@@ -8,7 +8,8 @@ import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { ConfirmDialog } from "@/components/dashboard/ConfirmDialog";
 import { Button } from "@/components/ui/button";
-import { formatSAR, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 export const Route = createFileRoute("/_authenticated/client/contracts")({
   component: () => {
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/client/contracts")({
       { key: "num", header: "الرقم", render: (r) => <span dir="ltr" className="font-mono text-xs">{r.contractNumber}</span> },
       { key: "title", header: "العنوان", render: (r) => <span className="font-semibold">{r.title}</span> },
       { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
-      { key: "value", header: "القيمة", render: (r) => r.value ? formatSAR(r.value) : "—" },
+      { key: "value", header: "القيمة", render: (r) => r.value ? <Money value={r.value} /> : "—" },
       { key: "signed", header: "تاريخ التوقيع", render: (r) => formatDate(r.signedAt), hideOnMobile: true },
       { key: "actions", header: "", render: (r) => (
         <div onClick={(e) => e.stopPropagation()}>

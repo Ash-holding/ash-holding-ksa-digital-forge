@@ -12,7 +12,8 @@ import { FormSheet } from "@/components/dashboard/FormSheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatSAR, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 export const Route = createFileRoute("/_authenticated/admin/payments")({
   component: PaymentsPage,
@@ -38,7 +39,7 @@ function PaymentsPage() {
 
   const columns: Column<Row>[] = [
     { key: "client", header: "العميل", render: (r) => r.client.user.name },
-    { key: "amount", header: "المبلغ", render: (r) => <span className="font-bold">{formatSAR(r.amount)}</span> },
+    { key: "amount", header: "المبلغ", render: (r) => <Money value={r.amount} className="font-bold" /> },
     { key: "method", header: "الطريقة", render: (r) => METHOD_AR[r.method] || r.method },
     { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
     { key: "ref", header: "مرجع", render: (r) => <span dir="ltr" className="text-xs">{r.transactionRef || "—"}</span>, hideOnMobile: true },

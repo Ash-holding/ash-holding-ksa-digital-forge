@@ -6,7 +6,8 @@ import { api } from "@/lib/api";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Progress } from "@/components/ui/progress";
-import { formatSAR, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 export const Route = createFileRoute("/_authenticated/client/projects")({
   component: () => {
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/client/projects")({
       { key: "progress", header: "التقدم", render: (r) => (
         <div className="min-w-[120px]"><Progress value={r.progress} className="h-1.5" /><div className="text-[10px] text-muted-foreground mt-1">{r.progress}%</div></div>
       ) },
-      { key: "budget", header: "الميزانية", render: (r) => r.budget ? formatSAR(r.budget) : "—", hideOnMobile: true },
+      { key: "budget", header: "الميزانية", render: (r) => r.budget ? <Money value={r.budget} /> : "—", hideOnMobile: true },
       { key: "due", header: "الاستحقاق", render: (r) => formatDate(r.dueDate), hideOnMobile: true },
     ];
     return (

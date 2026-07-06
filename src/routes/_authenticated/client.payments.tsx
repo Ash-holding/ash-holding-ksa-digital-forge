@@ -5,7 +5,8 @@ import { CreditCard } from "lucide-react";
 import { api } from "@/lib/api";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
-import { formatSAR, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 const METHOD_AR: Record<string, string> = { BANK_TRANSFER: "تحويل بنكي", PAYLINK: "Paylink", CASH: "نقدي", MANUAL: "يدوي" };
 
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/_authenticated/client/payments")({
     const [page, setPage] = useState(1);
     const list = useQuery({ queryKey: ["client-payments", page], queryFn: async () => (await api.get("/payments", { params: { page } })).data });
     const columns: Column<any>[] = [
-      { key: "amount", header: "المبلغ", render: (r) => <span className="font-bold">{formatSAR(r.amount)}</span> },
+      { key: "amount", header: "المبلغ", render: (r) => <Money value={r.amount} className="font-bold" /> },
       { key: "method", header: "الطريقة", render: (r) => METHOD_AR[r.method] || r.method },
       { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
       { key: "invoice", header: "الفاتورة", render: (r) => r.invoice ? <span dir="ltr" className="text-xs font-mono">{r.invoice.invoiceNumber}</span> : "—" },

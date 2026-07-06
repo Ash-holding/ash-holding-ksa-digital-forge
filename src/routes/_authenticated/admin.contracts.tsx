@@ -12,7 +12,8 @@ import { FormSheet } from "@/components/dashboard/FormSheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { formatSAR, formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/format";
+import { Money } from "@/components/ui/money";
 
 export const Route = createFileRoute("/_authenticated/admin/contracts")({
   component: ContractsPage,
@@ -42,7 +43,7 @@ function ContractsPage() {
       </div>
     ) },
     { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
-    { key: "value", header: "القيمة", render: (r) => r.value ? formatSAR(r.value) : "—" },
+    { key: "value", header: "القيمة", render: (r) => r.value ? <Money value={r.value} /> : "—" },
     { key: "signed", header: "تاريخ التوقيع", render: (r) => formatDate(r.signedAt), hideOnMobile: true },
     { key: "actions", header: "", render: (r) => (
       <div onClick={(e) => e.stopPropagation()}>
