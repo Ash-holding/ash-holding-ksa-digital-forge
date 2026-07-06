@@ -7,12 +7,101 @@ type Handler = (url: string, method: string, body?: unknown) => unknown | undefi
 const now = () => new Date().toISOString();
 const daysAgo = (n: number) => new Date(Date.now() - n * 86400000).toISOString();
 
-const clients = [
-  { id: "c1", companyName: "شركة الرياض للتقنية", contactName: "أحمد الشهري", email: "ahmed@riyadh-tech.sa", phone: "+966501112233", city: "الرياض", status: "ACTIVE", createdAt: daysAgo(90) },
-  { id: "c2", companyName: "متجر جدة الإلكتروني", contactName: "سارة العتيبي", email: "sara@jeddah-shop.sa", phone: "+966502223344", city: "جدة", status: "ACTIVE", createdAt: daysAgo(60) },
-  { id: "c3", companyName: "مؤسسة الدمام الرقمية", contactName: "خالد القحطاني", email: "khalid@dammam-digital.sa", phone: "+966503334455", city: "الدمام", status: "ACTIVE", createdAt: daysAgo(30) },
-  { id: "c4", companyName: "شركة النور للاستثمار", contactName: "فهد الغامدي", email: "fahd@alnoor.sa", phone: "+966504445566", city: "الرياض", status: "PENDING", createdAt: daysAgo(10) },
+// Rich client shape aligned with backend: user{} sub-object, verification,
+// IP tracking, and geolocation for the new admin features.
+type DemoClient = {
+  id: string;
+  companyName: string | null;
+  commercialNumber: string | null;
+  taxNumber: string | null;
+  phone: string | null;
+  contactEmail: string | null;
+  address: string | null;
+  city: string | null;
+  country: string;
+  status: "ACTIVE" | "DISABLED" | "PENDING";
+  verificationStatus: "UNVERIFIED" | "PENDING" | "VERIFIED" | "REJECTED";
+  verifiedAt: string | null;
+  verifiedBy: { id: string; name: string } | null;
+  verificationNote: string | null;
+  lastIpAddress: string | null;
+  lastIpCountry: string | null;
+  lastIpCity: string | null;
+  lastIpRegion: string | null;
+  lat: number | null;
+  lng: number | null;
+  lastSeenAt: string | null;
+  createdAt: string;
+  activeSessions: number;
+  user: { id: string; name: string; email: string; phone: string | null; status: string; avatarUrl: string | null; lastLoginAt: string | null; lastIpAddress: string | null };
+  // legacy fields still consumed by some views
+  contactName?: string;
+  email?: string;
+};
+
+const mk = (o: Partial<DemoClient> & Pick<DemoClient, "id" | "companyName" | "user">): DemoClient => ({
+  commercialNumber: null, taxNumber: null, phone: o.user.phone ?? null,
+  contactEmail: null, address: null, city: null, country: "SA",
+  status: "ACTIVE", verificationStatus: "UNVERIFIED",
+  verifiedAt: null, verifiedBy: null, verificationNote: null,
+  lastIpAddress: null, lastIpCountry: null, lastIpCity: null, lastIpRegion: null,
+  lat: null, lng: null, lastSeenAt: null,
+  createdAt: daysAgo(30), activeSessions: 0,
+  contactName: o.user.name, email: o.user.email,
+  ...o,
+});
+
+const clients: DemoClient[] = [
+  mk({
+    id: "c1", companyName: "شركة الرياض للتقنية",
+    user: { id: "u1", name: "أحمد الشهري", email: "ahmed@riyadh-tech.sa", phone: "+966501112233", status: "ACTIVE", avatarUrl: null, lastLoginAt: daysAgo(0), lastIpAddress: "212.107.192.10" },
+    commercialNumber: "1010223344", taxNumber: "300012345600003",
+    address: "طريق الملك فهد، برج المملكة، الطابق 20", city: "الرياض", status: "ACTIVE",
+    verificationStatus: "VERIFIED", verifiedAt: daysAgo(60),
+    verifiedBy: { id: "admin1", name: "علي القحطاني" }, verificationNote: "تم التحقق من السجل التجاري والهوية.",
+    lastIpAddress: "212.107.192.10", lastIpCountry: "SA", lastIpCity: "الرياض", lastIpRegion: "منطقة الرياض",
+    lat: 24.7136, lng: 46.6753, lastSeenAt: daysAgo(0),
+    createdAt: daysAgo(90), activeSessions: 2,
+  }),
+  mk({
+    id: "c2", companyName: "متجر جدة الإلكتروني",
+    user: { id: "u2", name: "سارة العتيبي", email: "sara@jeddah-shop.sa", phone: "+966502223344", status: "ACTIVE", avatarUrl: null, lastLoginAt: daysAgo(1), lastIpAddress: "94.98.14.55" },
+    commercialNumber: "4030445566", city: "جدة", address: "شارع التحلية، حي الروضة",
+    verificationStatus: "VERIFIED", verifiedAt: daysAgo(30),
+    verifiedBy: { id: "admin1", name: "علي القحطاني" },
+    lastIpAddress: "94.98.14.55", lastIpCountry: "SA", lastIpCity: "جدة", lastIpRegion: "منطقة مكة المكرمة",
+    lat: 21.4858, lng: 39.1925, lastSeenAt: daysAgo(1),
+    createdAt: daysAgo(60), activeSessions: 1,
+  }),
+  mk({
+    id: "c3", companyName: "مؤسسة الدمام الرقمية",
+    user: { id: "u3", name: "خالد القحطاني", email: "khalid@dammam-digital.sa", phone: "+966503334455", status: "ACTIVE", avatarUrl: null, lastLoginAt: daysAgo(3), lastIpAddress: "188.55.100.20" },
+    commercialNumber: "2050998877", city: "الدمام", address: "الكورنيش، حي الشاطئ",
+    verificationStatus: "PENDING",
+    lastIpAddress: "188.55.100.20", lastIpCountry: "SA", lastIpCity: "الدمام", lastIpRegion: "المنطقة الشرقية",
+    lat: 26.4207, lng: 50.0888, lastSeenAt: daysAgo(3),
+    createdAt: daysAgo(30), activeSessions: 1,
+  }),
+  mk({
+    id: "c4", companyName: "شركة النور للاستثمار",
+    user: { id: "u4", name: "فهد الغامدي", email: "fahd@alnoor.sa", phone: "+966504445566", status: "PENDING", avatarUrl: null, lastLoginAt: null, lastIpAddress: null },
+    city: "الرياض", status: "PENDING",
+    verificationStatus: "UNVERIFIED",
+    createdAt: daysAgo(10), activeSessions: 0,
+  }),
+  mk({
+    id: "c5", companyName: "عميل تجريبي — Demo",
+    user: { id: "u5", name: "المستخدم التجريبي", email: "demo@client.sa", phone: "+966555000111", status: "ACTIVE", avatarUrl: null, lastLoginAt: daysAgo(0), lastIpAddress: "89.108.44.7" },
+    commercialNumber: "1010000000", taxNumber: "300000000000003",
+    address: "حي العليا، الرياض", city: "الرياض", contactEmail: "demo@client.sa",
+    verificationStatus: "VERIFIED", verifiedAt: daysAgo(2),
+    verifiedBy: { id: "admin1", name: "علي القحطاني" }, verificationNote: "حساب تجريبي لعرض المميزات.",
+    lastIpAddress: "89.108.44.7", lastIpCountry: "SA", lastIpCity: "الرياض", lastIpRegion: "منطقة الرياض",
+    lat: 24.7743, lng: 46.7386, lastSeenAt: daysAgo(0),
+    createdAt: daysAgo(2), activeSessions: 3,
+  }),
 ];
+
 
 const projects = [
   { id: "p1", name: "منصة إدارة المخزون", clientId: "c1", client: { companyName: clients[0].companyName }, status: "IN_PROGRESS", progress: 65, budget: 85000, startDate: daysAgo(45), dueDate: daysAgo(-30) },
@@ -173,23 +262,24 @@ const adminStats = {
     id: c.id,
     companyName: c.companyName,
     createdAt: c.createdAt,
-    user: { name: c.contactName, email: c.email },
+    user: { name: c.user.name, email: c.user.email },
   })),
   recentInvoices: invoices.slice(0, 5).map((i) => ({
     id: i.id,
     invoiceNumber: i.number,
     total: i.amount,
     status: i.status,
-    client: { user: { name: clients.find((c) => c.id === i.clientId)?.contactName ?? "—" } },
+    client: { user: { name: clients.find((c) => c.id === i.clientId)?.user.name ?? "—" } },
   })),
   recentTickets: tickets.slice(0, 5).map((t) => ({
     id: t.id,
     subject: t.subject,
     status: t.status,
     updatedAt: t.lastReplyAt,
-    client: { user: { name: clients.find((c) => c.id === t.clientId)?.contactName ?? "—" } },
+    client: { user: { name: clients.find((c) => c.id === t.clientId)?.user.name ?? "—" } },
   })),
 };
+
 
 const clientProjects = projects.filter((p) => p.clientId === "c1");
 const clientInvoices = invoices.filter((i) => i.clientId === "c1");
@@ -279,21 +369,118 @@ const settings = {
   timezone: "Asia/Riyadh",
 };
 
+// --- Client CRUD-ish demo helpers ---
+function filterClients(url: string): DemoClient[] {
+  const query = url.includes("?") ? url.split("?")[1] : "";
+  const params = new URLSearchParams(query);
+  const q = (params.get("q") || "").trim().toLowerCase();
+  const status = params.get("status");
+  const verification = params.get("verification");
+  return clients.filter((c) => {
+    if (status && c.status !== status) return false;
+    if (verification && c.verificationStatus !== verification) return false;
+    if (!q) return true;
+    return (
+      (c.companyName || "").toLowerCase().includes(q) ||
+      c.user.name.toLowerCase().includes(q) ||
+      c.user.email.toLowerCase().includes(q) ||
+      (c.phone || "").includes(q)
+    );
+  });
+}
+
 const handlers: Array<[RegExp, Handler]> = [
   [/^\/admin\/stats$/, () => adminStats],
-  [/^\/admin\/clients$/, () => ({ items: clients, total: clients.length })],
+  // Backward-compat: /admin/clients
+  [/^\/admin\/clients$/, (u) => {
+    const rows = filterClients(u);
+    return { rows, total: rows.length, page: 1, pageSize: 20, items: rows };
+  }],
   [/^\/admin\/clients\/([^/]+)$/, (u) => {
-    const id = u.split("/").pop();
+    const id = u.split("?")[0].split("/").pop();
     const c = clients.find((x) => x.id === id);
-    return c ? { ...c, projects: projects.filter((p) => p.clientId === id), invoices: invoices.filter((i) => i.clientId === id) } : null;
+    if (!c) return null;
+    return { client: { ...c, projects: projects.filter((p) => p.clientId === id), invoices: invoices.filter((i) => i.clientId === id), services: [], contracts: [], tickets: [], payments: [], files: [] } };
   }],
   [/^\/admin\/projects$/, () => ({ items: projects, total: projects.length })],
   [/^\/admin\/invoices$/, () => ({ items: invoices, total: invoices.length })],
   [/^\/admin\/support$/, () => ({ items: tickets, total: tickets.length })],
   [/^\/admin\/audit-log$/, () => ({ items: auditLog, total: auditLog.length })],
-  [/^\/clients$/, () => ({ items: clients, total: clients.length })],
-  [/^\/clients\/me$/, () => clients[0]],
+  // Primary listing that admin.clients.index.tsx uses
+  [/^\/clients$/, (u, method, body) => {
+    if (method === "POST") {
+      const b = (body ?? {}) as Record<string, unknown>;
+      const id = `c${Date.now()}`;
+      const newClient = mk({
+        id,
+        companyName: (b.companyName as string) || null,
+        commercialNumber: (b.commercialNumber as string) || null,
+        taxNumber: (b.taxNumber as string) || null,
+        phone: (b.phone as string) || null,
+        contactEmail: (b.contactEmail as string) || (b.email as string) || null,
+        address: (b.address as string) || null,
+        city: (b.city as string) || null,
+        country: (b.country as string) || "SA",
+        status: "PENDING", verificationStatus: "UNVERIFIED",
+        createdAt: now(), activeSessions: 0,
+        user: {
+          id: `u${Date.now()}`, name: (b.name as string) || "عميل جديد",
+          email: (b.email as string) || `client${Date.now()}@demo.sa`,
+          phone: (b.phone as string) || null, status: "ACTIVE", avatarUrl: null,
+          lastLoginAt: null, lastIpAddress: null,
+        },
+      });
+      clients.unshift(newClient);
+      return { client: newClient };
+    }
+    const rows = filterClients(u);
+    return { rows, total: rows.length, page: 1, pageSize: 20, items: rows };
+  }],
+  [/^\/clients\/me$/, () => ({ client: clients[0] })],
   [/^\/clients\/me\/overview$/, () => clientOverview],
+  [/^\/clients\/([^/]+)\/verify$/, (u, _m, body) => {
+    const id = u.split("/")[2];
+    const c = clients.find((x) => x.id === id);
+    if (!c) return null;
+    const b = (body ?? {}) as { note?: string };
+    c.verificationStatus = "VERIFIED";
+    c.verifiedAt = now();
+    c.verifiedBy = { id: "admin1", name: "علي القحطاني" };
+    c.verificationNote = b.note ?? null;
+    return { client: c };
+  }],
+  [/^\/clients\/([^/]+)\/unverify$/, (u, _m, body) => {
+    const id = u.split("/")[2];
+    const c = clients.find((x) => x.id === id);
+    if (!c) return null;
+    const b = (body ?? {}) as { reject?: boolean; note?: string };
+    c.verificationStatus = b.reject ? "REJECTED" : "UNVERIFIED";
+    c.verifiedAt = null; c.verifiedBy = null; c.verificationNote = b.note ?? null;
+    return { client: c };
+  }],
+  [/^\/clients\/([^/]+)\/refresh-geo$/, (u) => {
+    const id = u.split("/")[2];
+    const c = clients.find((x) => x.id === id);
+    if (!c) return null;
+    // Simulate: keep values, refresh lastSeenAt
+    c.lastSeenAt = now();
+    return { client: c };
+  }],
+  [/^\/clients\/([^/]+)$/, (u, method, body) => {
+    const id = u.split("?")[0].split("/").pop();
+    const c = clients.find((x) => x.id === id);
+    if (!c) return null;
+    if (method === "PATCH") {
+      Object.assign(c, body ?? {});
+      return { client: c };
+    }
+    if (method === "DELETE") {
+      c.status = "DISABLED"; c.user.status = "DISABLED";
+      return { ok: true };
+    }
+    return { client: { ...c, projects: projects.filter((p) => p.clientId === id), invoices: invoices.filter((i) => i.clientId === id), services: [], contracts: [], tickets: [], payments: [], files: [] } };
+  }],
+
   [/^\/projects$/, () => ({ items: projects, total: projects.length })],
   [/^\/invoices$/, () => ({ items: invoices, total: invoices.length })],
   [/^\/payments$/, () => ({ items: payments, total: payments.length })],
@@ -316,14 +503,16 @@ const handlers: Array<[RegExp, Handler]> = [
 ];
 
 export function demoResolve(url: string, method: string, body?: unknown): unknown | undefined {
-  // normalize: strip baseURL prefix and query string
-  const path = url.replace(/^https?:\/\/[^/]+/, "").replace(/^\/api/, "").split("?")[0];
+  // normalize: strip origin and /api prefix, keep query string so handlers can read it
+  const full = url.replace(/^https?:\/\/[^/]+/, "").replace(/^\/api/, "");
+  const path = full.split("?")[0];
   for (const [re, fn] of handlers) {
     if (re.test(path)) {
-      const result = fn(path, method, body);
+      const result = fn(full, method, body);
       return result ?? { ok: true };
     }
   }
+
   // Generic fallback for unknown GETs → empty list
   if (method === "GET") return { items: [], total: 0 };
   // Non-GETs succeed silently
