@@ -316,23 +316,41 @@ function PulseStat({ label, value, trend, color }: { label: string; value: React
   );
 }
 
-function MiniStat({ icon: Icon, label, value, color }: { icon: any; label: string; value: React.ReactNode; color: "rose" | "purple" }) {
-  const c: Record<string, string> = {
-    rose: "bg-rose-500/10 text-rose-400",
-    purple: "bg-purple-accent/10 text-purple-accent",
+function KpiRow({ label, value, progress, sub, color, icon: Icon }: { label: string; value: React.ReactNode; progress?: number; sub?: string; color: "emerald" | "electric" | "rose" | "purple"; icon?: any }) {
+  const colors: Record<string, { text: string; bg: string; stroke: string }> = {
+    emerald: { text: "text-emerald-400", bg: "bg-emerald-500/10", stroke: "#10b981" },
+    electric: { text: "text-electric", bg: "bg-electric/10", stroke: "#3b82f6" },
+    rose: { text: "text-rose-400", bg: "bg-rose-500/10", stroke: "#f43f5e" },
+    purple: { text: "text-purple-accent", bg: "bg-purple-accent/10", stroke: "#a855f7" },
   };
+  const cc = colors[color];
+  const pct = typeof progress === "number" ? Math.max(0, Math.min(100, progress)) : null;
   return (
-    <div className="rounded-xl border border-border bg-card px-2.5 py-2">
-      <div className="flex items-center gap-1.5 mb-1">
-        <span className={`grid h-5 w-5 place-items-center rounded ${c[color]}`}>
-          <Icon className="h-3 w-3" />
-        </span>
-        <span className="text-[10px] text-muted-foreground truncate">{label}</span>
+    <div className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+      {pct !== null ? (
+        <div className="relative h-11 w-11 shrink-0">
+          <svg viewBox="0 0 44 44" className="h-11 w-11 -rotate-90">
+            <circle cx="22" cy="22" r="17" stroke="currentColor" strokeWidth="3.5" fill="none" className="text-muted/25" />
+            <circle cx="22" cy="22" r="17" stroke={cc.stroke} strokeWidth="3.5" fill="none"
+              strokeDasharray={`${(pct / 100) * 2 * Math.PI * 17} ${2 * Math.PI * 17}`} strokeLinecap="round"
+              style={{ transition: "stroke-dasharray 600ms ease" }} />
+          </svg>
+          <div className={`absolute inset-0 grid place-items-center text-[9px] font-black ${cc.text}`}>{pct}%</div>
+        </div>
+      ) : (
+        <div className={`grid h-11 w-11 place-items-center rounded-xl shrink-0 ${cc.bg} ${cc.text}`}>
+          {Icon && <Icon className="h-5 w-5" />}
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <div className="text-[11px] text-muted-foreground truncate">{label}</div>
+        <div className="text-sm font-black leading-tight truncate">{value}</div>
+        {sub && <div className="text-[10px] text-muted-foreground truncate">{sub}</div>}
       </div>
-      <div className="text-[13px] font-black truncate">{value}</div>
     </div>
   );
 }
+
 
 function AlertPill({ type, message, link }: { type: string; message: string; link: string }) {
   const styles: Record<string, string> = {
