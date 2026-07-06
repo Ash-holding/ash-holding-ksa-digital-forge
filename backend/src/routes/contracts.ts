@@ -1,86 +1,114 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
-import { requireAuth, requireRole } from "../middleware/auth.js";
-import { currentClientId, isStaff } from "../lib/scope.js";
+import { requireAuth, requireStaff } from "../middleware/auth.js";
+import { currentClientId, isStaff, paging } from "../lib/scope.js";
+import { logAudit } from "../lib/audit.js";
 
 export const contractsRouter = Router();
 contractsRouter.use(requireAuth);
 
-const createSchema = z.object({
+const CONTRACT_STATUSES = ["DRAFT", "SENT", "PENDING_SIGNATURE", "SIGNED", "CANCELLED"] as const;
+
+const contractSchema = z.object({
   clientId: z.string(),
-  projectId: z.string().optional(),
+  projectId: z.string().optional().nullable(),
   title: z.string().min(2),
-  contractNumber: z.string().optional(),
-  status: z.enum(["DRAFT", "ACTIVE", "EXPIRED", "TERMINATED"]).optional(),
-  value: z.number().optional(),
-  currency: z.string().default("SAR"),
-  startDate: z.string().datetime().optional(),
-  endDate: z.string().datetime().optional(),
-  fileUrl: z.string().optional(),
+  status: z.enum(CONTRACT_STATUSES).optional(),
+  value: z.number().optional().nullable(),
+  currency: z.string().optional(),
+  startDate: z.coerce.date().optional().nullable(),
+  endDate: z.coerce.date().optional().nullable(),
+  filePath: z.string().optional().nullable(),
+  signedFilePath: z.string().optional().nullable(),
+  signedAt: z.coerce.date().optional().nullable(),
+  notes: z.string().optional().nullable(),
 });
 
-function nextContractNumber() {
+async function nextContractNumber(): Promise<string> {
   const y = new Date().getFullYear();
-  const rand = Math.floor(Math.random() * 900000 + 100000);
-  return `CT-${y}-${rand}`;
+  const count = await prisma.contract.count({ where: { contractNumber: { startsWith: `CTR-${y}-` } } });
+  return `CTR-${y}-${String(count + 1).padStart(4, "0")}`;
 }
 
-contractsRouter.get("/", async (req, res) => {
-  const where = isStaff(req) ? {} : { clientId: (await currentClientId(req)) ?? "__none__" };
-  const contracts = await prisma.contract.findMany({
-    where,
-    include: { client: { include: { user: { select: { name: true } } } } },
-    orderBy: { createdAt: "desc" },
-  });
-  res.json({ contracts });
+contractsRouter.get("/", async (req, res, next) => {
+  try {
+    const { skip, take, page, pageSize } = paging(req);
+    let where: import("@prisma/client").Prisma.ContractWhereInput = {};
+    if (!isStaff(req)) {
+      const cid = await currentClientId(req);
+      if (!cid) return res.json({ rows: [], total: 0, page, pageSize });
+      where.clientId = cid;
+    } else if (req.query.clientId) where.clientId = req.query.clientId as string;
+    if (req.query.status) where.status = req.query.status as never;
+
+    const [rows, total] = await Promise.all([
+      prisma.contract.findMany({
+        where,
+        include: { client: { include: { user: { select: { name: true, email: true } } } }, project: { select: { title: true } } },
+        orderBy: { createdAt: "desc" }, skip, take,
+      }),
+      prisma.contract.count({ where }),
+    ]);
+    res.json({ rows, total, page, pageSize });
+  } catch (e) { next(e); }
 });
 
-contractsRouter.get("/:id", async (req, res) => {
-  const contract = await prisma.contract.findUnique({ where: { id: req.params.id }, include: { client: true } });
-  if (!contract) return res.status(404).json({ error: "Not found" });
-  if (!isStaff(req)) {
-    const clientId = await currentClientId(req);
-    if (contract.clientId !== clientId) return res.status(403).json({ error: "Forbidden" });
-  }
-  res.json({ contract });
+contractsRouter.get("/:id", async (req, res, next) => {
+  try {
+    const c = await prisma.contract.findUnique({
+      where: { id: req.params.id },
+      include: { client: { include: { user: true } }, project: true, files: true },
+    });
+    if (!c) return res.status(404).json({ error: "غير موجود" });
+    if (!isStaff(req)) {
+      const cid = await currentClientId(req);
+      if (c.clientId !== cid) return res.status(403).json({ error: "Forbidden" });
+    }
+    res.json({ contract: c });
+  } catch (e) { next(e); }
 });
 
-contractsRouter.post("/", requireRole("ADMIN", "ACCOUNTANT"), async (req, res) => {
-  const parsed = createSchema.safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "Invalid input", details: parsed.error.flatten() });
-  const contract = await prisma.contract.create({
-    data: {
-      contractNumber: parsed.data.contractNumber ?? nextContractNumber(),
-      clientId: parsed.data.clientId,
-      projectId: parsed.data.projectId,
-      title: parsed.data.title,
-      status: parsed.data.status ?? "DRAFT",
-      value: parsed.data.value,
-      currency: parsed.data.currency,
-      startDate: parsed.data.startDate ? new Date(parsed.data.startDate) : undefined,
-      endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : undefined,
-      fileUrl: parsed.data.fileUrl,
-    },
-  });
-  res.status(201).json({ contract });
+contractsRouter.post("/", requireStaff, async (req, res, next) => {
+  try {
+    const data = contractSchema.parse(req.body);
+    const created = await prisma.contract.create({
+      data: { ...data, contractNumber: await nextContractNumber() } as never,
+    });
+    await logAudit(req, "contract.create", "Contract", created.id);
+    res.status(201).json({ contract: created });
+  } catch (e) { next(e); }
 });
 
-contractsRouter.patch("/:id", requireRole("ADMIN", "ACCOUNTANT"), async (req, res) => {
-  const parsed = createSchema.partial().safeParse(req.body);
-  if (!parsed.success) return res.status(400).json({ error: "Invalid input" });
-  const contract = await prisma.contract.update({
-    where: { id: req.params.id },
-    data: {
-      ...parsed.data,
-      startDate: parsed.data.startDate ? new Date(parsed.data.startDate) : undefined,
-      endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : undefined,
-    },
-  });
-  res.json({ contract });
+contractsRouter.patch("/:id", requireStaff, async (req, res, next) => {
+  try {
+    const data = contractSchema.partial().parse(req.body);
+    if (data.status === "SIGNED" && !data.signedAt) data.signedAt = new Date();
+    const updated = await prisma.contract.update({ where: { id: req.params.id }, data: data as never });
+    await logAudit(req, "contract.update", "Contract", updated.id);
+    res.json({ contract: updated });
+  } catch (e) { next(e); }
 });
 
-contractsRouter.delete("/:id", requireRole("ADMIN"), async (req, res) => {
-  await prisma.contract.delete({ where: { id: req.params.id } });
-  res.json({ ok: true });
+// Client: signal signature (placeholder – marks pending; admin uploads signed file)
+contractsRouter.post("/:id/request-sign", async (req, res, next) => {
+  try {
+    const c = await prisma.contract.findUnique({ where: { id: req.params.id } });
+    if (!c) return res.status(404).json({ error: "غير موجود" });
+    if (!isStaff(req)) {
+      const cid = await currentClientId(req);
+      if (c.clientId !== cid) return res.status(403).json({ error: "Forbidden" });
+    }
+    const updated = await prisma.contract.update({ where: { id: c.id }, data: { status: "PENDING_SIGNATURE" } });
+    await logAudit(req, "contract.request_sign", "Contract", c.id);
+    res.json({ contract: updated });
+  } catch (e) { next(e); }
+});
+
+contractsRouter.delete("/:id", requireStaff, async (req, res, next) => {
+  try {
+    await prisma.contract.delete({ where: { id: req.params.id } });
+    await logAudit(req, "contract.delete", "Contract", req.params.id);
+    res.json({ ok: true });
+  } catch (e) { next(e); }
 });
