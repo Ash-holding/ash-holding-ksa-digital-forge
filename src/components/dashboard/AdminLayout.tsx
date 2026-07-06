@@ -11,7 +11,14 @@ import { cn } from "@/lib/utils";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { toast } from "sonner";
 
-const ITEMS = [
+type NavItem = {
+  to: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  exact?: boolean;
+};
+
+const ITEMS: NavItem[] = [
   { to: "/admin", label: "نظرة عامة", icon: LayoutDashboard, exact: true },
   { to: "/admin/clients", label: "العملاء", icon: Users },
   { to: "/admin/projects", label: "المشاريع", icon: FolderKanban },
@@ -25,7 +32,7 @@ const ITEMS = [
   { to: "/admin/reports", label: "التقارير", icon: BarChart3 },
   { to: "/admin/settings", label: "الإعدادات", icon: Settings },
   { to: "/admin/audit-log", label: "سجل التدقيق", icon: ClipboardList },
-] as const;
+];
 
 export function AdminLayout({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
