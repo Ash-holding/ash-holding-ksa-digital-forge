@@ -1,18 +1,19 @@
-# ASH HOLDING — Self-Hosted Deployment Guide
+# نشر ASH HOLDING على VPS خاص
 
-Full stack: **React (TanStack Start) + Node/Express + Prisma + PostgreSQL + Nginx**, all self-hosted via Docker Compose. No Supabase, Firebase, or third-party BaaS.
+مشروع Self-Hosted بالكامل: **PostgreSQL + Node.js/Express + Prisma + React**، بدون أي اعتماد على Supabase أو Firebase أو أي BaaS خارجي. النشر عبر Docker Compose خلف Nginx كـ Reverse Proxy.
 
 ---
 
-## 1. Server prerequisites (Ubuntu 22.04+)
+## 1. متطلبات الخادم (Ubuntu 22.04+ موصى بها)
 
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y ca-certificates curl gnupg ufw
+sudo apt install -y curl git ufw
 
-# Docker + Compose plugin
+# Docker
 curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER
+# افتح جلسة SSH جديدة أو نفذ:  newgrp docker
 
 # Firewall
 sudo ufw allow OpenSSH
@@ -21,129 +22,117 @@ sudo ufw allow 443
 sudo ufw enable
 ```
 
-Log out / back in for the docker group to apply.
-
-## 2. Clone and configure
+## 2. جلب المشروع
 
 ```bash
 git clone <your-repo-url> ash-holding
 cd ash-holding
-cp backend/.env.example backend/.env
+cp .env.example .env
+nano .env    # عدّل كل المتغيرات، خصوصاً كلمات السر و JWT_SECRET و JWT_REFRESH_SECRET
 ```
 
-Edit `backend/.env` and set:
+توليد أسرار قوية:
+```bash
+openssl rand -base64 64   # للـ JWT_SECRET
+openssl rand -base64 64   # للـ JWT_REFRESH_SECRET
+openssl rand -base64 32   # للـ COOKIE_SECRET
+```
 
-- `DATABASE_URL` — point at the `postgres` service (default works with compose)
-- `JWT_SECRET` — 64+ random chars (`openssl rand -hex 32`)
-- `COOKIE_SECRET` — 32+ random chars
-- `CORS_ORIGIN` — your public domain (e.g. `https://ashholding.sa`)
-- `SEED_ADMIN_PASSWORD` — set a strong initial admin password
-- `UPLOAD_DIR` — leave at `/data/uploads` unless you mount elsewhere
-- `MAX_UPLOAD_MB` — max upload size in MB (default 25)
-
-Also set `POSTGRES_PASSWORD` in a top-level `.env` (used by `docker-compose.yml`).
-
-## 3. Bring the stack up
+## 3. الإطلاق
 
 ```bash
-docker compose build
-docker compose up -d
+docker compose up -d --build
+docker compose logs -f backend | head -50
 ```
 
-Services started:
-
-| Service   | Purpose                                  | Internal port |
-| --------- | ---------------------------------------- | ------------- |
-| postgres  | PostgreSQL 16 database                   | 5432          |
-| redis     | Redis (sessions/queues, optional)        | 6379          |
-| backend   | Node/Express API + Prisma                | 4000          |
-| frontend  | React app (TanStack Start SSR)           | 3000          |
-| nginx     | Reverse proxy + TLS termination          | 80 / 443      |
-
-## 4. Database migrations & seed
-
-The backend container automatically runs `prisma migrate deploy` on start.
-To seed the initial admin + demo client + service catalog:
+عند أول تشغيل، الحاوية الخلفية تنفذ `prisma migrate deploy` تلقائياً. يمكنك زرع البيانات التجريبية:
 
 ```bash
-docker compose exec backend npx prisma db seed
+docker compose exec backend npm run prisma:seed
 ```
 
-Default admin credentials come from `SEED_ADMIN_EMAIL` / `SEED_ADMIN_PASSWORD` in `backend/.env`. **Change them immediately after first login.**
+الآن التطبيق متاح على:
+- الموقع الرئيسي: `http://your-server-ip/`
+- API: `http://your-server-ip/api/health`
+- لوحة الإدارة: `http://your-server-ip/login`
 
-## 5. Nginx & TLS
+بيانات الدخول الافتراضية (غيّرها فوراً في الإنتاج):
 
-`nginx.conf` is a starting point. For HTTPS, generate a certificate with Certbot:
+| الدور | البريد | كلمة السر |
+|-------|---------|-----------|
+| Super Admin | `admin@ashholding.sa` | `Admin@12345` |
+| Support | `support@ashholding.sa` | `Support@12345` |
+| Accountant | `accountant@ashholding.sa` | `Account@12345` |
+| Client | `client@demo.sa` | `Client@12345` |
+
+## 4. النطاق و HTTPS (Let's Encrypt)
 
 ```bash
 sudo apt install -y certbot
-sudo certbot certonly --standalone -d ashholding.sa -d www.ashholding.sa
-# copy fullchain.pem + privkey.pem into ./nginx/certs/
-docker compose restart nginx
+sudo docker compose stop nginx
+sudo certbot certonly --standalone -d your-domain.com -d www.your-domain.com
+sudo mkdir -p certs
+sudo cp /etc/letsencrypt/live/your-domain.com/fullchain.pem certs/
+sudo cp /etc/letsencrypt/live/your-domain.com/privkey.pem certs/
 ```
 
-Renewal:
+في `docker-compose.yml` فك تعليق منفذ 443 وسطر mount للـ certs، وفي `nginx.conf` فك تعليق كتلة `server { listen 443 ssl … }` وضع `server_name your-domain.com;`، ثم:
 
 ```bash
-sudo certbot renew --pre-hook "docker compose stop nginx" \
-                   --post-hook "docker compose start nginx"
+docker compose up -d nginx
 ```
 
-## 6. File uploads
-
-Uploaded files are stored on disk inside the `uploads` Docker volume, mounted at `/data/uploads` in the backend container and served through Express at `/uploads/*` (proxied by Nginx). The path is configurable via `UPLOAD_DIR` in `backend/.env`.
-
-Back up the volume regularly:
-
+تجديد تلقائي كل شهر عبر cron:
 ```bash
-docker run --rm -v ash-holding_uploads:/data -v $PWD:/backup alpine \
-  tar czf /backup/uploads-$(date +%F).tar.gz -C /data .
+sudo crontab -e
+# أضف السطر التالي:
+0 3 1 * * certbot renew --quiet && cp /etc/letsencrypt/live/your-domain.com/*.pem /path/to/ash-holding/certs/ && docker compose -f /path/to/ash-holding/docker-compose.yml restart nginx
 ```
 
-## 7. Database backups
+## 5. النسخ الاحتياطي
 
+قاعدة البيانات:
 ```bash
-docker compose exec -T postgres pg_dump -U ash ash_holding \
-  | gzip > backups/db-$(date +%F).sql.gz
+# نسخ يدوي
+docker compose exec -T postgres pg_dump -U ash ash_holding > backup_$(date +%F).sql
+
+# نسخ يومي عبر cron
+0 2 * * * cd /path/to/ash-holding && docker compose exec -T postgres pg_dump -U ash ash_holding | gzip > backups/db_$(date +\%F).sql.gz
 ```
 
-Add to cron for daily off-site copies.
+الملفات المرفوعة:
+```bash
+docker run --rm -v ashholding_uploads:/data -v $(pwd)/backups:/backup alpine tar czf /backup/uploads_$(date +%F).tar.gz -C /data .
+```
 
-## 8. Updating
+## 6. الترقيات
 
 ```bash
 git pull
 docker compose build
 docker compose up -d
+# ستنفذ migrate deploy تلقائياً عند بدء الـ backend
 ```
 
-The backend container re-applies pending Prisma migrations on start.
+## 7. المراقبة السريعة
 
-## 9. API surface
+```bash
+docker compose ps
+docker compose logs -f backend
+docker compose logs -f nginx
+docker compose exec postgres psql -U ash ash_holding -c '\dt'
+```
 
-All API routes are under `/api/` and require a JWT bearer token (or `ash_token` cookie) unless noted.
+## 8. متغيرات البيئة الحرجة
 
-| Path                              | Roles                          |
-| --------------------------------- | ------------------------------ |
-| `POST /api/auth/register`         | public                         |
-| `POST /api/auth/login`            | public                         |
-| `POST /api/auth/logout`           | authenticated                  |
-| `GET  /api/auth/me`               | authenticated                  |
-| `GET  /api/clients`               | ADMIN, SUPPORT, ACCOUNTANT     |
-| `GET  /api/clients/me`            | authenticated                  |
-| `GET  /api/clients/me/overview`   | authenticated (CLIENT)         |
-| `GET/POST/PATCH/DELETE /api/projects[/:id]`  | scoped by role      |
-| `GET/POST/PATCH/DELETE /api/invoices[/:id]`  | scoped by role      |
-| `GET/POST/PATCH/DELETE /api/contracts[/:id]` | scoped by role      |
-| `GET/POST/PATCH /api/support/tickets[/:id]`  | scoped by role      |
-| `POST /api/support/tickets/:id/messages`     | ticket participants |
-| `GET/POST/DELETE /api/files[/upload]`        | scoped by role      |
+| المتغير | الوصف |
+|---------|--------|
+| `DATABASE_URL` | مبني تلقائياً من `POSTGRES_*` |
+| `JWT_SECRET` / `JWT_REFRESH_SECRET` | استخدم قيماً عشوائية قوية (64+ char) |
+| `CORS_ORIGIN` | ضع نطاقك الفعلي في الإنتاج |
+| `UPLOAD_MAX_MB` | يجب أن يتطابق مع `client_max_body_size` في `nginx.conf` |
+| `SEED_*` | افتراضيات التطوير فقط، غيّرها قبل الزرع في الإنتاج |
 
-## 10. Security checklist
+---
 
-- [ ] Change `JWT_SECRET`, `COOKIE_SECRET`, `POSTGRES_PASSWORD`, and `SEED_ADMIN_PASSWORD` from defaults
-- [ ] Restrict `CORS_ORIGIN` to your real domains
-- [ ] Enable HTTPS in Nginx
-- [ ] Restrict database port 5432 to the docker network only (default in compose)
-- [ ] Enable automated backups (DB + uploads volume)
-- [ ] Configure log rotation and monitoring (e.g. Grafana / Uptime Kuma)
+**كل البيانات والملفات محفوظة على خادمك.** لا اعتماد على أي مزود خارجي، ويمكنك نقل المشروع لأي VPS آخر عبر نسخ `docker-compose.yml` و `.env` وملفات مجلد `backups/`.
