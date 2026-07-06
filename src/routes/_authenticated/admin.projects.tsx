@@ -114,7 +114,7 @@ function ProjectsPage() {
               </select>
             </div>
             <div className="space-y-1.5"><Label>التقدم %</Label><Input name="progress" type="number" min={0} max={100} defaultValue={0} /></div>
-            <div className="space-y-1.5"><Label>الميزانية (ر.س)</Label><Input name="budget" type="number" step="0.01" /></div>
+            <div className="space-y-1.5"><Label>الميزانية (﷼)</Label><Input name="budget" type="number" step="0.01" /></div>
             <div className="space-y-1.5"><Label>تاريخ الاستحقاق</Label><Input name="dueDate" type="date" /></div>
           </div>
         </div>
