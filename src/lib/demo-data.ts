@@ -262,23 +262,24 @@ const adminStats = {
     id: c.id,
     companyName: c.companyName,
     createdAt: c.createdAt,
-    user: { name: c.contactName, email: c.email },
+    user: { name: c.user.name, email: c.user.email },
   })),
   recentInvoices: invoices.slice(0, 5).map((i) => ({
     id: i.id,
     invoiceNumber: i.number,
     total: i.amount,
     status: i.status,
-    client: { user: { name: clients.find((c) => c.id === i.clientId)?.contactName ?? "—" } },
+    client: { user: { name: clients.find((c) => c.id === i.clientId)?.user.name ?? "—" } },
   })),
   recentTickets: tickets.slice(0, 5).map((t) => ({
     id: t.id,
     subject: t.subject,
     status: t.status,
     updatedAt: t.lastReplyAt,
-    client: { user: { name: clients.find((c) => c.id === t.clientId)?.contactName ?? "—" } },
+    client: { user: { name: clients.find((c) => c.id === t.clientId)?.user.name ?? "—" } },
   })),
 };
+
 
 const clientProjects = projects.filter((p) => p.clientId === "c1");
 const clientInvoices = invoices.filter((i) => i.clientId === "c1");
@@ -368,21 +369,118 @@ const settings = {
   timezone: "Asia/Riyadh",
 };
 
+// --- Client CRUD-ish demo helpers ---
+function filterClients(url: string): DemoClient[] {
+  const query = url.includes("?") ? url.split("?")[1] : "";
+  const params = new URLSearchParams(query);
+  const q = (params.get("q") || "").trim().toLowerCase();
+  const status = params.get("status");
+  const verification = params.get("verification");
+  return clients.filter((c) => {
+    if (status && c.status !== status) return false;
+    if (verification && c.verificationStatus !== verification) return false;
+    if (!q) return true;
+    return (
+      (c.companyName || "").toLowerCase().includes(q) ||
+      c.user.name.toLowerCase().includes(q) ||
+      c.user.email.toLowerCase().includes(q) ||
+      (c.phone || "").includes(q)
+    );
+  });
+}
+
 const handlers: Array<[RegExp, Handler]> = [
   [/^\/admin\/stats$/, () => adminStats],
-  [/^\/admin\/clients$/, () => ({ items: clients, total: clients.length })],
+  // Backward-compat: /admin/clients
+  [/^\/admin\/clients$/, (u) => {
+    const rows = filterClients(u);
+    return { rows, total: rows.length, page: 1, pageSize: 20, items: rows };
+  }],
   [/^\/admin\/clients\/([^/]+)$/, (u) => {
-    const id = u.split("/").pop();
+    const id = u.split("?")[0].split("/").pop();
     const c = clients.find((x) => x.id === id);
-    return c ? { ...c, projects: projects.filter((p) => p.clientId === id), invoices: invoices.filter((i) => i.clientId === id) } : null;
+    if (!c) return null;
+    return { client: { ...c, projects: projects.filter((p) => p.clientId === id), invoices: invoices.filter((i) => i.clientId === id), services: [], contracts: [], tickets: [], payments: [], files: [] } };
   }],
   [/^\/admin\/projects$/, () => ({ items: projects, total: projects.length })],
   [/^\/admin\/invoices$/, () => ({ items: invoices, total: invoices.length })],
   [/^\/admin\/support$/, () => ({ items: tickets, total: tickets.length })],
   [/^\/admin\/audit-log$/, () => ({ items: auditLog, total: auditLog.length })],
-  [/^\/clients$/, () => ({ items: clients, total: clients.length })],
-  [/^\/clients\/me$/, () => clients[0]],
+  // Primary listing that admin.clients.index.tsx uses
+  [/^\/clients$/, (u, method, body) => {
+    if (method === "POST") {
+      const b = (body ?? {}) as Record<string, unknown>;
+      const id = `c${Date.now()}`;
+      const newClient = mk({
+        id,
+        companyName: (b.companyName as string) || null,
+        commercialNumber: (b.commercialNumber as string) || null,
+        taxNumber: (b.taxNumber as string) || null,
+        phone: (b.phone as string) || null,
+        contactEmail: (b.contactEmail as string) || (b.email as string) || null,
+        address: (b.address as string) || null,
+        city: (b.city as string) || null,
+        country: (b.country as string) || "SA",
+        status: "PENDING", verificationStatus: "UNVERIFIED",
+        createdAt: now(), activeSessions: 0,
+        user: {
+          id: `u${Date.now()}`, name: (b.name as string) || "عميل جديد",
+          email: (b.email as string) || `client${Date.now()}@demo.sa`,
+          phone: (b.phone as string) || null, status: "ACTIVE", avatarUrl: null,
+          lastLoginAt: null, lastIpAddress: null,
+        },
+      });
+      clients.unshift(newClient);
+      return { client: newClient };
+    }
+    const rows = filterClients(u);
+    return { rows, total: rows.length, page: 1, pageSize: 20, items: rows };
+  }],
+  [/^\/clients\/me$/, () => ({ client: clients[0] })],
   [/^\/clients\/me\/overview$/, () => clientOverview],
+  [/^\/clients\/([^/]+)\/verify$/, (u, _m, body) => {
+    const id = u.split("/")[2];
+    const c = clients.find((x) => x.id === id);
+    if (!c) return null;
+    const b = (body ?? {}) as { note?: string };
+    c.verificationStatus = "VERIFIED";
+    c.verifiedAt = now();
+    c.verifiedBy = { id: "admin1", name: "علي القحطاني" };
+    c.verificationNote = b.note ?? null;
+    return { client: c };
+  }],
+  [/^\/clients\/([^/]+)\/unverify$/, (u, _m, body) => {
+    const id = u.split("/")[2];
+    const c = clients.find((x) => x.id === id);
+    if (!c) return null;
+    const b = (body ?? {}) as { reject?: boolean; note?: string };
+    c.verificationStatus = b.reject ? "REJECTED" : "UNVERIFIED";
+    c.verifiedAt = null; c.verifiedBy = null; c.verificationNote = b.note ?? null;
+    return { client: c };
+  }],
+  [/^\/clients\/([^/]+)\/refresh-geo$/, (u) => {
+    const id = u.split("/")[2];
+    const c = clients.find((x) => x.id === id);
+    if (!c) return null;
+    // Simulate: keep values, refresh lastSeenAt
+    c.lastSeenAt = now();
+    return { client: c };
+  }],
+  [/^\/clients\/([^/]+)$/, (u, method, body) => {
+    const id = u.split("?")[0].split("/").pop();
+    const c = clients.find((x) => x.id === id);
+    if (!c) return null;
+    if (method === "PATCH") {
+      Object.assign(c, body ?? {});
+      return { client: c };
+    }
+    if (method === "DELETE") {
+      c.status = "DISABLED"; c.user.status = "DISABLED";
+      return { ok: true };
+    }
+    return { client: { ...c, projects: projects.filter((p) => p.clientId === id), invoices: invoices.filter((i) => i.clientId === id), services: [], contracts: [], tickets: [], payments: [], files: [] } };
+  }],
+
   [/^\/projects$/, () => ({ items: projects, total: projects.length })],
   [/^\/invoices$/, () => ({ items: invoices, total: invoices.length })],
   [/^\/payments$/, () => ({ items: payments, total: payments.length })],
