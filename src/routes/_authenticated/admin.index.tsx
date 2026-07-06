@@ -121,6 +121,9 @@ function OverviewPage() {
           }
         >
           <div className="h-56 md:h-64">
+            {isLoading ? (
+              <ChartSkeleton />
+            ) : (
             <ResponsiveContainer>
               <ComposedChart data={data?.revenueMonths ?? []} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                 <defs>
@@ -137,7 +140,9 @@ function OverviewPage() {
                 <Line type="monotone" dataKey="target" name="مستهدف" stroke="#a855f7" strokeWidth={2} strokeDasharray="4 4" dot={false} />
               </ComposedChart>
             </ResponsiveContainer>
+            )}
           </div>
+
         </Panel>
 
         <Panel
