@@ -56,7 +56,7 @@ export function Riyal({ className }: { className?: string }) {
   return <i className={cn("sr", className)} aria-label="ريال سعودي" />;
 }
 
-/** Renders a currency amount followed by the new Saudi Riyal symbol. */
+/** Renders a currency amount with the Saudi Riyal symbol on the right (Arabic/RTL). */
 export function Money({
   value,
   className,
@@ -67,14 +67,17 @@ export function Money({
   symbolClassName?: string;
 }) {
   return (
-    <span dir="ltr" className={cn("inline-flex items-baseline gap-1 whitespace-nowrap", className)}>
-      <span>{formatSAR(value)}</span>
+    <span
+      dir="rtl"
+      className={cn("inline-flex items-baseline gap-1 whitespace-nowrap", className)}
+    >
       <Riyal className={symbolClassName} />
+      <span>{formatSAR(value)}</span>
     </span>
   );
 }
 
 /** Text-only fallback for contexts that only accept strings (tooltips, table meta). */
 export function moneyText(value: number | string | null | undefined): string {
-  return `${formatSAR(value)} ${RIYAL_FALLBACK}`;
+  return `${RIYAL_FALLBACK} ${formatSAR(value)}`;
 }
