@@ -1,17 +1,18 @@
 export function formatSAR(n: number | string | null | undefined): string {
   const v = Number(n ?? 0);
-  return new Intl.NumberFormat("ar-SA", { style: "currency", currency: "SAR", maximumFractionDigits: 2 }).format(v);
+  return new Intl.NumberFormat("ar-SA-u-nu-latn", { style: "currency", currency: "SAR", maximumFractionDigits: 2 }).format(v);
 }
 
 export function formatDate(d: string | Date | null | undefined, withTime = false): string {
   if (!d) return "—";
   const dd = typeof d === "string" ? new Date(d) : d;
   if (isNaN(dd.getTime())) return "—";
-  return dd.toLocaleDateString("ar-SA", {
+  return dd.toLocaleDateString("ar-SA-u-nu-latn", {
     year: "numeric", month: "short", day: "numeric",
     ...(withTime ? { hour: "2-digit", minute: "2-digit" } : {}),
   });
 }
+
 
 export function fromNow(d: string | Date | null | undefined): string {
   if (!d) return "";
