@@ -76,19 +76,19 @@ function OverviewPage() {
       </motion.div>
 
       {/* Row 2: Dense metric grid (6 chips) */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2">
-        <MetricChip icon={Wallet} label="إيرادات" value={<Money value={c?.monthRevenue ?? 0} />} loading={isLoading} accent="emerald" trend={t.revenue} spark={sp.revenue} />
-        <MetricChip icon={Users} label="عملاء" value={c?.clientsTotal ?? 0} loading={isLoading} accent="electric" trend={t.clients} spark={sp.clients} />
-        <MetricChip icon={FolderKanban} label="مشاريع" value={c?.activeProjects ?? 0} loading={isLoading} accent="purple" trend={t.projects} spark={sp.projects} />
-        <MetricChip icon={FileText} label="فواتير" value={c?.unpaidInvoices ?? 0} loading={isLoading} accent="amber" trend={t.invoices} spark={sp.invoices} />
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
+        <MetricChip icon={Wallet} label="إيرادات الشهر" value={<Money value={c?.monthRevenue ?? 0} />} loading={isLoading} accent="emerald" trend={t.revenue} spark={sp.revenue} />
+        <MetricChip icon={Users} label="إجمالي العملاء" value={c?.clientsTotal ?? 0} loading={isLoading} accent="electric" trend={t.clients} spark={sp.clients} />
+        <MetricChip icon={FolderKanban} label="مشاريع نشطة" value={c?.activeProjects ?? 0} loading={isLoading} accent="purple" trend={t.projects} spark={sp.projects} />
+        <MetricChip icon={FileText} label="فواتير مستحقة" value={c?.unpaidInvoices ?? 0} loading={isLoading} accent="amber" trend={t.invoices} spark={sp.invoices} />
         <MetricChip icon={ScrollText} label="عقود معلقة" value={c?.pendingContracts ?? 0} loading={isLoading} accent="cyan" trend={t.contracts} spark={sp.contracts} />
-        <MetricChip icon={LifeBuoy} label="تذاكر" value={c?.openTickets ?? 0} loading={isLoading} accent="rose" trend={t.tickets} spark={sp.tickets} />
+        <MetricChip icon={LifeBuoy} label="تذاكر مفتوحة" value={c?.openTickets ?? 0} loading={isLoading} accent="rose" trend={t.tickets} spark={sp.tickets} />
       </div>
 
-      {/* Row 3: Bento — revenue chart (8) + KPI rings (4) */}
+      {/* Row 3: Bento — revenue chart (8) + unified KPI card (4) */}
       <div className="grid gap-3 lg:grid-cols-12">
-        <div className="lg:col-span-8 rounded-2xl border border-border bg-card p-3.5">
-          <div className="flex items-center justify-between mb-2">
+        <div className="lg:col-span-8 rounded-2xl border border-border bg-card p-4">
+          <div className="flex items-center justify-between mb-3">
             <div>
               <h3 className="text-sm font-bold">الإيرادات مقابل المستهدف</h3>
               <p className="text-[10px] text-muted-foreground">آخر 6 أشهر</p>
@@ -98,7 +98,7 @@ function OverviewPage() {
               <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-purple-accent" />مستهدف</span>
             </div>
           </div>
-          <div className="h-56">
+          <div className="h-64">
             <ResponsiveContainer>
               <ComposedChart data={data?.revenueMonths ?? []} margin={{ top: 4, right: 0, left: 0, bottom: 0 }}>
                 <defs>
@@ -118,15 +118,18 @@ function OverviewPage() {
           </div>
         </div>
 
-        <div className="lg:col-span-4 grid gap-2">
-          <RingKpi label="معدل التحصيل" value={`${k?.collectionsRate ?? 0}%`} progress={k?.collectionsRate ?? 0} color="emerald" sub="من إجمالي الفواتير" />
-          <RingKpi label="متوسط تقدم المشاريع" value={`${k?.avgProjectProgress ?? 0}%`} progress={k?.avgProjectProgress ?? 0} color="electric" sub={`${c?.activeProjects ?? 0} مشروع نشط`} />
-          <div className="grid grid-cols-2 gap-2">
-            <MiniStat icon={AlertTriangle} label="متأخرات" value={<Money value={k?.overdueAmount ?? 0} />} color="rose" />
-            <MiniStat icon={Trophy} label="عقود فعالة" value={<Money value={k?.activeContractsValue ?? 0} />} color="purple" />
+        {/* Unified KPI card — 4 rows, matches chart height */}
+        <div className="lg:col-span-4 rounded-2xl border border-border bg-card p-4 flex flex-col">
+          <h3 className="text-sm font-bold mb-3">مؤشرات الأداء</h3>
+          <div className="flex flex-col divide-y divide-border/60 flex-1">
+            <KpiRow label="معدل التحصيل" value={`${k?.collectionsRate ?? 0}%`} progress={k?.collectionsRate ?? 0} color="emerald" sub="من إجمالي الفواتير" />
+            <KpiRow label="تقدم المشاريع" value={`${k?.avgProjectProgress ?? 0}%`} progress={k?.avgProjectProgress ?? 0} color="electric" sub={`${c?.activeProjects ?? 0} مشروع نشط`} />
+            <KpiRow label="مبالغ متأخرة" value={<Money value={k?.overdueAmount ?? 0} />} color="rose" icon={AlertTriangle} sub="بحاجة متابعة" />
+            <KpiRow label="عقود فعالة" value={<Money value={k?.activeContractsValue ?? 0} />} color="purple" icon={Trophy} sub={`متوسط رد ${k?.avgTicketResponseHours ?? 0} س`} />
           </div>
         </div>
       </div>
+
 
       {/* Row 4: 3-column bento — statuses / invoices / top clients */}
       <div className="grid gap-3 lg:grid-cols-12">
