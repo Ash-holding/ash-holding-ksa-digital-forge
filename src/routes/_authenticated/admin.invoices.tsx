@@ -1,14 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { FileText, Plus, Trash2, CheckCircle } from "lucide-react";
+import { FileText, Plus, Trash2, CheckCircle, Clock, AlertTriangle, TrendingUp, FileWarning } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { ConfirmDialog } from "@/components/dashboard/ConfirmDialog";
 import { FormSheet } from "@/components/dashboard/FormSheet";
+import { AdminStatsRow } from "@/components/admin/AdminStatsRow";
+import { FilterChips } from "@/components/admin/FilterChips";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,21 +21,29 @@ export const Route = createFileRoute("/_authenticated/admin/invoices")({
   component: InvoicesPage,
 });
 
-type Row = { id: string; invoiceNumber: string; status: string; total: string; dueAt?: string | null;
-  client: { user: { name: string } }; project?: { title: string } | null };
-
+type Row = { id: string; invoiceNumber: string; status: string; total: string; dueAt?: string | null; client: { user: { name: string } }; project?: { title: string } | null };
+type Stats = { total: number; paid: number; unpaid: number; overdue: number; paidAmount: number; unpaidAmount: number; overdueAmount: number };
 type Item = { title: string; quantity: number; unitPrice: number };
 
 function InvoicesPage() {
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const [items, setItems] = useState<Item[]>([{ title: "", quantity: 1, unitPrice: 0 }]);
   const [taxRate, setTaxRate] = useState(15);
   const [discount, setDiscount] = useState(0);
 
-  const list = useQuery({ queryKey: ["invoices", page], queryFn: async () => (await api.get("/invoices", { params: { page } })).data });
+  const list = useQuery({
+    queryKey: ["invoices", page],
+    queryFn: async () => (await api.get("/invoices", { params: { page } })).data,
+    refetchInterval: 15000, refetchOnWindowFocus: true,
+  });
   const clients = useQuery({ queryKey: ["clients-lite"], queryFn: async () => (await api.get("/clients", { params: { pageSize: 100 } })).data });
+
+  const stats = list.data?.stats as Stats | undefined;
+  const rows = (list.data?.rows ?? []) as Row[];
+  const filtered = useMemo(() => (status ? rows.filter((r) => r.status === status) : rows), [rows, status]);
 
   const del = useMutation({ mutationFn: (id: string) => api.delete(`/invoices/${id}`), onSuccess: () => { toast.success("تم الحذف"); qc.invalidateQueries({ queryKey: ["invoices"] }); } });
   const markPaid = useMutation({ mutationFn: (id: string) => api.post(`/invoices/${id}/mark-paid`), onSuccess: () => { toast.success("تم تحديد كمدفوعة"); qc.invalidateQueries({ queryKey: ["invoices"] }); } });
@@ -70,10 +80,31 @@ function InvoicesPage() {
 
   return (
     <>
-      <PageHeader icon={FileText} title="الفواتير" description="إدارة الفواتير والضريبة والدفع."
+      <PageHeader icon={FileText} title="الفواتير" description="إدارة الفواتير والضريبة والدفع — يتحدّث لحظياً."
         actions={<Button onClick={() => setOpen(true)} className="gap-2"><Plus className="h-4 w-4" />فاتورة جديدة</Button>} />
-      <DataTable<Row> columns={columns} rows={list.data?.rows} loading={list.isLoading}
-        total={list.data?.total} page={page} pageSize={20} onPageChange={setPage} />
+
+      <AdminStatsRow loading={list.isLoading} stats={[
+        { icon: FileText, label: "إجمالي الفواتير", value: stats?.total ?? 0, accent: "electric" },
+        { icon: CheckCircle, label: "مدفوعة", value: stats?.paid ?? 0, accent: "emerald", hint: stats ? `${(stats.paidAmount).toLocaleString("en-US")} ﷼` : undefined },
+        { icon: Clock, label: "غير مدفوعة", value: stats?.unpaid ?? 0, accent: "amber", hint: stats ? `${(stats.unpaidAmount).toLocaleString("en-US")} ﷼` : undefined },
+        { icon: AlertTriangle, label: "متأخرة", value: stats?.overdue ?? 0, accent: "rose", hint: stats ? `${(stats.overdueAmount).toLocaleString("en-US")} ﷼` : undefined },
+        { icon: TrendingUp, label: "المُحصَّل", value: <Money value={stats?.paidAmount ?? 0} />, accent: "cyan", spark: [3,4,5,6,7,8] },
+        { icon: FileWarning, label: "المستحق", value: <Money value={(stats?.unpaidAmount ?? 0) + (stats?.overdueAmount ?? 0)} />, accent: "purple" },
+      ]} />
+
+      <FilterChips value={status} onChange={setStatus} chips={[
+        { key: "", label: "الكل", count: stats?.total },
+        { key: "PAID", label: "مدفوعة", count: stats?.paid },
+        { key: "UNPAID", label: "غير مدفوعة", count: stats?.unpaid },
+        { key: "OVERDUE", label: "متأخرة", count: stats?.overdue },
+        { key: "DRAFT", label: "مسودة" },
+        { key: "CANCELLED", label: "ملغاة" },
+      ]} />
+
+      <DataTable<Row> columns={columns} rows={filtered} loading={list.isLoading}
+        total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
+        emptyTitle="لا توجد فواتير بعد" />
+
       <FormSheet open={open} onOpenChange={setOpen} title="فاتورة جديدة" submitText="إصدار الفاتورة"
         onSubmit={async (e) => {
           const fd = new FormData(e.currentTarget);
@@ -81,9 +112,7 @@ function InvoicesPage() {
           if (items.some((i) => !i.title || i.quantity <= 0)) { toast.error("أكمل البنود"); return; }
           await create.mutateAsync({
             clientId: raw.clientId, projectId: raw.projectId || undefined,
-            discount, taxRate,
-            dueAt: raw.dueAt || undefined, notes: raw.notes || undefined,
-            items,
+            discount, taxRate, dueAt: raw.dueAt || undefined, notes: raw.notes || undefined, items,
           });
         }}
       >
@@ -91,7 +120,7 @@ function InvoicesPage() {
           <div className="space-y-1.5"><Label>العميل *</Label>
             <select name="clientId" required className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
               <option value="">اختر</option>
-              {clients.data?.rows?.map((c: any) => <option key={c.id} value={c.id}>{c.user.name}</option>)}
+              {(clients.data?.rows ?? []).map((c: { id: string; user: { name: string } }) => <option key={c.id} value={c.id}>{c.user.name}</option>)}
             </select>
           </div>
           <div className="space-y-1.5"><Label>تاريخ الاستحقاق</Label><Input name="dueAt" type="date" /></div>

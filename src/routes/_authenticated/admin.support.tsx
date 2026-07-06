@@ -1,13 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { LifeBuoy, Plus, MessageSquare, Send, Lock } from "lucide-react";
+import { LifeBuoy, Plus, MessageSquare, Send, Lock, Inbox, Clock, CheckCircle2, Flame, Users } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { FormSheet } from "@/components/dashboard/FormSheet";
+import { AdminStatsRow } from "@/components/admin/AdminStatsRow";
+import { FilterChips } from "@/components/admin/FilterChips";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,16 +23,26 @@ export const Route = createFileRoute("/_authenticated/admin/support")({
   component: SupportPage,
 });
 
-type Row = { id: string; ticketNumber: string; subject: string; status: string; priority: string;
-  updatedAt: string; client: { user: { name: string } }; agent?: { name: string } | null; _count: { messages: number } };
+type Row = { id: string; ticketNumber: string; subject: string; status: string; priority: string; updatedAt: string; client: { user: { name: string } }; agent?: { name: string } | null; _count: { messages: number } };
+type Stats = { total: number; open: number; inProgress: number; waiting: number; closed: number; urgent: number };
 
 function SupportPage() {
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
   const clients = useQuery({ queryKey: ["clients-lite"], queryFn: async () => (await api.get("/clients", { params: { pageSize: 100 } })).data });
-  const list = useQuery({ queryKey: ["tickets", page], queryFn: async () => (await api.get("/support/tickets", { params: { page } })).data });
+  const list = useQuery({
+    queryKey: ["tickets", page],
+    queryFn: async () => (await api.get("/support/tickets", { params: { page } })).data,
+    refetchInterval: 8000, refetchOnWindowFocus: true,
+  });
+  const stats = list.data?.stats as Stats | undefined;
+  const rows = (list.data?.rows ?? []) as Row[];
+  const filtered = useMemo(() => (status ? rows.filter((r) => r.status === status) : rows), [rows, status]);
+
   const create = useMutation({
     mutationFn: (d: Record<string, unknown>) => api.post("/support/tickets", d),
     onSuccess: () => { toast.success("تم إنشاء التذكرة"); qc.invalidateQueries({ queryKey: ["tickets"] }); setOpen(false); },
@@ -47,17 +59,37 @@ function SupportPage() {
     ) },
     { key: "priority", header: "الأولوية", render: (r) => <StatusBadge value={r.priority} /> },
     { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
+    { key: "agent", header: "المسند إليه", render: (r) => r.agent?.name || <span className="text-xs text-muted-foreground">غير مسند</span>, hideOnMobile: true },
     { key: "msg", header: "رسائل", render: (r) => <span className="inline-flex items-center gap-1 text-xs text-muted-foreground"><MessageSquare className="h-3 w-3" />{r._count.messages}</span>, hideOnMobile: true },
-    { key: "updated", header: "آخر تحديث", render: (r) => fromNow(r.updatedAt), hideOnMobile: true },
+    { key: "updated", header: "آخر تحديث", render: (r) => <span className="text-xs">{fromNow(r.updatedAt)}</span>, hideOnMobile: true },
   ];
 
   return (
     <>
-      <PageHeader icon={LifeBuoy} title="الدعم الفني" description="إدارة تذاكر العملاء والمحادثات."
+      <PageHeader icon={LifeBuoy} title="الدعم الفني" description="تذاكر العملاء ومحادثات فورية — تُحدَّث كل 8 ثواني."
         actions={<Button onClick={() => setOpen(true)} className="gap-2"><Plus className="h-4 w-4" />تذكرة جديدة</Button>} />
-      <DataTable<Row> columns={columns} rows={list.data?.rows} loading={list.isLoading}
-        total={list.data?.total} page={page} pageSize={20} onPageChange={setPage}
-        onRowClick={(r) => setSelectedId(r.id)} />
+
+      <AdminStatsRow loading={list.isLoading} stats={[
+        { icon: LifeBuoy, label: "إجمالي التذاكر", value: stats?.total ?? 0, accent: "electric" },
+        { icon: Inbox, label: "مفتوحة", value: stats?.open ?? 0, accent: "cyan" },
+        { icon: Users, label: "قيد المعالجة", value: stats?.inProgress ?? 0, accent: "purple" },
+        { icon: Clock, label: "بانتظار العميل", value: stats?.waiting ?? 0, accent: "amber" },
+        { icon: CheckCircle2, label: "مغلقة", value: stats?.closed ?? 0, accent: "emerald" },
+        { icon: Flame, label: "أولوية عالية/عاجلة", value: stats?.urgent ?? 0, accent: "rose" },
+      ]} />
+
+      <FilterChips value={status} onChange={setStatus} chips={[
+        { key: "", label: "الكل", count: stats?.total },
+        { key: "OPEN", label: "مفتوحة", count: stats?.open },
+        { key: "IN_PROGRESS", label: "قيد المعالجة", count: stats?.inProgress },
+        { key: "WAITING_CLIENT", label: "بانتظار العميل", count: stats?.waiting },
+        { key: "CLOSED", label: "مغلقة", count: stats?.closed },
+      ]} />
+
+      <DataTable<Row> columns={columns} rows={filtered} loading={list.isLoading}
+        total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
+        onRowClick={(r) => setSelectedId(r.id)}
+        emptyTitle="لا توجد تذاكر" />
 
       <FormSheet open={open} onOpenChange={setOpen} title="تذكرة جديدة" submitText="إنشاء"
         onSubmit={async (e) => {
@@ -70,7 +102,7 @@ function SupportPage() {
           <div className="space-y-1.5"><Label>العميل *</Label>
             <select name="clientId" required className="w-full h-10 rounded-md border border-input bg-background px-3 text-sm">
               <option value="">اختر</option>
-              {clients.data?.rows?.map((c: any) => <option key={c.id} value={c.id}>{c.user.name}</option>)}
+              {(clients.data?.rows ?? []).map((c: { id: string; user: { name: string } }) => <option key={c.id} value={c.id}>{c.user.name}</option>)}
             </select>
           </div>
           <div className="space-y-1.5"><Label>الموضوع *</Label><Input name="subject" required /></div>
@@ -87,6 +119,7 @@ function SupportPage() {
     </>
   );
 }
+
 
 function TicketDetail({ id, onClose }: { id: string | null; onClose: () => void }) {
   const qc = useQueryClient();
