@@ -100,8 +100,8 @@ function ServiceVisual({ svc }: { svc: ServiceItem }) {
 }
 
 function ServiceDetail() {
-  const data = Route.useLoaderData() as { svc: ServiceItem };
-  const svc = data.svc;
+  const { slug } = Route.useParams();
+  const svc = SERVICE_MAP[slug]!;
   const tone = TONE[svc.tone];
   const otherServices = SERVICES.filter((s) => s.slug !== svc.slug).slice(0, 3);
 
