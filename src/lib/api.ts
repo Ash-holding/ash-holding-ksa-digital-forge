@@ -46,13 +46,22 @@ async function tryRefresh(): Promise<string | null> {
 }
 
 function demoResponse(config: AxiosRequestConfig): AxiosResponse {
-  const url = (config.url ?? "").toString();
+  let url = (config.url ?? "").toString();
+  if (config.params && typeof config.params === "object") {
+    const qs = new URLSearchParams(
+      Object.entries(config.params as Record<string, unknown>)
+        .filter(([, v]) => v !== undefined && v !== null && v !== "")
+        .map(([k, v]) => [k, String(v)]),
+    ).toString();
+    if (qs) url += (url.includes("?") ? "&" : "?") + qs;
+  }
   const method = (config.method ?? "get").toUpperCase();
   let body: unknown;
   try { body = typeof config.data === "string" ? JSON.parse(config.data) : config.data; } catch { body = config.data; }
   const data = demoResolve(url, method, body);
   return { data, status: 200, statusText: "OK (demo)", headers: {}, config } as AxiosResponse;
 }
+
 
 api.interceptors.response.use(
   (r) => r,

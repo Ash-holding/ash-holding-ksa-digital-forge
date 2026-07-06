@@ -503,14 +503,16 @@ const handlers: Array<[RegExp, Handler]> = [
 ];
 
 export function demoResolve(url: string, method: string, body?: unknown): unknown | undefined {
-  // normalize: strip baseURL prefix and query string
-  const path = url.replace(/^https?:\/\/[^/]+/, "").replace(/^\/api/, "").split("?")[0];
+  // normalize: strip origin and /api prefix, keep query string so handlers can read it
+  const full = url.replace(/^https?:\/\/[^/]+/, "").replace(/^\/api/, "");
+  const path = full.split("?")[0];
   for (const [re, fn] of handlers) {
     if (re.test(path)) {
-      const result = fn(path, method, body);
+      const result = fn(full, method, body);
       return result ?? { ok: true };
     }
   }
+
   // Generic fallback for unknown GETs → empty list
   if (method === "GET") return { items: [], total: 0 };
   // Non-GETs succeed silently
