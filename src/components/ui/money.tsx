@@ -83,7 +83,7 @@ export function Money({
 
 /** Text-only fallback for contexts that only accept strings (tooltips, table meta). */
 export function moneyText(value: number | string | null | undefined): string {
-  return `${formatSAR(value)} ${RIYAL_FALLBACK}`;
+  return `${RIYAL_FALLBACK} ${formatSAR(value)}`;
 }
 
 
