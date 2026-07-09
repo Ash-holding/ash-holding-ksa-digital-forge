@@ -1,12 +1,70 @@
+import { Link } from "@tanstack/react-router";
+
+type FooterLink = { label: string; to?: string; href?: string };
+
 export function Footer() {
-  const cols = [
-    { title: "الشركة", links: ["من نحن", "لماذا ASH", "آلية العمل", "الأسئلة الشائعة", "تواصل معنا"] },
-    { title: "الخدمات", links: ["تطوير المواقع والمنصات", "تطبيقات الجوال", "الأنظمة ولوحات التحكم", "الذكاء الاصطناعي", "التصميم والهوية"] },
-    { title: "الاستضافة والسيرفرات", links: ["الاستضافة المشتركة", "VPS", "السيرفرات المخصصة", "إدارة السيرفرات", "SMTP والبريد", "الحماية والمراقبة"] },
-    { title: "التسويق الرقمي", links: ["SEO", "الحملات الإعلانية", "إدارة المحتوى", "الهوية البصرية", "السوشيال ميديا", "التقارير والتحليلات"] },
-    { title: "الدعم", links: ["مركز المساعدة", "تواصل معنا", "حالة الخدمة", "الأدلة والوثائق"] },
-    { title: "قانوني", links: ["الشروط والأحكام", "سياسة الخصوصية", "اتفاقية الاستخدام", "SLA"] },
+  const cols: { title: string; links: FooterLink[] }[] = [
+    {
+      title: "الشركة",
+      links: [
+        { label: "من نحن", to: "/about" },
+        { label: "لماذا ASH", to: "/why" },
+        { label: "آلية العمل", to: "/process" },
+        { label: "الأسئلة الشائعة", to: "/faq" },
+        { label: "تواصل معنا", to: "/contact" },
+      ],
+    },
+    {
+      title: "الخدمات",
+      links: [
+        { label: "تطوير المواقع والمنصات", to: "/services/web" },
+        { label: "تطبيقات الجوال", to: "/services/mobile" },
+        { label: "الأنظمة ولوحات التحكم", to: "/services/systems" },
+        { label: "الذكاء الاصطناعي", to: "/services/ai" },
+        { label: "التصميم والهوية", to: "/services/design" },
+      ],
+    },
+    {
+      title: "الاستضافة والسيرفرات",
+      links: [
+        { label: "الاستضافة المشتركة", href: "#hosting" },
+        { label: "VPS", href: "#hosting" },
+        { label: "السيرفرات المخصصة", href: "#hosting" },
+        { label: "إدارة السيرفرات", href: "#hosting" },
+        { label: "SMTP والبريد", href: "#hosting" },
+        { label: "الحماية والمراقبة", href: "#hosting" },
+      ],
+    },
+    {
+      title: "التسويق الرقمي",
+      links: [
+        { label: "SEO", href: "#marketing" },
+        { label: "الحملات الإعلانية", href: "#marketing" },
+        { label: "إدارة المحتوى", href: "#marketing" },
+        { label: "الهوية البصرية", href: "#marketing" },
+        { label: "السوشيال ميديا", href: "#marketing" },
+        { label: "التقارير والتحليلات", href: "#marketing" },
+      ],
+    },
+    {
+      title: "الدعم",
+      links: [
+        { label: "مركز المساعدة", to: "/support" },
+        { label: "تواصل معنا", to: "/contact" },
+        { label: "الأسئلة الشائعة", to: "/faq" },
+      ],
+    },
+    {
+      title: "قانوني",
+      links: [
+        { label: "الشروط والأحكام", to: "/terms" },
+        { label: "سياسة الخصوصية", to: "/privacy" },
+        { label: "اتفاقية الاستخدام", to: "/acceptable-use" },
+        { label: "اتفاقية مستوى الخدمة SLA", to: "/sla" },
+      ],
+    },
   ];
+
   return (
     <footer className="bg-dark text-primary-foreground relative overflow-hidden">
       <div className="absolute inset-0 opacity-30 pointer-events-none">
@@ -34,9 +92,21 @@ export function Footer() {
             <div key={c.title}>
               <div className="mb-4 text-sm font-bold">{c.title}</div>
               <ul className="space-y-2 text-sm text-white/65">
-                {c.links.map((l) => (
-                  <li key={l}><a href="#" className="hover:text-white transition">{l}</a></li>
-                ))}
+                {c.links.map((l) =>
+                  l.to ? (
+                    <li key={l.label}>
+                      <Link to={l.to} className="hover:text-white transition">
+                        {l.label}
+                      </Link>
+                    </li>
+                  ) : (
+                    <li key={l.label}>
+                      <a href={l.href} className="hover:text-white transition">
+                        {l.label}
+                      </a>
+                    </li>
+                  ),
+                )}
               </ul>
             </div>
           ))}
