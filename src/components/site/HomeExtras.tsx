@@ -1,7 +1,11 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Star, Quote, TrendingUp, Users, Award, Zap, ArrowLeft } from "lucide-react";
+import {
+  Star, Quote, TrendingUp, Users, Award, Zap, ArrowLeft,
+  ShieldCheck, Landmark, ShoppingBag, GraduationCap, HeartPulse,
+  Truck, Plane, Building2, Cpu, Cloud, Lock, BadgeCheck,
+} from "lucide-react";
 
 /* ============ Counter ============ */
 function useCountUp(target: number, duration = 1600, start = false) {
@@ -85,35 +89,94 @@ export function HomeStats() {
   );
 }
 
-/* ============ Client Logos Marquee ============ */
-const LOGOS = [
-  "نور للتجارة", "إيليت العقارية", "أكاديمية المستقبل", "مجموعة صحّة",
-  "منصة سفر", "بنك رقمي", "لوجستيات الشرق", "شهيّة", "الرياض تك",
-  "جلف كلاود", "بترو سيرف", "التقنية الذكية",
+/* ============ Trust / Sectors ============ */
+const SECTORS = [
+  { icon: ShoppingBag, label: "التجارة والتجزئة" },
+  { icon: Landmark, label: "الجهات الحكومية" },
+  { icon: GraduationCap, label: "التعليم" },
+  { icon: HeartPulse, label: "الرعاية الصحية" },
+  { icon: Building2, label: "العقار والمقاولات" },
+  { icon: Truck, label: "اللوجستيات" },
+  { icon: Plane, label: "السياحة والسفر" },
+  { icon: Cpu, label: "التقنية والناشئة" },
+];
+
+const BADGES = [
+  { icon: ShieldCheck, label: "متوافق مع ضوابط الأمن السيبراني" },
+  { icon: Lock, label: "التزام بنظام حماية البيانات (PDPL)" },
+  { icon: Cloud, label: "بنية سحابية متعددة المناطق" },
+  { icon: BadgeCheck, label: "اتفاقيات مستوى خدمة 99.9%" },
 ];
 
 export function HomeLogos() {
   return (
-    <section className="py-12 border-y border-border bg-card/30">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
-        <div className="text-center text-sm text-muted-foreground mb-6">
-          يثق بنا أكثر من 180 عميلاً في المنطقة
-        </div>
-        <div className="relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+    <section className="relative py-16 md:py-20 border-y border-border overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-b from-card/40 via-background to-card/40" />
+      <div
+        className="absolute inset-0 opacity-[0.04] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, currentColor 1px, transparent 1px), linear-gradient(to bottom, currentColor 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
+      <div className="absolute -top-24 right-1/4 h-64 w-64 rounded-full bg-electric/10 blur-3xl" />
+      <div className="absolute -bottom-24 left-1/4 h-64 w-64 rounded-full bg-purple-accent/10 blur-3xl" />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+        <div className="text-center mb-10">
           <motion.div
-            animate={{ x: ["0%", "-50%"] }}
-            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
-            className="flex gap-10 whitespace-nowrap"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="inline-flex items-center gap-2 rounded-full bg-card border border-border px-3 py-1 text-xs font-medium mb-4"
           >
-            {[...LOGOS, ...LOGOS].map((l, i) => (
-              <div
-                key={i}
-                className="shrink-0 rounded-xl border border-border bg-card px-6 py-4 text-lg font-bold text-muted-foreground hover:text-electric hover:border-electric/40 transition"
-              >
-                {l}
-              </div>
-            ))}
+            <span className="h-1.5 w-1.5 rounded-full bg-electric animate-pulse" /> ثقة تُبنى بالعمل
           </motion.div>
+          <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">
+            نخدم قطاعات <span className="gradient-text">متعددة</span> بمعايير موحّدة
+          </h2>
+          <p className="mt-3 text-muted-foreground max-w-2xl mx-auto text-sm md:text-base">
+            نلتزم بأعلى مستويات الجودة والامتثال في كل قطاع نعمل معه — بلا استثناء.
+          </p>
+        </div>
+
+        {/* Sectors grid */}
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 mb-10">
+          {SECTORS.map((s, i) => (
+            <motion.div
+              key={s.label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              className="group relative rounded-2xl border border-border bg-card/70 backdrop-blur p-4 text-center hover:border-electric/40 hover:shadow-glow transition"
+            >
+              <div className="mx-auto mb-2 grid h-10 w-10 place-items-center rounded-xl bg-electric/10 text-electric group-hover:scale-110 transition">
+                <s.icon className="h-5 w-5" />
+              </div>
+              <div className="text-xs md:text-sm font-semibold leading-tight">{s.label}</div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Compliance badges */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {BADGES.map((b, i) => (
+            <motion.div
+              key={b.label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.4 + i * 0.05 }}
+              className="flex items-center gap-3 rounded-2xl border border-border bg-card/70 backdrop-blur px-4 py-3"
+            >
+              <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-electric/20 to-purple-accent/20 text-electric">
+                <b.icon className="h-4 w-4" />
+              </div>
+              <div className="text-xs md:text-sm font-medium leading-snug">{b.label}</div>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
