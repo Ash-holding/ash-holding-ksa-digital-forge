@@ -75,15 +75,46 @@ function LoginOtpPage() {
         navigate({ to: landingFor(data.user.role) });
         return;
       } catch (err: any) {
-        const apiMsg = err?.response?.data?.error;
-        // Demo fallback only when the API itself is unreachable (no response)
+        const status = err?.response?.status;
+        const apiMsg: string | undefined = err?.response?.data?.error;
+
+        // Map backend errors to precise UI messages + descriptions
+        const showApiError = () => {
+          const msg = apiMsg || "";
+          if (status === 404 || msg.includes("لا يوجد حساب")) {
+            toast.error("لا يوجد حساب مرتبط بهذا الرقم", {
+              description: "بدّل إلى تبويب «إنشاء حساب» لتسجيل عميل جديد بنفس الرقم.",
+            });
+          } else if (msg.includes("انتهت")) {
+            toast.error("انتهت صلاحية الرمز", {
+              description: "اضغط «إعادة إرسال الرمز» لاستلام رمز جديد صالح لـ 10 دقائق.",
+            });
+          } else if (status === 429 || msg.includes("تجاوزت")) {
+            toast.error("تجاوزت الحد المسموح للمحاولات", {
+              description: "اطلب رمزاً جديداً وحاول مرة أخرى.",
+            });
+          } else if (msg.includes("لا يوجد رمز")) {
+            toast.error("لا يوجد رمز نشط لهذا الرقم", {
+              description: "اطلب رمزاً جديداً أولاً ثم أعد المحاولة.",
+            });
+          } else if (msg.includes("غير صحيح") || status === 400) {
+            toast.error("الرمز غير صحيح", {
+              description: "تأكد من أنك تستخدم آخر رمز وصلك على واتساب.",
+            });
+          } else {
+            toast.error(apiMsg || "تعذّر التحقق من الرمز");
+          }
+        };
+
         if (err?.response) {
-          toast.error(apiMsg || "الرمز غير صحيح");
+          showApiError();
           return;
         }
         const expected = typeof window !== "undefined" ? sessionStorage.getItem("ash_demo_otp") : null;
         if (!expected || code !== expected) {
-          toast.error(apiMsg || "تعذّر الاتصال بالخادم");
+          toast.error("تعذّر الاتصال بالخادم", {
+            description: "تحقق من اتصالك بالإنترنت وحاول مجدداً.",
+          });
           return;
         }
         const demoUser = {
