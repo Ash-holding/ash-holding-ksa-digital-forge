@@ -487,3 +487,29 @@ model SystemSetting {
   updatedAt DateTime @updatedAt
   createdAt DateTime @default(now())
 }
+
+model ProjectRequest {
+  id           String                 @id @default(cuid())
+  clientId     String
+  title        String
+  description  String?
+  category     ServiceType            @default(OTHER)
+  priority     ProjectRequestPriority @default(NORMAL)
+  budgetMin    Decimal?               @db.Decimal(12, 2)
+  budgetMax    Decimal?               @db.Decimal(12, 2)
+  targetDate   DateTime?
+  attachments  Json?
+  contactName  String?
+  contactPhone String?
+  status       ProjectRequestStatus   @default(PENDING)
+  adminNote    String?
+  projectId    String?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([clientId])
+  @@index([status])
+  @@index([createdAt])
+}
