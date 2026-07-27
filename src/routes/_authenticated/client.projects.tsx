@@ -122,7 +122,7 @@ function TabBtn({ active, onClick, icon: Icon, label }: { active: boolean; onCli
 
 /* ---------------- PROJECTS VIEW ---------------- */
 
-function ProjectsView() {
+function ProjectsView({ onNew }: { onNew: () => void }) {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string | null>(null);
   const [q, setQ] = useState("");
