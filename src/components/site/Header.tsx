@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   Menu, X, ChevronDown, LogIn, Home, Info, Sparkles, Workflow, HelpCircle, Phone, LifeBuoy,
   Code2, Smartphone, LayoutDashboard, Brain, Palette, GraduationCap, Plug, Wrench,
