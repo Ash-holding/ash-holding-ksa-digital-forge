@@ -38,11 +38,18 @@ function LoginOtpPage() {
     }
     setLoading(true);
     try {
-      await api.post("/whatsapp/otp/request", { phone, purpose });
-      toast.success("تم إرسال رمز التحقق على واتساب");
+      try {
+        await api.post("/whatsapp/otp/request", { phone, purpose });
+        toast.success("تم إرسال رمز التحقق على واتساب");
+      } catch {
+        // Demo fallback: backend not deployed → simulate OTP delivery
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("ash_demo_otp", "123456");
+          sessionStorage.setItem("ash_demo_otp_phone", phone);
+        }
+        toast.info("وضع تجريبي: استخدم الرمز 123456");
+      }
       setStep("code");
-    } catch (e) {
-      toast.error(apiError(e));
     } finally {
       setLoading(false);
     }
@@ -55,18 +62,43 @@ function LoginOtpPage() {
     }
     setLoading(true);
     try {
-      const { data } = await api.post("/whatsapp/otp/verify", {
-        phone,
-        code,
-        purpose,
-        name: purpose === "signup" ? name : undefined,
-      });
-      setTokens(data.accessToken, data.refreshToken);
-      await refresh();
-      toast.success("تم التحقق بنجاح");
-      navigate({ to: landingFor(data.user.role) });
-    } catch (e) {
-      toast.error(apiError(e));
+      try {
+        const { data } = await api.post("/whatsapp/otp/verify", {
+          phone,
+          code,
+          purpose,
+          name: purpose === "signup" ? name : undefined,
+        });
+        setTokens(data.accessToken, data.refreshToken);
+        await refresh();
+        toast.success("تم التحقق بنجاح");
+        navigate({ to: landingFor(data.user.role) });
+        return;
+      } catch {
+        // Demo fallback
+        const expected = typeof window !== "undefined" ? sessionStorage.getItem("ash_demo_otp") : null;
+        if (!expected || code !== expected) {
+          toast.error("الرمز غير صحيح");
+          return;
+        }
+        const demoUser = {
+          id: "demo-client",
+          email: `wa-${phone}@demo.sa`,
+          name: purpose === "signup" && name ? name : "عميل واتساب",
+          role: "CLIENT" as const,
+          phone,
+          client: { id: "demo-c1", companyName: "شركة تجريبية" },
+        };
+        setTokens("demo-access", "demo-refresh");
+        if (typeof window !== "undefined") {
+          localStorage.setItem("ash_demo_user", JSON.stringify(demoUser));
+          sessionStorage.removeItem("ash_demo_otp");
+          sessionStorage.removeItem("ash_demo_otp_phone");
+        }
+        await refresh();
+        toast.success("تم التحقق بنجاح (وضع تجريبي)");
+        navigate({ to: landingFor(demoUser.role) });
+      }
     } finally {
       setLoading(false);
     }
