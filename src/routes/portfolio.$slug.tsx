@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { ArrowLeft, Calendar, CheckCircle2, Target, Lightbulb, TrendingUp, Layers } from "lucide-react";
 import { PageShell } from "@/components/site/PageShell";
-import { PROJECTS, TONE_MAP } from "@/lib/portfolio-data";
+import { PROJECTS, TONE_MAP, type Project } from "@/lib/portfolio-data";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   component: ProjectDetail,
@@ -37,7 +37,7 @@ export const Route = createFileRoute("/portfolio/$slug")({
 });
 
 function ProjectDetail() {
-  const { project } = Route.useLoaderData();
+  const { project } = Route.useLoaderData() as { project: Project };
   const t = TONE_MAP[project.tone];
   const Icon = project.icon;
 
