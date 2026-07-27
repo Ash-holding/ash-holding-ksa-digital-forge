@@ -110,8 +110,9 @@ supportRouter.post("/tickets", async (req, res, next) => {
 supportRouter.patch("/tickets/:id", requireStaff, async (req, res, next) => {
   try {
     const data = updateSchema.parse(req.body);
-    if (data.status === "CLOSED") (data as never)["closedAt" as never] = new Date();
-    const updated = await prisma.supportTicket.update({ where: { id: req.params.id }, data: data as never });
+    const updateData: Record<string, unknown> = { ...data };
+    if (data.status === "CLOSED") updateData.closedAt = new Date();
+    const updated = await prisma.supportTicket.update({ where: { id: req.params.id }, data: updateData as never });
     await logAudit(req, "ticket.update", "SupportTicket", updated.id, data as never);
     res.json({ ticket: updated });
   } catch (e) { next(e); }
