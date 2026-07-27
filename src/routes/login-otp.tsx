@@ -323,6 +323,42 @@ function LoginOtpPage() {
               </div>
             </div>
           )}
+
+          {log.length > 0 && (
+            <div className="mt-6 rounded-lg border border-border/60 bg-muted/30 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-semibold text-muted-foreground">سجل التشخيص</span>
+                <button
+                  onClick={() => setLog([])}
+                  className="text-[10px] text-muted-foreground hover:text-foreground"
+                >
+                  مسح
+                </button>
+              </div>
+              <ul className="space-y-1.5 text-[11px]">
+                {log.map((e, i) => (
+                  <li key={i} className="flex items-start gap-2 font-mono tabular-nums">
+                    <span className="text-muted-foreground shrink-0">{fmtTime(e.at)}</span>
+                    <span
+                      className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                        e.ok
+                          ? "bg-emerald-500/15 text-emerald-400"
+                          : "bg-destructive/15 text-destructive"
+                      }`}
+                    >
+                      {e.kind === "request" ? "طلب" : "تحقق"}
+                    </span>
+                    <span className="text-foreground/80 truncate" title={e.reason}>
+                      {e.reason}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-[10px] text-muted-foreground">
+                لا تُخزَّن الأرقام كاملة ولا رموز OTP — فقط الوقت والنتيجة.
+              </p>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
