@@ -246,26 +246,47 @@ function LoginOtpPage() {
           ) : (
             <div className="mt-6 space-y-4">
               <div className="space-y-1.5">
-                <Label>رمز التحقق</Label>
+                <div className="flex items-center justify-between">
+                  <Label>رمز التحقق</Label>
+                  <span
+                    className={`text-xs font-mono tabular-nums ${expired ? "text-destructive" : remaining < 60 ? "text-amber-500" : "text-muted-foreground"}`}
+                    aria-live="polite"
+                  >
+                    {expired ? "انتهت الصلاحية" : `صالح لمدة ${mm}:${ss}`}
+                  </span>
+                </div>
                 <Input
                   dir="ltr"
                   inputMode="numeric"
                   maxLength={6}
                   placeholder="••••••"
                   value={code}
+                  disabled={expired}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                  className="text-center text-2xl tracking-[0.6em] font-mono"
+                  className="text-center text-2xl tracking-[0.6em] font-mono disabled:opacity-60"
                 />
               </div>
-              <Button onClick={verifyOtp} disabled={loading} className="w-full gap-2">
-                <ShieldCheck className="h-4 w-4" />
-                {loading ? "جارٍ التحقق..." : "تأكيد الرمز والدخول"}
-              </Button>
+              {expired ? (
+                <Button onClick={requestOtp} disabled={loading} className="w-full gap-2" variant="default">
+                  <MessageCircle className="h-4 w-4" />
+                  {loading ? "جارٍ الإرسال..." : "إرسال رمز جديد"}
+                </Button>
+              ) : (
+                <Button onClick={verifyOtp} disabled={loading || code.length < 4} className="w-full gap-2">
+                  <ShieldCheck className="h-4 w-4" />
+                  {loading ? "جارٍ التحقق..." : "تأكيد الرمز والدخول"}
+                </Button>
+              )}
               <div className="flex items-center justify-between text-xs">
                 <button className="text-muted-foreground hover:text-foreground" onClick={() => setStep("phone")}>
                   تغيير الرقم
                 </button>
-                <button className="text-emerald-400 hover:underline" onClick={requestOtp} disabled={loading}>
+                <button
+                  className="text-emerald-400 hover:underline disabled:opacity-40 disabled:no-underline"
+                  onClick={requestOtp}
+                  disabled={loading || (!expired && remaining > 540)}
+                  title={!expired && remaining > 540 ? "يمكنك إعادة الإرسال بعد دقيقة" : ""}
+                >
                   إعادة إرسال الرمز
                 </button>
               </div>
