@@ -1,17 +1,21 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 import {
-  FolderKanban, Layers, Activity, CheckCircle2, PauseCircle, AlertTriangle, Wallet,
-  Search, LayoutGrid, List, TrendingUp, Clock,
+  FolderKanban, Layers, Activity, CheckCircle2, AlertTriangle,
+  Search, LayoutGrid, List, TrendingUp, Clock, Plus, Inbox, Sparkles,
+  Trash2, MessageSquare, Zap, Rocket,
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, apiError } from "@/lib/api";
 import { ClientPageHeader } from "@/components/client/ClientPageHeader";
 import { LiveBadge, DueBadge } from "@/components/client/LiveBadge";
 import { AdminStatsRow } from "@/components/admin/AdminStatsRow";
 import { FilterChips } from "@/components/admin/FilterChips";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
+import { ConfirmDialog } from "@/components/dashboard/ConfirmDialog";
+import { ProjectRequestSheet } from "@/components/client/ProjectRequestSheet";
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -24,12 +28,63 @@ export const Route = createFileRoute("/_authenticated/client/projects")({
 });
 
 type SortKey = "recent" | "due" | "progress" | "budget";
+type Tab = "projects" | "requests";
 
 function ClientProjectsPage() {
+  const [tab, setTab] = useState<Tab>("projects");
+  const [sheetOpen, setSheetOpen] = useState(false);
+
+  return (
+    <div className="space-y-3">
+      <ClientPageHeader
+        icon={FolderKanban}
+        title="مشاريعي"
+        description="متابعة حية لمشاريعك وطلباتك — تحديث لحظي مع فريق الإدارة."
+        actions={
+          <div className="flex items-center gap-2">
+            <LiveBadge interval={15} />
+            <Button size="sm" onClick={() => setSheetOpen(true)}
+              className="gap-1.5 bg-gradient-to-r from-electric to-purple-accent shadow-glow">
+              <Rocket className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">طلب مشروع جديد</span>
+              <span className="sm:hidden">طلب</span>
+            </Button>
+          </div>
+        }
+      />
+
+      {/* Tabs */}
+      <div className="inline-flex items-center rounded-2xl bg-muted/40 p-1 border border-border">
+        <TabBtn active={tab === "projects"} onClick={() => setTab("projects")} icon={FolderKanban} label="مشاريعي" />
+        <TabBtn active={tab === "requests"} onClick={() => setTab("requests")} icon={Inbox} label="طلباتي" />
+      </div>
+
+      {tab === "projects" ? <ProjectsView /> : <RequestsView onNew={() => setSheetOpen(true)} />}
+
+      <ProjectRequestSheet open={sheetOpen} onOpenChange={setSheetOpen} />
+    </div>
+  );
+}
+
+function TabBtn({ active, onClick, icon: Icon, label }: { active: boolean; onClick: () => void; icon: any; label: string }) {
+  return (
+    <button onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1.5 h-9 rounded-xl px-3.5 text-[12px] font-bold transition",
+        active ? "bg-background text-foreground shadow" : "text-muted-foreground hover:text-foreground",
+      )}>
+      <Icon className="h-3.5 w-3.5" />{label}
+    </button>
+  );
+}
+
+/* ---------------- PROJECTS VIEW ---------------- */
+
+function ProjectsView() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string | null>(null);
   const [q, setQ] = useState("");
-  const [view, setView] = useState<"table" | "cards">("table");
+  const [view, setView] = useState<"table" | "cards">("cards");
   const [sort, setSort] = useState<SortKey>("recent");
 
   const list = useQuery({
@@ -71,9 +126,7 @@ function ClientProjectsPage() {
     { key: "title", header: "المشروع", render: (r) => (
       <div className="min-w-0">
         <div className="font-semibold truncate">{r.title}</div>
-        {r.dueDate && r.status !== "COMPLETED" && (
-          <div className="mt-0.5 md:hidden"><DueBadge date={r.dueDate} /></div>
-        )}
+        {r.dueDate && r.status !== "COMPLETED" && <div className="mt-0.5 md:hidden"><DueBadge date={r.dueDate} /></div>}
       </div>
     ) },
     { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
@@ -97,12 +150,6 @@ function ClientProjectsPage() {
 
   return (
     <div className="space-y-3">
-      <ClientPageHeader
-        icon={FolderKanban}
-        title="مشاريعي"
-        description="متابعة حية لمشاريعك، حالتها ونسب الإنجاز."
-        actions={<LiveBadge interval={15} />}
-      />
       <AdminStatsRow
         loading={list.isLoading}
         stats={[
@@ -115,7 +162,6 @@ function ClientProjectsPage() {
         ]}
       />
 
-      {/* Toolbar: search + view + sort */}
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-2">
         <div className="relative flex-1 min-w-[180px]">
           <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
@@ -147,11 +193,9 @@ function ClientProjectsPage() {
       />
 
       {view === "table" ? (
-        <DataTable
-          columns={columns} rows={filtered} loading={list.isLoading}
+        <DataTable columns={columns} rows={filtered} loading={list.isLoading}
           total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
-          emptyTitle="لا توجد مشاريع بعد"
-        />
+          emptyTitle="لا توجد مشاريع بعد" />
       ) : (
         <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((r) => (
@@ -180,6 +224,125 @@ function ClientProjectsPage() {
           {!list.isLoading && filtered.length === 0 && (
             <div className="col-span-full rounded-2xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground">لا توجد مشاريع مطابقة</div>
           )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------------- REQUESTS VIEW ---------------- */
+
+function RequestsView({ onNew }: { onNew: () => void }) {
+  const qc = useQueryClient();
+  const [status, setStatus] = useState<string | null>(null);
+
+  const list = useQuery({
+    queryKey: ["client-project-requests", status],
+    queryFn: async () => (await api.get("/projects/requests/list", { params: { status: status ?? undefined, pageSize: 50 } })).data,
+    refetchInterval: 10000,
+    refetchOnWindowFocus: true,
+  });
+
+  const rows = (list.data?.rows ?? []) as any[];
+  const stats = list.data?.stats ?? { total: 0, pending: 0, underReview: 0, approved: 0, rejected: 0, urgent: 0, last24h: 0 };
+
+  const del = useMutation({
+    mutationFn: (id: string) => api.delete(`/projects/requests/${id}`),
+    onSuccess: () => { toast.success("تم حذف الطلب"); qc.invalidateQueries({ queryKey: ["client-project-requests"] }); },
+    onError: (e) => toast.error(apiError(e)),
+  });
+
+  return (
+    <div className="space-y-3">
+      <AdminStatsRow
+        loading={list.isLoading}
+        stats={[
+          { icon: Inbox, label: "إجمالي الطلبات", value: stats.total, accent: "electric" },
+          { icon: Clock, label: "قيد الانتظار", value: stats.pending, accent: "amber" },
+          { icon: Sparkles, label: "قيد الدراسة", value: stats.underReview, accent: "cyan" },
+          { icon: CheckCircle2, label: "مقبولة / محوّلة", value: stats.approved, accent: "emerald" },
+          { icon: AlertTriangle, label: "مرفوضة", value: stats.rejected, accent: "rose" },
+          { icon: Zap, label: "طلبات عاجلة", value: stats.urgent, accent: "purple", hint: `آخر 24س: ${stats.last24h}` },
+        ]}
+      />
+
+      <FilterChips
+        value={status} onChange={setStatus}
+        chips={[
+          { key: "", label: "الكل", count: stats.total },
+          { key: "PENDING", label: "قيد الانتظار", count: stats.pending },
+          { key: "UNDER_REVIEW", label: "قيد الدراسة", count: stats.underReview },
+          { key: "APPROVED", label: "مقبولة" },
+          { key: "CONVERTED", label: "محوّلة" },
+          { key: "REJECTED", label: "مرفوضة", count: stats.rejected },
+        ]}
+      />
+
+      {!list.isLoading && rows.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border py-12 text-center">
+          <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-electric to-purple-accent mb-3">
+            <Rocket className="h-6 w-6 text-white" />
+          </div>
+          <div className="font-black text-lg mb-1">لا توجد طلبات بعد</div>
+          <p className="text-sm text-muted-foreground mb-4">ابدأ مشروعك الجديد بضغطة واحدة — سنراجعه ونعود لك خلال 24 ساعة.</p>
+          <Button onClick={onNew} className="gap-1.5 bg-gradient-to-r from-electric to-purple-accent">
+            <Plus className="h-4 w-4" />طلب مشروع جديد
+          </Button>
+        </div>
+      ) : (
+        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
+          {rows.map((r) => (
+            <div key={r.id} className="group rounded-2xl border border-border bg-card p-3.5 hover:border-electric/40 transition">
+              <div className="flex items-start justify-between gap-2 mb-2">
+                <div className="min-w-0">
+                  <div className="font-black text-sm truncate group-hover:text-electric transition">{r.title}</div>
+                  <div className="text-[10px] text-muted-foreground">مُرسل {formatDate(r.createdAt)}</div>
+                </div>
+                <StatusBadge value={r.status} />
+              </div>
+
+              <div className="flex flex-wrap items-center gap-1.5 mb-2">
+                <span className="rounded-full bg-muted/40 px-2 py-0.5 text-[10px] font-semibold">{r.category}</span>
+                <StatusBadge value={r.priority} />
+              </div>
+
+              {r.description && <p className="text-[11px] text-muted-foreground line-clamp-3 mb-2">{r.description}</p>}
+
+              {(r.budgetMin || r.budgetMax) && (
+                <div className="flex items-center justify-between text-[11px] mb-2">
+                  <span className="text-muted-foreground">الميزانية</span>
+                  <span className="font-bold">
+                    {r.budgetMin ? Number(r.budgetMin).toLocaleString("ar-SA") : "—"}
+                    {" – "}
+                    {r.budgetMax ? Number(r.budgetMax).toLocaleString("ar-SA") : "—"} ر.س
+                  </span>
+                </div>
+              )}
+
+              {r.targetDate && (
+                <div className="flex items-center justify-between text-[11px] mb-2">
+                  <span className="text-muted-foreground">التاريخ المستهدف</span>
+                  <span className="font-bold">{formatDate(r.targetDate)}</span>
+                </div>
+              )}
+
+              {r.adminNote && (
+                <div className="rounded-lg bg-electric/5 border border-electric/20 p-2 text-[11px] flex gap-1.5 mt-2">
+                  <MessageSquare className="h-3 w-3 shrink-0 mt-0.5 text-electric" />
+                  <div><b className="text-electric">رد الإدارة:</b> {r.adminNote}</div>
+                </div>
+              )}
+
+              {r.status === "PENDING" && (
+                <div className="mt-2 flex justify-end">
+                  <ConfirmDialog title="حذف الطلب" description="سيتم حذف هذا الطلب نهائياً."
+                    onConfirm={async () => { await del.mutateAsync(r.id); }}
+                    trigger={<Button size="sm" variant="ghost" className="h-7 text-rose-400 gap-1 text-[11px]"><Trash2 className="h-3 w-3" />حذف</Button>}
+                  />
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>

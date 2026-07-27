@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, FolderKanban, Boxes, FileText, ScrollText,
   LifeBuoy, CreditCard, Files, UserCog, Settings, ClipboardList,
-  Menu, X, LogOut, Bell, Search, ChevronsLeft, BarChart3,
+  Menu, X, LogOut, Bell, Search, ChevronsLeft, BarChart3, Inbox,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -21,6 +21,7 @@ type NavItem = {
 const ITEMS: NavItem[] = [
   { to: "/admin", label: "نظرة عامة", icon: LayoutDashboard, exact: true },
   { to: "/admin/clients", label: "العملاء", icon: Users },
+  { to: "/admin/project-requests", label: "طلبات المشاريع", icon: Inbox },
   { to: "/admin/projects", label: "المشاريع", icon: FolderKanban },
   { to: "/admin/services", label: "الخدمات", icon: Boxes },
   { to: "/admin/invoices", label: "الفواتير", icon: FileText },
