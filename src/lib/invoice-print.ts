@@ -21,12 +21,13 @@ type InvoiceLike = {
 };
 
 const fmtSAR = (n: number | string | undefined) =>
-  new Intl.NumberFormat("ar-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n ?? 0));
+  new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n ?? 0));
 
 const fmtDate = (d?: string | null) => {
   if (!d) return "—";
   try {
-    return new Intl.DateTimeFormat("ar-SA-u-ca-gregory", { year: "numeric", month: "long", day: "numeric" }).format(new Date(d));
+    // Latin digits for a formal invoice look
+    return new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { year: "numeric", month: "long", day: "numeric" }).format(new Date(d));
   } catch { return "—"; }
 };
 
