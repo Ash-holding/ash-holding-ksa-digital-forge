@@ -17,19 +17,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 20
-          cache: npm
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm ci --no-audit --no-fund
+        run: bun install --frozen-lockfile
 
       - name: Build
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
-        run: npm run build
+        run: bun run build
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
@@ -81,7 +80,6 @@ jobs:
             set -e
             cd ${{ secrets.DEPLOY_PATH }}
             git pull --ff-only origin main || true
-            if [ -f package-lock.json ]; then npm ci --omit=dev --no-audit --no-fund; fi
             if [ -d backend ]; then
               cd backend
               npm ci --no-audit --no-fund
