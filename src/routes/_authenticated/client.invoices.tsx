@@ -18,6 +18,8 @@ import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
 import { Money } from "@/components/ui/money";
 import { cn } from "@/lib/utils";
+import { openInvoicePrint } from "@/lib/invoice-print";
+
 
 export const Route = createFileRoute("/_authenticated/client/invoices")({
   component: ClientInvoicesPage,
@@ -83,9 +85,10 @@ function ClientInvoicesPage() {
     { key: "due", header: "الاستحقاق", render: (r) => formatDate(r.dueAt), hideOnMobile: true },
     { key: "actions", header: "", render: (r) => (
       <div className="flex items-center gap-1 justify-end">
-        <Button size="sm" variant="ghost" className="h-8 px-2" onClick={(e) => { e.stopPropagation(); toast.info("قريباً — تنزيل PDF"); }} title="تنزيل">
+        <Button size="sm" variant="ghost" className="h-8 px-2" onClick={(e) => { e.stopPropagation(); const ok = openInvoicePrint(r); if (!ok) toast.error("فعّل النوافذ المنبثقة لتحميل الفاتورة"); else toast.success("تم فتح الفاتورة — اضغط حفظ كـ PDF"); }} title="تحميل / طباعة">
           <Download className="h-3.5 w-3.5" />
         </Button>
+
         <Button size="sm" variant={r.status === "PAID" ? "ghost" : "default"} className="h-8 gap-1"
           onClick={(e) => { e.stopPropagation(); if (r.status !== "PAID") toast.info("قريباً — بوابة الدفع"); }}
           disabled={r.status === "PAID" || r.status === "CANCELLED"}>
