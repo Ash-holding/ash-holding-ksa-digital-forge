@@ -74,11 +74,16 @@ function LoginOtpPage() {
         toast.success("تم التحقق بنجاح");
         navigate({ to: landingFor(data.user.role) });
         return;
-      } catch {
-        // Demo fallback
+      } catch (err: any) {
+        const apiMsg = err?.response?.data?.error;
+        // Demo fallback only when the API itself is unreachable (no response)
+        if (err?.response) {
+          toast.error(apiMsg || "الرمز غير صحيح");
+          return;
+        }
         const expected = typeof window !== "undefined" ? sessionStorage.getItem("ash_demo_otp") : null;
         if (!expected || code !== expected) {
-          toast.error("الرمز غير صحيح");
+          toast.error(apiMsg || "تعذّر الاتصال بالخادم");
           return;
         }
         const demoUser = {
