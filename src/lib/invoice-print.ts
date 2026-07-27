@@ -21,12 +21,13 @@ type InvoiceLike = {
 };
 
 const fmtSAR = (n: number | string | undefined) =>
-  new Intl.NumberFormat("ar-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n ?? 0));
+  new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(Number(n ?? 0));
 
 const fmtDate = (d?: string | null) => {
   if (!d) return "—";
   try {
-    return new Intl.DateTimeFormat("ar-SA-u-ca-gregory", { year: "numeric", month: "long", day: "numeric" }).format(new Date(d));
+    // Latin digits for a formal invoice look
+    return new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { year: "numeric", month: "long", day: "numeric" }).format(new Date(d));
   } catch { return "—"; }
 };
 
@@ -164,14 +165,34 @@ export async function downloadInvoicePDF(inv: InvoiceLike): Promise<void> {
   try {
     const doc = iframe.contentDocument!;
     doc.open();
-    doc.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;background:#fff;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}</style></head><body></body></html>');
+    doc.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>html,body{margin:0;padding:0;background:#fff;font-family:"Cairo","IBM Plex Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif}
+*{font-family:inherit !important}</style>
+</head><body></body></html>`);
     doc.close();
     const node = buildInvoiceNode(inv);
     node.style.position = "static";
     node.style.left = "0";
     doc.body.appendChild(node);
-    // Let fonts/layout settle
-    await new Promise((r) => setTimeout(r, 60));
+
+    // Wait for Arabic web font to load, otherwise html2canvas renders
+    // disjointed glyphs with no proper Arabic shaping.
+    try {
+      await (doc as any).fonts?.ready;
+      // Explicitly load the weights we actually use
+      await Promise.all([
+        (doc as any).fonts?.load('400 14px "Cairo"'),
+        (doc as any).fonts?.load('600 14px "Cairo"'),
+        (doc as any).fonts?.load('700 18px "Cairo"'),
+        (doc as any).fonts?.load('800 22px "Cairo"'),
+      ]);
+    } catch { /* fonts API unavailable — fall through */ }
+    // Extra settle time so layout metrics stabilize
+    await new Promise((r) => setTimeout(r, 250));
+
 
     const canvas = await html2canvas(node, {
       scale: 2,
