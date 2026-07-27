@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "@tanstack/react-router";
 import {
   Sparkles, Star, ArrowLeft, Code2, Smartphone, LayoutDashboard, Brain, Palette,
   GraduationCap, Wrench, Plug, Search, Compass, PenTool, TestTube2, Rocket,
