@@ -229,13 +229,13 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <a
-            href="#portal"
+          <Link
+            to="/login"
             className="hidden md:inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow hover:opacity-95 transition"
           >
             <LogIn className="h-4 w-4" />
             دخول العملاء
-          </a>
+          </Link>
           <button
             className="lg:hidden grid h-10 w-10 place-items-center rounded-xl border border-border bg-card"
             onClick={() => setOpen(!open)}
