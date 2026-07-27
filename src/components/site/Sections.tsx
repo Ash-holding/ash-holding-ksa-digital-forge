@@ -627,36 +627,119 @@ export function Hosting() {
 }
 
 /* ---------------- MARKETING ---------------- */
+const MARKETING_TONES = {
+  electric: { border: "border-electric/30", glow: "bg-electric/20",       icon: "bg-electric/10 text-electric",             bar: "from-electric via-electric-soft to-transparent", num: "text-electric" },
+  cyan:     { border: "border-cyan-500/30", glow: "bg-cyan-400/20",       icon: "bg-cyan-500/10 text-cyan-600",             bar: "from-cyan-500 via-cyan-400 to-transparent",       num: "text-cyan-600" },
+  purple:   { border: "border-purple-accent/30", glow: "bg-purple-accent/20", icon: "bg-purple-accent/10 text-purple-accent", bar: "from-purple-accent via-purple-400 to-transparent", num: "text-purple-accent" },
+  amber:    { border: "border-amber-500/30", glow: "bg-amber-400/20",     icon: "bg-amber-500/10 text-amber-600",           bar: "from-amber-500 via-amber-400 to-transparent",     num: "text-amber-600" },
+  emerald:  { border: "border-emerald-500/30", glow: "bg-emerald-400/20", icon: "bg-emerald-500/10 text-emerald-600",       bar: "from-emerald-500 via-emerald-400 to-transparent", num: "text-emerald-600" },
+  rose:     { border: "border-rose-500/30", glow: "bg-rose-400/20",       icon: "bg-rose-500/10 text-rose-600",             bar: "from-rose-500 via-rose-400 to-transparent",       num: "text-rose-600" },
+} as const;
+
 export function Marketing() {
-  const items = [
-    { icon: Search, t: "SEO", d: "تحسين ظهورك في نتائج البحث بشكل مستدام." },
-    { icon: Target, t: "الإعلانات المدفوعة", d: "حملات ذكية بعائد استثمار قابل للقياس." },
-    { icon: FileText, t: "إدارة المحتوى", d: "محتوى عربي احترافي متسق مع علامتك." },
-    { icon: ImageIcon, t: "الهوية البصرية", d: "بناء هوية بصرية ثابتة ومميزة." },
-    { icon: Globe, t: "صفحات الهبوط", d: "صفحات هبوط عالية التحويل." },
-    { icon: BarChart3, t: "التحليلات والتقارير", d: "قرارات مبنية على بيانات دقيقة." },
+  const items: { icon: typeof Search; t: string; d: string; tone: keyof typeof MARKETING_TONES; badge?: string }[] = [
+    { icon: Search,    t: "تحسين محركات البحث SEO", d: "استهداف الكلمات المفتاحية، تحسين تقني، ومحتوى يتصدر جوجل.", tone: "electric", badge: "SEO" },
+    { icon: Target,    t: "الإعلانات المدفوعة",      d: "حملات Google & Meta بعائد استثمار قابل للقياس والتوسع.",   tone: "rose",     badge: "ROAS" },
+    { icon: FileText,  t: "إدارة المحتوى",           d: "محتوى عربي احترافي متسق مع صوت علامتك التجارية.",           tone: "purple",   badge: "Copy" },
+    { icon: ImageIcon, t: "الهوية البصرية",          d: "بناء هوية بصرية ثابتة، متكاملة، وقابلة للتوسع.",             tone: "amber",    badge: "Brand" },
+    { icon: Globe,     t: "صفحات الهبوط",            d: "صفحات هبوط عالية التحويل مع اختبارات A/B مستمرة.",           tone: "cyan",     badge: "CRO" },
+    { icon: BarChart3, t: "التحليلات والتقارير",     d: "لوحات GA4 و Meta وقرارات مبنية على بيانات دقيقة.",           tone: "emerald",  badge: "GA4" },
   ];
+
+  const stats = [
+    { v: "+320%", l: "متوسط نمو الظهور العضوي", tone: "electric" as const },
+    { v: "×4.8",  l: "متوسط عائد الإعلانات ROAS", tone: "rose"     as const },
+    { v: "+65%",  l: "تحسّن معدل التحويل CVR",    tone: "emerald"  as const },
+    { v: "24/7",  l: "مراقبة الحملات والتقارير",   tone: "purple"   as const },
+  ];
+
   return (
-    <section id="marketing" className="py-24 md:py-32">
-      <div className="mx-auto max-w-7xl px-4 md:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-medium mb-3">التسويق الرقمي</div>
-          <h2 className="text-3xl md:text-4xl font-bold">نمو رقمي مبني على نتائج</h2>
+    <section id="marketing" className="relative py-20 sm:py-24 md:py-32 overflow-hidden">
+      {/* Ambient light glows */}
+      <div className="pointer-events-none absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-electric/10 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 right-1/4 h-96 w-96 rounded-full bg-purple-accent/10 blur-3xl" />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          className="text-center max-w-2xl mx-auto mb-10 sm:mb-14"
+        >
+          <div className="inline-flex items-center gap-2 rounded-full bg-secondary px-3 py-1 text-xs font-medium mb-4 border border-border">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-electric opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-electric" />
+            </span>
+            التسويق الرقمي
+          </div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
+            نمو رقمي <span className="bg-gradient-to-r from-electric via-purple-accent to-rose-500 bg-clip-text text-transparent">مبني على نتائج</span>
+          </h2>
+          <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed">
+            استراتيجيات تسويقية متكاملة تربط البحث، الإعلانات، المحتوى، والتحليلات لدفع نمو حقيقي وقابل للقياس.
+          </p>
+        </motion.div>
+
+        {/* Cards */}
+        <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((m, i) => {
+            const tone = MARKETING_TONES[m.tone];
+            return (
+              <motion.div
+                key={m.t}
+                initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ delay: i * 0.05, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                whileHover={{ y: -6 }}
+                className={`group relative overflow-hidden rounded-3xl border ${tone.border} bg-card p-5 sm:p-6 shadow-card hover:shadow-glow transition-all duration-500`}
+              >
+                <div className={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r ${tone.bar}`} />
+                <div className={`pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full ${tone.glow} blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+
+                <div className="relative flex items-start justify-between gap-3">
+                  <motion.div
+                    initial={{ rotate: -8, scale: 0.9 }}
+                    whileInView={{ rotate: 0, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.05 + 0.15, type: "spring", stiffness: 220 }}
+                    className={`grid h-12 w-12 place-items-center rounded-2xl ${tone.icon}`}
+                  >
+                    <m.icon className="h-6 w-6" />
+                  </motion.div>
+                  {m.badge && (
+                    <span className="text-[10px] font-semibold tracking-wider text-muted-foreground border border-border rounded-full px-2 py-0.5">
+                      {m.badge}
+                    </span>
+                  )}
+                </div>
+
+                <div className="relative mt-4 text-base font-bold">{m.t}</div>
+                <p className="relative mt-2 text-sm text-muted-foreground leading-relaxed">{m.d}</p>
+              </motion.div>
+            );
+          })}
         </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {items.map((m, i) => (
-            <motion.div
-              key={m.t}
-              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
-              className="rounded-3xl border border-border bg-card p-6 shadow-card hover:shadow-glow hover:-translate-y-1 transition"
-            >
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-electric/10 text-electric mb-4">
-                <m.icon className="h-6 w-6" />
-              </div>
-              <div className="text-lg font-bold">{m.t}</div>
-              <p className="mt-2 text-sm text-muted-foreground leading-relaxed">{m.d}</p>
-            </motion.div>
-          ))}
+
+        {/* Stats row */}
+        <div className="mt-10 sm:mt-14 grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+          {stats.map((s, i) => {
+            const tone = MARKETING_TONES[s.tone];
+            return (
+              <motion.div
+                key={s.l}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className={`relative overflow-hidden rounded-2xl border ${tone.border} bg-card p-4 sm:p-5 text-center shadow-card`}
+              >
+                <div className={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r ${tone.bar}`} />
+                <div className={`text-xl sm:text-2xl font-extrabold ${tone.num}`}>{s.v}</div>
+                <div className="mt-1 text-[11px] sm:text-xs text-muted-foreground">{s.l}</div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
