@@ -46,6 +46,7 @@ function LoginOtpPage() {
   const ss = String(remaining % 60).padStart(2, "0");
 
   const requestOtp = async () => {
+    if (loading) return;
     if (!phone || phone.length < 8) {
       toast.error("أدخل رقم هاتف صحيح");
       return;
