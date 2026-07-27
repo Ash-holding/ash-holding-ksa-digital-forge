@@ -6,10 +6,16 @@
 // You can pass additional config via defineConfig({ vite: { ... }, etc... }) if needed.
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
+// On the self-hosted VPS we run the SSR bundle with Node (pm2), so override
+// Nitro's default cloudflare preset. In Lovable's sandbox/preview the
+// LOVABLE=1 env is set, so keep cloudflare there to avoid breaking preview.
+const isSelfHost = !process.env.LOVABLE;
+
 export default defineConfig({
   tanstackStart: {
-    // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
-    // nitro/vite builds from this
     server: { entry: "server" },
   },
+  nitro: isSelfHost
+    ? { preset: "node-server" }
+    : undefined,
 });
