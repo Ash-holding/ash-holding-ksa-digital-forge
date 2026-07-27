@@ -288,9 +288,9 @@ export function Header() {
               )}
             </div>
           ))}
-          <a href="#portal" className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-primary-foreground shadow-glow">
+          <Link to="/login" onClick={() => setOpen(false)} className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-primary-foreground shadow-glow">
             <LogIn className="h-4 w-4" /> دخول العملاء
-          </a>
+          </Link>
         </div>
       </div>
     </header>
