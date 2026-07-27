@@ -370,7 +370,6 @@ export function HomeTestimonials() {
                     </div>
                   </div>
                 </div>
-                </div>
               </motion.article>
             );
           })}
