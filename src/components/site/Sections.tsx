@@ -994,8 +994,8 @@ export function CTA() {
               أرسل لنا فكرتك، ونحولها إلى خطة تنفيذ واضحة قابلة للتسليم والتطوير.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <a href="#" className="rounded-xl bg-white text-navy-deep px-6 py-3.5 text-sm font-semibold shadow-glow hover:bg-ice transition">تواصل معنا</a>
-              <a href="#portal" className="rounded-xl glass-dark text-white px-6 py-3.5 text-sm font-semibold hover:bg-white/10 transition">دخول العملاء</a>
+              <Link to="/contact" className="rounded-xl bg-white text-navy-deep px-6 py-3.5 text-sm font-semibold shadow-glow hover:bg-ice transition">تواصل معنا</Link>
+              <Link to="/login" className="rounded-xl glass-dark text-white px-6 py-3.5 text-sm font-semibold hover:bg-white/10 transition">دخول العملاء</Link>
             </div>
           </div>
         </div>
