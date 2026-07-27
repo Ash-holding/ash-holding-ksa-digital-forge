@@ -2,6 +2,8 @@ import axios, { AxiosError, type AxiosRequestConfig, type AxiosResponse } from "
 import { demoResolve, isDemoMode } from "./demo-data";
 
 
+// Default to same-origin /api (works when Nginx على ash-holding.sa يمرر /api للباك اند).
+// عرّف VITE_API_URL وقت البناء لتوجيه دومين مختلف مثل https://api.ash-holding.sa/api
 const BASE = (import.meta.env.VITE_API_URL as string | undefined) || "/api";
 
 export const ACCESS_KEY = "ash_access";
