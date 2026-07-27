@@ -1,9 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { LifeBuoy, Plus, Send, MessageSquare } from "lucide-react";
+import {
+  LifeBuoy, Plus, Send, MessageSquare, Ticket, DoorOpen, DoorClosed, Zap,
+} from "lucide-react";
 import { api, apiError } from "@/lib/api";
+import { ClientPageHeader } from "@/components/client/ClientPageHeader";
+import { AdminStatsRow } from "@/components/admin/AdminStatsRow";
+import { FilterChips } from "@/components/admin/FilterChips";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { FormSheet } from "@/components/dashboard/FormSheet";
@@ -24,13 +29,30 @@ function ClientSupport() {
   const qc = useQueryClient();
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
+  const [status, setStatus] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const list = useQuery({ queryKey: ["client-tickets", page], queryFn: async () => (await api.get("/support/tickets", { params: { page } })).data });
+  const list = useQuery({
+    queryKey: ["client-tickets", page],
+    queryFn: async () => (await api.get("/support/tickets", { params: { page } })).data,
+    refetchInterval: 10000,
+  });
   const create = useMutation({
     mutationFn: (d: Record<string, unknown>) => api.post("/support/tickets", d),
     onSuccess: () => { toast.success("تم إنشاء التذكرة"); qc.invalidateQueries({ queryKey: ["client-tickets"] }); setOpen(false); },
     onError: (e) => toast.error(apiError(e)),
   });
+
+  const rows = (list.data?.rows ?? []) as any[];
+  const stats = useMemo(() => {
+    const total = rows.length;
+    const openN = rows.filter((r) => r.status === "OPEN" || r.status === "IN_PROGRESS").length;
+    const waiting = rows.filter((r) => r.status === "WAITING").length;
+    const closed = rows.filter((r) => r.status === "CLOSED" || r.status === "RESOLVED").length;
+    const urgent = rows.filter((r) => r.priority === "URGENT" || r.priority === "HIGH").length;
+    return { total, openN, waiting, closed, urgent };
+  }, [rows]);
+
+  const filtered = useMemo(() => (status ? rows.filter((r) => r.status === status) : rows), [rows, status]);
 
   const columns: Column<any>[] = [
     { key: "n", header: "رقم", render: (r) => <span dir="ltr" className="font-mono text-xs">{r.ticketNumber}</span> },
@@ -42,13 +64,35 @@ function ClientSupport() {
   ];
 
   return (
-    <>
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2"><LifeBuoy className="h-5 w-5 text-electric" /><h1 className="text-xl font-black">الدعم الفني</h1></div>
-        <Button onClick={() => setOpen(true)} className="gap-2"><Plus className="h-4 w-4" />تذكرة جديدة</Button>
-      </div>
-      <DataTable columns={columns} rows={list.data?.rows} loading={list.isLoading}
-        total={list.data?.total} page={page} pageSize={20} onPageChange={setPage}
+    <div className="space-y-3">
+      <ClientPageHeader
+        icon={LifeBuoy}
+        title="الدعم الفني"
+        description="سجّل تذكرة جديدة وتابع الردود مباشرة — تحديث تلقائي كل 10 ثوان."
+        actions={<Button onClick={() => setOpen(true)} size="sm" className="gap-2"><Plus className="h-4 w-4" />تذكرة جديدة</Button>}
+      />
+      <AdminStatsRow
+        loading={list.isLoading}
+        stats={[
+          { icon: Ticket, label: "إجمالي التذاكر", value: stats.total, accent: "electric" },
+          { icon: DoorOpen, label: "مفتوحة", value: stats.openN, accent: "emerald" },
+          { icon: MessageSquare, label: "بانتظار الرد", value: stats.waiting, accent: "amber" },
+          { icon: DoorClosed, label: "مغلقة", value: stats.closed, accent: "cyan" },
+          { icon: Zap, label: "أولوية عالية", value: stats.urgent, accent: "rose" },
+        ]}
+      />
+      <FilterChips
+        value={status} onChange={setStatus}
+        chips={[
+          { key: "", label: "الكل", count: stats.total },
+          { key: "OPEN", label: "مفتوحة" },
+          { key: "IN_PROGRESS", label: "قيد المعالجة" },
+          { key: "WAITING", label: "بانتظار الرد" },
+          { key: "CLOSED", label: "مغلقة", count: stats.closed },
+        ]}
+      />
+      <DataTable columns={columns} rows={filtered} loading={list.isLoading}
+        total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
         onRowClick={(r: any) => setSelectedId(r.id)}
         emptyTitle="لا توجد تذاكر بعد" emptyDescription="أنشئ تذكرة جديدة وسنعود لك سريعاً." />
 
@@ -70,9 +114,10 @@ function ClientSupport() {
       </FormSheet>
 
       <ClientTicketDetail id={selectedId} onClose={() => setSelectedId(null)} />
-    </>
+    </div>
   );
 }
+
 
 function ClientTicketDetail({ id, onClose }: { id: string | null; onClose: () => void }) {
   const qc = useQueryClient();
