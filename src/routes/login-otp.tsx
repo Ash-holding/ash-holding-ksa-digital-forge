@@ -269,7 +269,7 @@ function LoginOtpPage() {
                   maxLength={6}
                   placeholder="••••••"
                   value={code}
-                  disabled={expired}
+                  disabled={expired || loading}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                   className="text-center text-2xl tracking-[0.6em] font-mono disabled:opacity-60"
                 />
