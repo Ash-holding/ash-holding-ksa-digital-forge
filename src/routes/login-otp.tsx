@@ -112,7 +112,9 @@ function LoginOtpPage() {
         // Map backend errors to precise UI messages + descriptions
         const showApiError = () => {
           const msg = apiMsg || "";
+          let reason = "";
           if (status === 404 || msg.includes("لا يوجد حساب")) {
+            reason = "لا يوجد حساب مرتبط — تحويل لإنشاء حساب";
             toast.error("لا يوجد حساب مرتبط بهذا الرقم", {
               description: "تم تحويلك تلقائياً لإنشاء حساب جديد بنفس الرقم.",
             });
@@ -121,24 +123,30 @@ function LoginOtpPage() {
             setCode("");
             setExpiresAt(null);
           } else if (msg.includes("انتهت")) {
+            reason = "انتهت صلاحية الرمز";
             toast.error("انتهت صلاحية الرمز", {
               description: "اضغط «إعادة إرسال الرمز» لاستلام رمز جديد صالح لـ 10 دقائق.",
             });
           } else if (status === 429 || msg.includes("تجاوزت")) {
+            reason = "تجاوز حد المحاولات";
             toast.error("تجاوزت الحد المسموح للمحاولات", {
               description: "اطلب رمزاً جديداً وحاول مرة أخرى.",
             });
           } else if (msg.includes("لا يوجد رمز")) {
+            reason = "لا يوجد رمز نشط";
             toast.error("لا يوجد رمز نشط لهذا الرقم", {
               description: "اطلب رمزاً جديداً أولاً ثم أعد المحاولة.",
             });
           } else if (msg.includes("غير صحيح") || status === 400) {
+            reason = "رمز غير صحيح";
             toast.error("الرمز غير صحيح", {
               description: "تأكد من أنك تستخدم آخر رمز وصلك على واتساب.",
             });
           } else {
+            reason = apiMsg || "فشل غير معروف";
             toast.error(apiMsg || "تعذّر التحقق من الرمز");
           }
+          pushLog({ kind: "verify", ok: false, reason: `${reason}${status ? ` (${status})` : ""}` });
         };
 
         if (err?.response) {
