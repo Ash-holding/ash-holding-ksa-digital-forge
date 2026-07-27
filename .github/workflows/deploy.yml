@@ -85,14 +85,12 @@ jobs:
             if [ -d backend ]; then
               cd backend
               npm ci --no-audit --no-fund
-              npx prisma migrate deploy || true
               npx prisma generate
+              npx prisma migrate deploy || true
               npm run build
               pm2 reload ashholding-api || pm2 start dist/server.js --name ashholding-api
               cd ..
-              PORT=3000 HOST=127.0.0.1 pm2 reload ashholding-web || PORT=3000 HOST=127.0.0.1 pm2 start .output/server/index.mjs --name ashholding-web
-              cd backend
-              cd ..
             fi
+            pm2 reload ashholding-web || PORT=3000 HOST=127.0.0.1 pm2 start .output/server/index.mjs --name ashholding-web
             pm2 save || true
             sudo systemctl reload nginx || true
