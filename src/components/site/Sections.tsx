@@ -883,8 +883,8 @@ export function ClientPortal() {
             الملفات، والمدفوعات من مكان واحد.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href="#" className="rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-primary-foreground shadow-glow">دخول العملاء</a>
-            <a href="#contact" className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold">طلب حساب جديد</a>
+            <Link to="/login" className="rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-primary-foreground shadow-glow">دخول العملاء</Link>
+            <Link to="/login-otp" className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold">طلب حساب جديد</Link>
           </div>
         </div>
         <motion.div
