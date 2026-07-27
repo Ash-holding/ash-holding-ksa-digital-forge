@@ -75,6 +75,7 @@ function LoginOtpPage() {
   };
 
   const verifyOtp = async () => {
+    if (loading) return;
     if (!/^\d{4,8}$/.test(code)) {
       toast.error("أدخل الرمز المكوّن من 6 أرقام");
       return;
