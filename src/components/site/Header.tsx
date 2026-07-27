@@ -29,6 +29,7 @@ const TONE: Record<IconTone, string> = {
 
 const NAV: NavItem[] = [
   { label: "الرئيسية", href: "#home" },
+  { label: "أعمالنا", href: "/portfolio" },
   {
     label: "الشركة",
     items: [
