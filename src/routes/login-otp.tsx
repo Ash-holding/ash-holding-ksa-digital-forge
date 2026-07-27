@@ -33,6 +33,14 @@ function LoginOtpPage() {
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
 
+  type LogEntry = { at: number; kind: "request" | "verify"; ok: boolean; reason: string };
+  const [log, setLog] = useState<LogEntry[]>([]);
+  const pushLog = (e: Omit<LogEntry, "at">) =>
+    setLog((prev) => [{ at: Date.now(), ...e }, ...prev].slice(0, 5));
+  const maskedPhone = phone ? phone.replace(/.(?=.{3})/g, "•") : "—";
+  const fmtTime = (ts: number) =>
+    new Date(ts).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
   useEffect(() => {
     if (!expiresAt) return;
     const tick = () => setRemaining(Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000)));
@@ -58,13 +66,16 @@ function LoginOtpPage() {
         const { data } = await api.post("/whatsapp/otp/request", { phone, purpose });
         ttlSec = Number(data?.expiresInSec) || 600;
         toast.success("تم إرسال رمز التحقق على واتساب");
-      } catch {
+        pushLog({ kind: "request", ok: true, reason: `أُرسل رمز إلى ${maskedPhone}` });
+      } catch (err: any) {
+        const apiMsg = err?.response?.data?.error;
         // Demo fallback: backend not deployed → simulate OTP delivery
         if (typeof window !== "undefined") {
           sessionStorage.setItem("ash_demo_otp", "123456");
           sessionStorage.setItem("ash_demo_otp_phone", phone);
         }
         toast.info("وضع تجريبي: استخدم الرمز 123456");
+        pushLog({ kind: "request", ok: false, reason: apiMsg || "تعذّر الاتصال — وضع تجريبي" });
       }
       setCode("");
       setExpiresAt(Date.now() + ttlSec * 1000);
@@ -101,7 +112,9 @@ function LoginOtpPage() {
         // Map backend errors to precise UI messages + descriptions
         const showApiError = () => {
           const msg = apiMsg || "";
+          let reason = "";
           if (status === 404 || msg.includes("لا يوجد حساب")) {
+            reason = "لا يوجد حساب مرتبط — تحويل لإنشاء حساب";
             toast.error("لا يوجد حساب مرتبط بهذا الرقم", {
               description: "تم تحويلك تلقائياً لإنشاء حساب جديد بنفس الرقم.",
             });
@@ -110,24 +123,30 @@ function LoginOtpPage() {
             setCode("");
             setExpiresAt(null);
           } else if (msg.includes("انتهت")) {
+            reason = "انتهت صلاحية الرمز";
             toast.error("انتهت صلاحية الرمز", {
               description: "اضغط «إعادة إرسال الرمز» لاستلام رمز جديد صالح لـ 10 دقائق.",
             });
           } else if (status === 429 || msg.includes("تجاوزت")) {
+            reason = "تجاوز حد المحاولات";
             toast.error("تجاوزت الحد المسموح للمحاولات", {
               description: "اطلب رمزاً جديداً وحاول مرة أخرى.",
             });
           } else if (msg.includes("لا يوجد رمز")) {
+            reason = "لا يوجد رمز نشط";
             toast.error("لا يوجد رمز نشط لهذا الرقم", {
               description: "اطلب رمزاً جديداً أولاً ثم أعد المحاولة.",
             });
           } else if (msg.includes("غير صحيح") || status === 400) {
+            reason = "رمز غير صحيح";
             toast.error("الرمز غير صحيح", {
               description: "تأكد من أنك تستخدم آخر رمز وصلك على واتساب.",
             });
           } else {
+            reason = apiMsg || "فشل غير معروف";
             toast.error(apiMsg || "تعذّر التحقق من الرمز");
           }
+          pushLog({ kind: "verify", ok: false, reason: `${reason}${status ? ` (${status})` : ""}` });
         };
 
         if (err?.response) {
@@ -302,6 +321,42 @@ function LoginOtpPage() {
                   إعادة إرسال الرمز
                 </button>
               </div>
+            </div>
+          )}
+
+          {log.length > 0 && (
+            <div className="mt-6 rounded-lg border border-border/60 bg-muted/30 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-[11px] font-semibold text-muted-foreground">سجل التشخيص</span>
+                <button
+                  onClick={() => setLog([])}
+                  className="text-[10px] text-muted-foreground hover:text-foreground"
+                >
+                  مسح
+                </button>
+              </div>
+              <ul className="space-y-1.5 text-[11px]">
+                {log.map((e, i) => (
+                  <li key={i} className="flex items-start gap-2 font-mono tabular-nums">
+                    <span className="text-muted-foreground shrink-0">{fmtTime(e.at)}</span>
+                    <span
+                      className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold ${
+                        e.ok
+                          ? "bg-emerald-500/15 text-emerald-400"
+                          : "bg-destructive/15 text-destructive"
+                      }`}
+                    >
+                      {e.kind === "request" ? "طلب" : "تحقق"}
+                    </span>
+                    <span className="text-foreground/80 truncate" title={e.reason}>
+                      {e.reason}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-2 text-[10px] text-muted-foreground">
+                لا تُخزَّن الأرقام كاملة ولا رموز OTP — فقط الوقت والنتيجة.
+              </p>
             </div>
           )}
         </motion.div>
