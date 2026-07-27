@@ -798,7 +798,10 @@ export function Process() {
           {/* Timeline connector (desktop) */}
           <div className="absolute top-8 right-4 left-4 h-px bg-gradient-to-l from-transparent via-electric/40 to-transparent hidden lg:block" />
 
-          <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
+          {/* Vertical timeline line (mobile only) */}
+          <div className="absolute top-0 bottom-0 right-8 w-px bg-gradient-to-b from-transparent via-electric/30 to-transparent md:hidden" aria-hidden />
+
+          <div className="grid gap-3 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
             {steps.map((s, i) => {
               const tone = PROCESS_TONES[s.tone];
               return (
@@ -808,30 +811,38 @@ export function Process() {
                   whileInView={{ opacity: 1, y: 0, scale: 1 }}
                   viewport={{ once: true, margin: "-40px" }}
                   transition={{ delay: i * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                  whileHover={{ y: -6 }}
-                  className={`group relative overflow-hidden rounded-2xl border ${tone.border} bg-card p-4 sm:p-5 shadow-card hover:shadow-glow transition-all duration-500 text-center`}
+                  whileHover={{ y: -4 }}
+                  className={`group relative overflow-hidden rounded-2xl border ${tone.border} bg-card p-3 sm:p-5 shadow-card hover:shadow-glow transition-all duration-500 md:text-center`}
                 >
                   <div className={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r ${tone.bar}`} />
                   <div className={`pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 h-24 w-24 rounded-full ${tone.glow} blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
 
-                  <div className="relative">
+                  {/* Horizontal on mobile, stacked on md+ */}
+                  <div className="relative grid grid-cols-[auto_minmax(0,1fr)] items-center gap-3 md:block md:gap-0">
                     <motion.div
                       initial={{ rotate: -10, scale: 0.85 }}
                       whileInView={{ rotate: 0, scale: 1 }}
                       viewport={{ once: true }}
                       transition={{ delay: i * 0.06 + 0.15, type: "spring", stiffness: 220 }}
-                      className={`relative mx-auto grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-2xl bg-gradient-to-br ${tone.grad} text-primary-foreground shadow-glow`}
+                      className={`relative grid h-12 w-12 sm:h-16 sm:w-16 shrink-0 place-items-center rounded-2xl bg-gradient-to-br ${tone.grad} text-primary-foreground shadow-glow md:mx-auto`}
                     >
-                      <s.icon className="h-6 w-6 sm:h-7 sm:w-7" />
-                      <div className="absolute -top-2 -right-2 grid h-6 w-6 place-items-center rounded-full bg-card border border-border text-[10px] font-bold text-foreground shadow-sm">
+                      <s.icon className="h-5 w-5 sm:h-7 sm:w-7" />
+                      <div className="absolute -top-2 -right-2 grid h-5 w-5 sm:h-6 sm:w-6 place-items-center rounded-full bg-card border border-border text-[10px] font-bold text-foreground shadow-sm">
                         {i + 1}
                       </div>
                     </motion.div>
 
-                    <div className="mt-3 sm:mt-4 text-sm sm:text-base font-bold">{s.t}</div>
-                    <div className="mt-1 text-[11px] sm:text-xs text-muted-foreground leading-relaxed">{s.d}</div>
-                    <div className={`mt-2 inline-flex items-center gap-1 rounded-full ${tone.icon} px-2 py-0.5 text-[10px] font-semibold`}>
-                      {s.dur}
+                    <div className="min-w-0 md:mt-3">
+                      <div className="flex items-center justify-between gap-2 md:block">
+                        <div className="text-sm sm:text-base font-bold truncate md:whitespace-normal">{s.t}</div>
+                        <div className={`shrink-0 inline-flex items-center gap-1 rounded-full ${tone.icon} px-2 py-0.5 text-[10px] font-semibold md:hidden`}>
+                          {s.dur}
+                        </div>
+                      </div>
+                      <div className="mt-1 text-[11px] sm:text-xs text-muted-foreground leading-relaxed line-clamp-2 md:line-clamp-none">{s.d}</div>
+                      <div className={`mt-2 hidden md:inline-flex items-center gap-1 rounded-full ${tone.icon} px-2 py-0.5 text-[10px] font-semibold`}>
+                        {s.dur}
+                      </div>
                     </div>
                   </div>
                 </motion.div>
