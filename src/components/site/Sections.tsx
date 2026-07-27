@@ -503,43 +503,123 @@ export function Services() {
 
 
 /* ---------------- HOSTING ---------------- */
+const HOSTING_TONES = {
+  electric: { border: "border-electric/40", glow: "bg-electric/25", icon: "bg-electric/20 text-electric-soft", bar: "from-electric via-electric-soft to-transparent" },
+  cyan:     { border: "border-cyan-400/40", glow: "bg-cyan-400/25", icon: "bg-cyan-400/20 text-cyan-300",    bar: "from-cyan-400 via-cyan-300 to-transparent" },
+  purple:   { border: "border-purple-accent/40", glow: "bg-purple-accent/25", icon: "bg-purple-accent/20 text-purple-300", bar: "from-purple-accent via-purple-300 to-transparent" },
+  emerald:  { border: "border-emerald-400/40", glow: "bg-emerald-400/25", icon: "bg-emerald-400/20 text-emerald-300", bar: "from-emerald-400 via-emerald-300 to-transparent" },
+  amber:    { border: "border-amber-400/40", glow: "bg-amber-400/25", icon: "bg-amber-400/20 text-amber-300", bar: "from-amber-400 via-amber-300 to-transparent" },
+  rose:     { border: "border-rose-400/40", glow: "bg-rose-400/25", icon: "bg-rose-400/20 text-rose-300", bar: "from-rose-400 via-rose-300 to-transparent" },
+  sky:      { border: "border-sky-400/40", glow: "bg-sky-400/25", icon: "bg-sky-400/20 text-sky-300", bar: "from-sky-400 via-sky-300 to-transparent" },
+  indigo:   { border: "border-indigo-400/40", glow: "bg-indigo-400/25", icon: "bg-indigo-400/20 text-indigo-300", bar: "from-indigo-400 via-indigo-300 to-transparent" },
+} as const;
+
 export function Hosting() {
-  const items = [
-    { icon: Server, t: "استضافة مشتركة", d: "بيئة سريعة وآمنة للمواقع والمنصات." },
-    { icon: Cpu, t: "VPS", d: "خوادم افتراضية بأداء ومرونة عالية." },
-    { icon: Database, t: "سيرفرات مخصصة", d: "بنية مؤسسية للتطبيقات الحساسة." },
-    { icon: Settings2, t: "إدارة Nginx و Linux", d: "إعداد وإدارة كاملة باحتراف." },
-    { icon: HardDrive, t: "قواعد بيانات", d: "PostgreSQL و MySQL بإدارة ومراقبة." },
-    { icon: Mail, t: "SMTP والبريد", d: "حلول بريد بأعلى معدلات إيصال." },
-    { icon: Cloud, t: "نسخ احتياطي", d: "نسخ يومية آمنة قابلة للاستعادة." },
-    { icon: ShieldCheck, t: "مراقبة وحماية", d: "مراقبة ٢٤/٧ وحماية متعددة الطبقات." },
+  const items: { icon: typeof Server; t: string; d: string; tone: keyof typeof HOSTING_TONES; badge?: string }[] = [
+    { icon: Server,       t: "استضافة مشتركة",       d: "بيئة NVMe سريعة وآمنة مع LiteSpeed وحماية DDoS.",                     tone: "electric", badge: "NVMe" },
+    { icon: Cpu,          t: "خوادم افتراضية VPS",   d: "موارد مخصّصة، توسّع لحظي، ونسخ لقطات فورية.",                          tone: "cyan",     badge: "KVM" },
+    { icon: Database,     t: "سيرفرات مخصصة",        d: "بنية مؤسسية للتطبيقات الحساسة والحمل العالي.",                          tone: "purple",   badge: "Dedicated" },
+    { icon: Settings2,    t: "إدارة Nginx و Linux",  d: "إعداد، تحصين، وتحسين أداء من فريق SysOps.",                             tone: "sky",      badge: "24/7" },
+    { icon: HardDrive,    t: "قواعد بيانات مُدارة",  d: "PostgreSQL و MySQL مع تحسين استعلامات ومراقبة.",                        tone: "indigo",   badge: "Managed" },
+    { icon: Mail,         t: "SMTP وبريد احترافي",   d: "معدلات إيصال عالية مع DKIM/SPF/DMARC.",                                 tone: "rose",     badge: "DMARC" },
+    { icon: Cloud,        t: "نسخ احتياطي يومي",     d: "نسخ خارج الموقع قابلة للاستعادة بضغطة واحدة.",                          tone: "emerald",  badge: "Off-site" },
+    { icon: ShieldCheck,  t: "مراقبة وحماية",        d: "WAF، رصد 24/7، وتنبيهات فورية للأحداث الأمنية.",                        tone: "amber",    badge: "WAF" },
   ];
+
+  const stats = [
+    { icon: ShieldCheck, v: "99.99%", l: "توفر السيرفرات",  tone: "emerald" as const },
+    { icon: Cpu,         v: "<40ms",  l: "زمن الاستجابة",   tone: "electric" as const },
+    { icon: Cloud,       v: "خليجي",  l: "مراكز بيانات",    tone: "cyan"     as const },
+    { icon: ShieldCheck, v: "SLA",    l: "ضمان مكتوب",      tone: "purple"   as const },
+  ];
+
   return (
-    <section id="hosting" className="relative py-24 md:py-32 bg-dark text-primary-foreground overflow-hidden">
-      <div className="absolute -top-40 right-1/4 h-96 w-96 rounded-full bg-electric/20 blur-3xl" />
-      <div className="absolute -bottom-40 left-1/4 h-96 w-96 rounded-full bg-purple-accent/15 blur-3xl" />
-      <div className="relative mx-auto max-w-7xl px-4 md:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-14">
-          <div className="inline-flex items-center gap-2 rounded-full glass-dark px-3 py-1 text-xs font-medium mb-4 text-white">
-            <Cloud className="h-3.5 w-3.5" /> الاستضافة والبنية التحتية
+    <section id="hosting" className="relative py-20 sm:py-24 md:py-32 bg-dark text-primary-foreground overflow-hidden">
+      <div className="absolute -top-40 right-1/4 h-96 w-96 rounded-full bg-electric/20 blur-3xl animate-pulse" />
+      <div className="absolute -bottom-40 left-1/4 h-96 w-96 rounded-full bg-purple-accent/15 blur-3xl animate-pulse" style={{ animationDelay: "1.2s" }} />
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-electric/40 to-transparent" />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          className="text-center max-w-2xl mx-auto mb-10 sm:mb-14"
+        >
+          <div className="inline-flex items-center gap-2 rounded-full glass-dark px-3 py-1 text-xs font-medium mb-4 text-white border border-electric/30">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
+            </span>
+            الاستضافة والبنية التحتية
           </div>
-          <h2 className="text-3xl md:text-4xl font-bold">استضافة وسيرفرات مصممة للاستقرار</h2>
-          <p className="mt-4 text-white/70">من الاستضافة المشتركة إلى السيرفرات المخصصة، بأمان وأداء عاليين.</p>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
+            بنية تحتية <span className="bg-gradient-to-r from-electric via-cyan-300 to-purple-accent bg-clip-text text-transparent">مصممة للاستقرار</span>
+          </h2>
+          <p className="mt-4 text-sm sm:text-base text-white/70 leading-relaxed">
+            من الاستضافة المشتركة إلى السيرفرات المخصصة، بأمان وأداء عاليين وضمان توفر 99.99%.
+          </p>
+        </motion.div>
+
+        <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+          {items.map((h, i) => {
+            const tone = HOSTING_TONES[h.tone];
+            return (
+              <motion.div
+                key={h.t}
+                initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, margin: "-40px" }}
+                transition={{ delay: i * 0.05, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                whileHover={{ y: -6 }}
+                className={`group relative overflow-hidden rounded-3xl border ${tone.border} glass-dark p-5 sm:p-6 transition-all duration-500 hover:bg-white/[0.06]`}
+              >
+                <div className={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r ${tone.bar}`} />
+                <div className={`pointer-events-none absolute -top-10 -right-10 h-32 w-32 rounded-full ${tone.glow} blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+
+                <div className="relative flex items-start justify-between gap-3">
+                  <motion.div
+                    initial={{ rotate: -8, scale: 0.9 }}
+                    whileInView={{ rotate: 0, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.05 + 0.15, type: "spring", stiffness: 220 }}
+                    className={`grid h-12 w-12 place-items-center rounded-2xl ${tone.icon}`}
+                  >
+                    <h.icon className="h-6 w-6" />
+                  </motion.div>
+                  {h.badge && (
+                    <span className="text-[10px] font-semibold tracking-wider text-white/70 border border-white/15 rounded-full px-2 py-0.5">
+                      {h.badge}
+                    </span>
+                  )}
+                </div>
+
+                <div className="relative mt-4 text-base font-bold text-white">{h.t}</div>
+                <p className="relative mt-2 text-sm text-white/65 leading-relaxed">{h.d}</p>
+              </motion.div>
+            );
+          })}
         </div>
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-          {items.map((h, i) => (
-            <motion.div
-              key={h.t}
-              initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.05 }}
-              className="glass-dark rounded-3xl p-6 hover:bg-white/10 transition"
-            >
-              <div className="grid h-12 w-12 place-items-center rounded-2xl bg-electric/20 text-electric-soft mb-4">
-                <h.icon className="h-6 w-6" />
-              </div>
-              <div className="text-base font-bold">{h.t}</div>
-              <p className="mt-2 text-sm text-white/65 leading-relaxed">{h.d}</p>
-            </motion.div>
-          ))}
+
+        <div className="mt-10 sm:mt-14 grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+          {stats.map((s, i) => {
+            const tone = HOSTING_TONES[s.tone];
+            return (
+              <motion.div
+                key={s.l}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08 }}
+                className={`relative overflow-hidden rounded-2xl border ${tone.border} glass-dark p-4 sm:p-5 text-center`}
+              >
+                <div className={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r ${tone.bar}`} />
+                <div className={`mx-auto grid h-10 w-10 place-items-center rounded-xl ${tone.icon} mb-2`}>
+                  <s.icon className="h-5 w-5" />
+                </div>
+                <div className="text-xl sm:text-2xl font-extrabold text-white">{s.v}</div>
+                <div className="mt-1 text-[11px] sm:text-xs text-white/60">{s.l}</div>
+              </motion.div>
+            );
+          })}
         </div>
       </div>
     </section>
