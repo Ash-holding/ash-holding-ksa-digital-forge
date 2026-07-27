@@ -33,6 +33,14 @@ function LoginOtpPage() {
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
 
+  type LogEntry = { at: number; kind: "request" | "verify"; ok: boolean; reason: string };
+  const [log, setLog] = useState<LogEntry[]>([]);
+  const pushLog = (e: Omit<LogEntry, "at">) =>
+    setLog((prev) => [{ at: Date.now(), ...e }, ...prev].slice(0, 5));
+  const maskedPhone = phone ? phone.replace(/.(?=.{3})/g, "•") : "—";
+  const fmtTime = (ts: number) =>
+    new Date(ts).toLocaleTimeString("ar-SA", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+
   useEffect(() => {
     if (!expiresAt) return;
     const tick = () => setRemaining(Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000)));
