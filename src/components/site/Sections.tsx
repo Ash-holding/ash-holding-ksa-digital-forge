@@ -747,41 +747,96 @@ export function Marketing() {
 }
 
 /* ---------------- PROCESS ---------------- */
+const PROCESS_TONES = {
+  electric: { border: "border-electric/30", glow: "bg-electric/20",       icon: "bg-electric/10 text-electric",             bar: "from-electric via-electric-soft to-transparent",    grad: "from-electric to-electric-soft" },
+  cyan:     { border: "border-cyan-500/30", glow: "bg-cyan-400/20",       icon: "bg-cyan-500/10 text-cyan-600",             bar: "from-cyan-500 via-cyan-400 to-transparent",         grad: "from-cyan-500 to-cyan-400" },
+  purple:   { border: "border-purple-accent/30", glow: "bg-purple-accent/20", icon: "bg-purple-accent/10 text-purple-accent", bar: "from-purple-accent via-purple-400 to-transparent", grad: "from-purple-accent to-purple-400" },
+  amber:    { border: "border-amber-500/30", glow: "bg-amber-400/20",     icon: "bg-amber-500/10 text-amber-600",           bar: "from-amber-500 via-amber-400 to-transparent",       grad: "from-amber-500 to-amber-400" },
+  emerald:  { border: "border-emerald-500/30", glow: "bg-emerald-400/20", icon: "bg-emerald-500/10 text-emerald-600",       bar: "from-emerald-500 via-emerald-400 to-transparent",   grad: "from-emerald-500 to-emerald-400" },
+  rose:     { border: "border-rose-500/30", glow: "bg-rose-400/20",       icon: "bg-rose-500/10 text-rose-600",             bar: "from-rose-500 via-rose-400 to-transparent",         grad: "from-rose-500 to-rose-400" },
+  sky:      { border: "border-sky-500/30", glow: "bg-sky-400/20",         icon: "bg-sky-500/10 text-sky-600",               bar: "from-sky-500 via-sky-400 to-transparent",           grad: "from-sky-500 to-sky-400" },
+} as const;
+
 export function Process() {
-  const steps = [
-    { icon: Search, t: "الاستكشاف", d: "فهم عميق لأهداف عملك والمتطلبات." },
-    { icon: Compass, t: "التخطيط", d: "خارطة طريق واضحة وجدول زمني." },
-    { icon: PenTool, t: "التصميم", d: "تجربة استخدام وواجهات مصقولة." },
-    { icon: Wrench, t: "التطوير", d: "برمجة نظيفة وقابلة للتوسع." },
-    { icon: TestTube2, t: "الاختبار", d: "ضمان جودة على كل المستويات." },
-    { icon: Rocket, t: "الإطلاق", d: "نشر آمن على بيئات الإنتاج." },
-    { icon: HeadphonesIcon, t: "الدعم والنمو", d: "متابعة، تحسين وتطوير مستمر." },
+  const steps: { icon: typeof Search; t: string; d: string; tone: keyof typeof PROCESS_TONES; dur: string }[] = [
+    { icon: Search,         t: "الاستكشاف",   d: "فهم عميق لأهدافك، تحليل السوق، وتحديد المتطلبات بدقة.", tone: "electric", dur: "3-5 أيام" },
+    { icon: Compass,        t: "التخطيط",     d: "خارطة طريق واضحة، جدول زمني، ونطاق عمل موثق.",           tone: "cyan",     dur: "5-7 أيام" },
+    { icon: PenTool,        t: "التصميم",     d: "تجربة استخدام، Wireframes، وواجهات مصقولة قابلة للاختبار.", tone: "purple",   dur: "1-2 أسبوع" },
+    { icon: Wrench,         t: "التطوير",     d: "برمجة نظيفة، Code Review، ومعمارية قابلة للتوسع.",       tone: "amber",    dur: "2-6 أسابيع" },
+    { icon: TestTube2,      t: "الاختبار",    d: "QA على الأداء، الأمان، والتوافق مع كل الأجهزة.",           tone: "rose",     dur: "3-5 أيام" },
+    { icon: Rocket,         t: "الإطلاق",     d: "نشر آمن على بيئات الإنتاج مع مراقبة لحظية.",              tone: "sky",      dur: "1-2 أيام" },
+    { icon: HeadphonesIcon, t: "الدعم والنمو", d: "متابعة، تحسين، تحديثات، وتطوير مستمر بعد الإطلاق.",     tone: "emerald",  dur: "مستمر" },
   ];
+
   return (
-    <section id="process" className="relative py-24 md:py-32 overflow-hidden">
+    <section id="process" className="relative py-20 sm:py-24 md:py-32 overflow-hidden">
       <div className="absolute inset-0 bg-hero opacity-60" />
-      <div className="relative mx-auto max-w-7xl px-4 md:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs font-medium mb-4">منهجية العمل</div>
-          <h2 className="text-3xl md:text-4xl font-bold">منهجية عمل واضحة من الفكرة إلى الإطلاق</h2>
-        </div>
+      <div className="pointer-events-none absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-electric/10 blur-3xl animate-pulse" />
+      <div className="pointer-events-none absolute -bottom-32 right-1/4 h-96 w-96 rounded-full bg-purple-accent/10 blur-3xl animate-pulse" style={{ animationDelay: "1.4s" }} />
+
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+          className="text-center max-w-2xl mx-auto mb-12 sm:mb-16"
+        >
+          <div className="inline-flex items-center gap-2 rounded-full glass px-3 py-1 text-xs font-medium mb-4 border border-border">
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-electric opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-electric" />
+            </span>
+            منهجية العمل
+          </div>
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold leading-tight">
+            من الفكرة إلى <span className="bg-gradient-to-r from-electric via-purple-accent to-emerald-500 bg-clip-text text-transparent">الإطلاق</span>
+          </h2>
+          <p className="mt-4 text-sm sm:text-base text-muted-foreground leading-relaxed">
+            سبع مراحل موثّقة تضمن جودة التنفيذ، شفافية التقدّم، وتسليم في المواعيد.
+          </p>
+        </motion.div>
+
         <div className="relative">
-          <div className="absolute top-8 right-4 left-4 h-px bg-gradient-to-l from-transparent via-electric/40 to-transparent hidden md:block" />
-          <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
-            {steps.map((s, i) => (
-              <motion.div
-                key={s.t}
-                initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.06 }}
-                className="relative text-center"
-              >
-                <div className="relative mx-auto grid h-16 w-16 place-items-center rounded-2xl bg-brand text-primary-foreground shadow-glow">
-                  <s.icon className="h-7 w-7" />
-                  <div className="absolute -top-2 -right-2 grid h-6 w-6 place-items-center rounded-full bg-card border border-border text-[10px] font-bold text-foreground">{i + 1}</div>
-                </div>
-                <div className="mt-4 font-bold">{s.t}</div>
-                <div className="mt-1 text-xs text-muted-foreground leading-relaxed">{s.d}</div>
-              </motion.div>
-            ))}
+          {/* Timeline connector (desktop) */}
+          <div className="absolute top-8 right-4 left-4 h-px bg-gradient-to-l from-transparent via-electric/40 to-transparent hidden lg:block" />
+
+          <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-7">
+            {steps.map((s, i) => {
+              const tone = PROCESS_TONES[s.tone];
+              return (
+                <motion.div
+                  key={s.t}
+                  initial={{ opacity: 0, y: 24, scale: 0.96 }}
+                  whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ delay: i * 0.06, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  whileHover={{ y: -6 }}
+                  className={`group relative overflow-hidden rounded-2xl border ${tone.border} bg-card p-4 sm:p-5 shadow-card hover:shadow-glow transition-all duration-500 text-center`}
+                >
+                  <div className={`absolute inset-x-0 top-0 h-[2px] bg-gradient-to-r ${tone.bar}`} />
+                  <div className={`pointer-events-none absolute -top-8 left-1/2 -translate-x-1/2 h-24 w-24 rounded-full ${tone.glow} blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+
+                  <div className="relative">
+                    <motion.div
+                      initial={{ rotate: -10, scale: 0.85 }}
+                      whileInView={{ rotate: 0, scale: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.06 + 0.15, type: "spring", stiffness: 220 }}
+                      className={`relative mx-auto grid h-14 w-14 sm:h-16 sm:w-16 place-items-center rounded-2xl bg-gradient-to-br ${tone.grad} text-primary-foreground shadow-glow`}
+                    >
+                      <s.icon className="h-6 w-6 sm:h-7 sm:w-7" />
+                      <div className="absolute -top-2 -right-2 grid h-6 w-6 place-items-center rounded-full bg-card border border-border text-[10px] font-bold text-foreground shadow-sm">
+                        {i + 1}
+                      </div>
+                    </motion.div>
+
+                    <div className="mt-3 sm:mt-4 text-sm sm:text-base font-bold">{s.t}</div>
+                    <div className="mt-1 text-[11px] sm:text-xs text-muted-foreground leading-relaxed">{s.d}</div>
+                    <div className={`mt-2 inline-flex items-center gap-1 rounded-full ${tone.icon} px-2 py-0.5 text-[10px] font-semibold`}>
+                      {s.dur}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </div>
