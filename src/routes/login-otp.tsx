@@ -46,6 +46,7 @@ function LoginOtpPage() {
   const ss = String(remaining % 60).padStart(2, "0");
 
   const requestOtp = async () => {
+    if (loading) return;
     if (!phone || phone.length < 8) {
       toast.error("أدخل رقم هاتف صحيح");
       return;
@@ -74,6 +75,7 @@ function LoginOtpPage() {
   };
 
   const verifyOtp = async () => {
+    if (loading) return;
     if (!/^\d{4,8}$/.test(code)) {
       toast.error("أدخل الرمز المكوّن من 6 أرقام");
       return;
@@ -212,14 +214,16 @@ function LoginOtpPage() {
                 <button
                   type="button"
                   onClick={() => setPurpose("login")}
-                  className={`rounded-md px-3 py-2 text-sm font-semibold transition ${purpose === "login" ? "bg-background shadow" : "text-muted-foreground"}`}
+                  disabled={loading}
+                  className={`rounded-md px-3 py-2 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed ${purpose === "login" ? "bg-background shadow" : "text-muted-foreground"}`}
                 >
                   دخول
                 </button>
                 <button
                   type="button"
                   onClick={() => setPurpose("signup")}
-                  className={`rounded-md px-3 py-2 text-sm font-semibold transition ${purpose === "signup" ? "bg-background shadow" : "text-muted-foreground"}`}
+                  disabled={loading}
+                  className={`rounded-md px-3 py-2 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed ${purpose === "signup" ? "bg-background shadow" : "text-muted-foreground"}`}
                 >
                   حساب جديد
                 </button>
@@ -265,7 +269,7 @@ function LoginOtpPage() {
                   maxLength={6}
                   placeholder="••••••"
                   value={code}
-                  disabled={expired}
+                  disabled={expired || loading}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
                   className="text-center text-2xl tracking-[0.6em] font-mono disabled:opacity-60"
                 />
@@ -282,7 +286,11 @@ function LoginOtpPage() {
                 </Button>
               )}
               <div className="flex items-center justify-between text-xs">
-                <button className="text-muted-foreground hover:text-foreground" onClick={() => setStep("phone")}>
+                <button
+                  className="text-muted-foreground hover:text-foreground disabled:opacity-40"
+                  onClick={() => setStep("phone")}
+                  disabled={loading}
+                >
                   تغيير الرقم
                 </button>
                 <button
