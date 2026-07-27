@@ -25,7 +25,38 @@ function useCountUp(target: number, duration = 1600, start = false) {
   return value;
 }
 
-function Stat({ icon: Icon, value, suffix, label, delay }: { icon: any; value: number; suffix?: string; label: string; delay: number }) {
+const STAT_TONES = [
+  {
+    grad: "from-electric/25 via-cyan-400/15 to-transparent",
+    ring: "border-electric/30",
+    icon: "bg-electric/15 text-electric",
+    glow: "bg-electric/25",
+    num: "from-electric to-cyan-400",
+  },
+  {
+    grad: "from-purple-accent/25 via-fuchsia-400/15 to-transparent",
+    ring: "border-purple-accent/30",
+    icon: "bg-purple-accent/15 text-purple-accent",
+    glow: "bg-purple-accent/25",
+    num: "from-purple-accent to-fuchsia-400",
+  },
+  {
+    grad: "from-amber-400/25 via-orange-400/15 to-transparent",
+    ring: "border-amber-400/30",
+    icon: "bg-amber-400/15 text-amber-500",
+    glow: "bg-amber-400/25",
+    num: "from-amber-500 to-orange-400",
+  },
+  {
+    grad: "from-emerald-400/25 via-teal-400/15 to-transparent",
+    ring: "border-emerald-400/30",
+    icon: "bg-emerald-400/15 text-emerald-500",
+    glow: "bg-emerald-400/25",
+    num: "from-emerald-500 to-teal-400",
+  },
+];
+
+function Stat({ icon: Icon, value, suffix, label, delay, tone }: { icon: any; value: number; suffix?: string; label: string; delay: number; tone: typeof STAT_TONES[number] }) {
   const ref = useRef<HTMLDivElement>(null);
   const [inView, setInView] = useState(false);
   useEffect(() => {
@@ -38,21 +69,38 @@ function Stat({ icon: Icon, value, suffix, label, delay }: { icon: any; value: n
   return (
     <motion.div
       ref={ref}
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 30, scale: 0.9 }}
+      whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true }}
-      transition={{ delay }}
-      className="group relative rounded-3xl border border-border bg-card p-6 md:p-8 overflow-hidden hover:border-electric/40 hover:shadow-glow transition"
+      transition={{ delay, type: "spring", stiffness: 120, damping: 14 }}
+      whileHover={{ y: -4 }}
+      className={`group relative rounded-3xl border ${tone.ring} bg-card p-5 sm:p-6 md:p-8 overflow-hidden hover:shadow-glow transition-all`}
     >
-      <div className="absolute -top-10 -left-10 h-24 w-24 rounded-full bg-electric/10 blur-2xl group-hover:bg-electric/20 transition" />
+      <div className={`absolute inset-0 bg-gradient-to-br ${tone.grad} opacity-70`} />
+      <motion.div
+        animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.7, 0.4] }}
+        transition={{ duration: 4, repeat: Infinity, delay }}
+        className={`absolute -top-8 -left-8 h-24 w-24 rounded-full ${tone.glow} blur-2xl`}
+      />
+      <motion.div
+        animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
+        transition={{ duration: 5, repeat: Infinity, delay: delay + 1 }}
+        className={`absolute -bottom-8 -right-8 h-20 w-20 rounded-full ${tone.glow} blur-2xl`}
+      />
       <div className="relative">
-        <div className="grid h-11 w-11 place-items-center rounded-xl bg-electric/10 text-electric mb-4">
-          <Icon className="h-5 w-5" />
+        <motion.div
+          initial={{ rotate: -20, scale: 0 }}
+          whileInView={{ rotate: 0, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: delay + 0.2, type: "spring" }}
+          className={`grid h-11 w-11 sm:h-12 sm:w-12 place-items-center rounded-xl ${tone.icon} mb-3 sm:mb-4 backdrop-blur group-hover:scale-110 group-hover:rotate-6 transition-transform`}
+        >
+          <Icon className="h-5 w-5 sm:h-6 sm:w-6" />
+        </motion.div>
+        <div className={`text-3xl sm:text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-br ${tone.num} bg-clip-text text-transparent`}>
+          {v.toLocaleString("en-US")}<span>{suffix}</span>
         </div>
-        <div className="text-4xl md:text-5xl font-extrabold tracking-tight">
-          {v.toLocaleString("en-US")}<span className="gradient-text">{suffix}</span>
-        </div>
-        <div className="mt-2 text-sm text-muted-foreground">{label}</div>
+        <div className="mt-1.5 sm:mt-2 text-xs sm:text-sm font-medium text-muted-foreground">{label}</div>
       </div>
     </motion.div>
   );
@@ -66,9 +114,13 @@ export function HomeStats() {
     { icon: Zap, value: 99, suffix: "%", label: "معدل رضا العملاء" },
   ];
   return (
-    <section className="py-16 md:py-24">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
-        <div className="max-w-2xl mb-10">
+    <section className="relative py-16 md:py-24 overflow-hidden">
+      <div className="absolute inset-0 pointer-events-none opacity-40">
+        <div className="absolute top-1/4 right-1/4 h-72 w-72 rounded-full bg-electric/10 blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/4 h-72 w-72 rounded-full bg-purple-accent/10 blur-3xl" />
+      </div>
+      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+        <div className="max-w-2xl mb-8 sm:mb-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -81,8 +133,8 @@ export function HomeStats() {
             نتائج <span className="gradient-text">تتحدث عن نفسها</span>
           </h2>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((s, i) => <Stat key={s.label} {...s} delay={i * 0.08} />)}
+        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+          {stats.map((s, i) => <Stat key={s.label} {...s} tone={STAT_TONES[i % STAT_TONES.length]} delay={i * 0.1} />)}
         </div>
       </div>
     </section>
