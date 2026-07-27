@@ -1,7 +1,11 @@
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { Star, Quote, TrendingUp, Users, Award, Zap, ArrowLeft } from "lucide-react";
+import {
+  Star, Quote, TrendingUp, Users, Award, Zap, ArrowLeft,
+  ShieldCheck, Landmark, ShoppingBag, GraduationCap, HeartPulse,
+  Truck, Plane, Building2, Cpu, Cloud, Lock, BadgeCheck,
+} from "lucide-react";
 
 /* ============ Counter ============ */
 function useCountUp(target: number, duration = 1600, start = false) {
