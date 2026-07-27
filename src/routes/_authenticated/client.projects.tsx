@@ -59,9 +59,51 @@ function ClientProjectsPage() {
         <TabBtn active={tab === "requests"} onClick={() => setTab("requests")} icon={Inbox} label="طلباتي" />
       </div>
 
-      {tab === "projects" ? <ProjectsView /> : <RequestsView onNew={() => setSheetOpen(true)} />}
+      {tab === "projects" ? <ProjectsView onNew={() => setSheetOpen(true)} /> : <RequestsView onNew={() => setSheetOpen(true)} />}
 
       <ProjectRequestSheet open={sheetOpen} onOpenChange={setSheetOpen} />
+    </div>
+  );
+}
+
+function EmptyProjectsHero({ onNew }: { onNew: () => void }) {
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-electric/5 via-card to-purple-accent/5 p-6 sm:p-10">
+      <div className="absolute -top-16 -left-16 h-48 w-48 rounded-full bg-electric/20 blur-3xl" />
+      <div className="absolute -bottom-16 -right-16 h-48 w-48 rounded-full bg-purple-accent/20 blur-3xl" />
+      <div className="relative grid gap-6 md:grid-cols-[1fr_auto] md:items-center">
+        <div className="space-y-3">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-electric/30 bg-electric/10 px-3 py-1 text-[11px] font-bold text-electric">
+            <Sparkles className="h-3 w-3" />ابدأ رحلتك معنا
+          </div>
+          <h3 className="text-xl sm:text-2xl font-black leading-tight">لا توجد مشاريع بعد — لنُطلق أول مشروع لك</h3>
+          <p className="text-sm text-muted-foreground max-w-xl">
+            قدّم طلب مشروع جديد خلال دقائق. فريقنا يراجع الطلب فورًا ويتواصل معك خلال 24 ساعة عمل عبر بوابتك أو واتساب.
+          </p>
+          <div className="flex flex-wrap items-center gap-2 pt-1">
+            <Button size="sm" onClick={onNew} className="gap-1.5 h-10 px-4 bg-gradient-to-r from-electric to-purple-accent shadow-glow">
+              <Rocket className="h-4 w-4" />طلب مشروع جديد
+            </Button>
+            <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
+              <Zap className="h-3 w-3 text-amber-500" />استجابة خلال 24 ساعة
+            </div>
+          </div>
+          <div className="grid grid-cols-3 gap-2 pt-3">
+            {[
+              { icon: Layers, label: "8 فئات" },
+              { icon: MessageSquare, label: "دعم مباشر" },
+              { icon: CheckCircle2, label: "تتبع لحظي" },
+            ].map((f) => (
+              <div key={f.label} className="flex items-center gap-1.5 rounded-xl border border-border bg-card/50 px-2.5 py-2 text-[11px] font-bold">
+                <f.icon className="h-3.5 w-3.5 text-electric" />{f.label}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="hidden md:flex h-32 w-32 items-center justify-center rounded-3xl bg-gradient-to-br from-electric to-purple-accent shadow-glow">
+          <Rocket className="h-16 w-16 text-white" />
+        </div>
+      </div>
     </div>
   );
 }
