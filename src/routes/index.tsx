@@ -5,7 +5,7 @@ import {
   Hero, About, Services, Hosting, Marketing, Process, ClientPortal, Why, CTA,
 } from "@/components/site/Sections";
 import {
-  HomeLogos, HomeStats, HomeFeaturedProjects, HomeTestimonials,
+  HomeLogos, HomeStats, HomeTestimonials,
 } from "@/components/site/HomeExtras";
 
 export const Route = createFileRoute("/")({
@@ -22,7 +22,6 @@ function Home() {
         <About />
         <HomeStats />
         <Services />
-        <HomeFeaturedProjects />
         <Hosting />
         <Marketing />
         <Process />
