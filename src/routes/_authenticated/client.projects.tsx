@@ -111,7 +111,7 @@ function ClientProjectsPage() {
           { icon: CheckCircle2, label: "مكتملة", value: stats.completed, accent: "emerald" },
           { icon: Clock, label: "تستحق خلال أسبوع", value: stats.dueSoon, accent: "amber" },
           { icon: AlertTriangle, label: "متأخرة", value: stats.overdue, accent: "rose" },
-          { icon: TrendingUp, label: "متوسط التقدم", value: `${stats.avg}%`, accent: "purple", hint: <span dir="ltr"><Money value={stats.totalBudget} /> إجمالي</span> },
+          { icon: TrendingUp, label: "متوسط التقدم", value: `${stats.avg}%`, accent: "purple", hint: `إجمالي ${stats.totalBudget.toLocaleString("ar-SA")} ر.س` },
         ]}
       />
 

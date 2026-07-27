@@ -110,7 +110,7 @@ function ClientInvoicesPage() {
           { icon: Receipt, label: "إجمالي الفواتير", value: stats.total, accent: "electric", hint: `نسبة السداد ${stats.paidRate}%` },
           { icon: CheckCircle2, label: "مدفوعة", value: stats.paid, accent: "emerald" },
           { icon: Clock, label: "تستحق قريباً", value: stats.dueSoon, accent: "amber" },
-          { icon: AlertTriangle, label: "متأخرة", value: stats.overdue, accent: "rose", hint: stats.totalOverdue > 0 ? <span className="inline-flex items-center gap-0.5"><TrendingDown className="h-3 w-3" /><Money value={stats.totalOverdue} /></span> : undefined },
+          { icon: AlertTriangle, label: "متأخرة", value: stats.overdue, accent: "rose", hint: stats.totalOverdue > 0 ? `${stats.totalOverdue.toLocaleString("ar-SA")} ر.س متأخرة` : undefined },
           { icon: TrendingUp, label: "إجمالي المدفوع", value: <Money value={stats.totalPaid} />, accent: "emerald" },
           { icon: Wallet, label: "المستحق عليك", value: <Money value={stats.totalDue} />, accent: "purple" },
         ]}
