@@ -20,6 +20,7 @@ import { usersRouter } from "./routes/users.js";
 import { adminRouter } from "./routes/admin.js";
 import { settingsRouter } from "./routes/settings.js";
 import { notificationsRouter } from "./routes/notifications.js";
+import { whatsappRouter } from "./routes/whatsapp.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rate-limit.js";
 
@@ -44,6 +45,7 @@ app.get("/health", (_req, res) => res.json({ ok: true, service: "ash-holding-api
 
 // Public + auth
 app.use("/api/auth", authRouter);
+app.use("/api/whatsapp", whatsappRouter);
 
 // General API rate limit for everything below
 app.use("/api", apiLimiter);

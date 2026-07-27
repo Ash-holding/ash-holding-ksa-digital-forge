@@ -4,6 +4,15 @@ import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireStaff } from "../middleware/auth.js";
 import { currentClientId, isStaff, paging } from "../lib/scope.js";
 import { logAudit } from "../lib/audit.js";
+import { WA } from "../lib/whatsapp.js";
+
+async function contractClientPhone(clientId: string): Promise<string | null> {
+  const c = await prisma.client.findUnique({
+    where: { id: clientId },
+    include: { user: { select: { phone: true } } },
+  });
+  return c?.phone || c?.user?.phone || null;
+}
 
 export const contractsRouter = Router();
 contractsRouter.use(requireAuth);
@@ -76,6 +85,12 @@ contractsRouter.post("/", requireStaff, async (req, res, next) => {
       data: { ...data, contractNumber: await nextContractNumber() } as never,
     });
     await logAudit(req, "contract.create", "Contract", created.id);
+    const phone = await contractClientPhone(created.clientId);
+    WA.notify(
+      phone,
+      `ASH HOLDING — عقد جديد 📄\nرقم العقد: ${created.contractNumber}\nالعنوان: ${created.title}\nيرجى مراجعته من بوابة العميل.`,
+      { kind: "contract.create", entityId: created.id },
+    );
     res.status(201).json({ contract: created });
   } catch (e) { next(e); }
 });
@@ -86,6 +101,18 @@ contractsRouter.patch("/:id", requireStaff, async (req, res, next) => {
     if (data.status === "SIGNED" && !data.signedAt) data.signedAt = new Date();
     const updated = await prisma.contract.update({ where: { id: req.params.id }, data: data as never });
     await logAudit(req, "contract.update", "Contract", updated.id);
+    if (data.status === "SIGNED" || data.status === "SENT" || data.status === "PENDING_SIGNATURE") {
+      const phone = await contractClientPhone(updated.clientId);
+      const statusMsg =
+        data.status === "SIGNED" ? `تم توقيع العقد ✅` :
+        data.status === "PENDING_SIGNATURE" ? `العقد بانتظار توقيعك ✍️` :
+        `تم إرسال العقد إليك 📤`;
+      WA.notify(
+        phone,
+        `ASH HOLDING\n${statusMsg}\nرقم العقد: ${updated.contractNumber}\n${updated.title}`,
+        { kind: `contract.${data.status.toLowerCase()}`, entityId: updated.id },
+      );
+    }
     res.json({ contract: updated });
   } catch (e) { next(e); }
 });

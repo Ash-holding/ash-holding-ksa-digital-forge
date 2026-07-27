@@ -4,6 +4,7 @@ import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireStaff } from "../middleware/auth.js";
 import { currentClientId, isStaff, paging } from "../lib/scope.js";
 import { logAudit } from "../lib/audit.js";
+import { WA } from "../lib/whatsapp.js";
 
 export const paymentsRouter = Router();
 paymentsRouter.use(requireAuth);
@@ -53,6 +54,18 @@ paymentsRouter.post("/", requireStaff, async (req, res, next) => {
     if (data.status === "SUCCESS" && !data.paidAt) data.paidAt = new Date();
     const created = await prisma.payment.create({ data: data as never });
     await logAudit(req, "payment.create", "Payment", created.id);
+    if (created.status === "SUCCESS") {
+      const c = await prisma.client.findUnique({
+        where: { id: created.clientId },
+        include: { user: { select: { phone: true } } },
+      });
+      const phone = c?.phone || c?.user?.phone || null;
+      WA.notify(
+        phone,
+        `ASH HOLDING — تم تسجيل دفعة ✅\nالمبلغ: ${created.amount} ${created.currency}\nطريقة الدفع: ${created.method}`,
+        { kind: "payment.create", entityId: created.id },
+      );
+    }
     res.status(201).json({ payment: created });
   } catch (e) { next(e); }
 });
