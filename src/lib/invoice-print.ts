@@ -156,10 +156,31 @@ function buildInvoiceNode(inv: InvoiceLike): HTMLDivElement {
 }
 
 export async function downloadInvoicePDF(inv: InvoiceLike): Promise<void> {
-  const node = buildInvoiceNode(inv);
-  document.body.appendChild(node);
+  // Render inside an isolated iframe so app-wide CSS (oklch/color-mix) can't
+  // break html2canvas — it only sees the plain inline styles we set.
+  const iframe = document.createElement("iframe");
+  iframe.style.cssText = "position:fixed;left:-10000px;top:0;width:820px;height:1200px;border:0;visibility:hidden";
+  document.body.appendChild(iframe);
   try {
-    const canvas = await html2canvas(node, { scale: 2, backgroundColor: "#ffffff", useCORS: true, logging: false });
+    const doc = iframe.contentDocument!;
+    doc.open();
+    doc.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><style>html,body{margin:0;padding:0;background:#fff;font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}</style></head><body></body></html>');
+    doc.close();
+    const node = buildInvoiceNode(inv);
+    node.style.position = "static";
+    node.style.left = "0";
+    doc.body.appendChild(node);
+    // Let fonts/layout settle
+    await new Promise((r) => setTimeout(r, 60));
+
+    const canvas = await html2canvas(node, {
+      scale: 2,
+      backgroundColor: "#ffffff",
+      useCORS: true,
+      logging: false,
+      windowWidth: 820,
+      windowHeight: node.scrollHeight,
+    });
     const imgData = canvas.toDataURL("image/jpeg", 0.95);
     const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
     const pageW = pdf.internal.pageSize.getWidth();
@@ -178,6 +199,7 @@ export async function downloadInvoicePDF(inv: InvoiceLike): Promise<void> {
     }
     pdf.save(`${inv.invoiceNumber ?? "invoice"}.pdf`);
   } finally {
-    node.remove();
+    iframe.remove();
   }
 }
+
