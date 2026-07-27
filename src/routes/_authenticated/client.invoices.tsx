@@ -18,7 +18,7 @@ import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
 import { Money } from "@/components/ui/money";
 import { cn } from "@/lib/utils";
-import { openInvoicePrint } from "@/lib/invoice-print";
+import { downloadInvoicePDF } from "@/lib/invoice-print";
 
 
 export const Route = createFileRoute("/_authenticated/client/invoices")({
@@ -85,7 +85,7 @@ function ClientInvoicesPage() {
     { key: "due", header: "الاستحقاق", render: (r) => formatDate(r.dueAt), hideOnMobile: true },
     { key: "actions", header: "", render: (r) => (
       <div className="flex items-center gap-1 justify-end">
-        <Button size="sm" variant="ghost" className="h-8 px-2" onClick={(e) => { e.stopPropagation(); const ok = openInvoicePrint(r); if (!ok) toast.error("فعّل النوافذ المنبثقة لتحميل الفاتورة"); else toast.success("تم فتح الفاتورة — اضغط حفظ كـ PDF"); }} title="تحميل / طباعة">
+        <Button size="sm" variant="ghost" className="h-8 px-2" onClick={async (e) => { e.stopPropagation(); const t = toast.loading("جاري تجهيز الفاتورة…"); try { await downloadInvoicePDF(r); toast.success("تم تحميل الفاتورة", { id: t }); } catch { toast.error("تعذّر إنشاء الملف", { id: t }); } }} title="تنزيل PDF">
           <Download className="h-3.5 w-3.5" />
         </Button>
 
