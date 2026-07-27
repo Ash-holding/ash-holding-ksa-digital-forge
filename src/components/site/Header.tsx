@@ -78,7 +78,7 @@ const NAV: NavItem[] = [
       { icon: BarChart3, title: "التقارير والتحليلات", desc: "تتبع الأداء وتحسين القرارات التسويقية.", href: "#marketing", tone: "teal" },
     ],
   },
-  { label: "حسابي", href: "#portal" },
+  { label: "حسابي", href: "/login" },
 ];
 
 export function Header() {
