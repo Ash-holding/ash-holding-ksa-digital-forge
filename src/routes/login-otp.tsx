@@ -66,13 +66,16 @@ function LoginOtpPage() {
         const { data } = await api.post("/whatsapp/otp/request", { phone, purpose });
         ttlSec = Number(data?.expiresInSec) || 600;
         toast.success("تم إرسال رمز التحقق على واتساب");
-      } catch {
+        pushLog({ kind: "request", ok: true, reason: `أُرسل رمز إلى ${maskedPhone}` });
+      } catch (err: any) {
+        const apiMsg = err?.response?.data?.error;
         // Demo fallback: backend not deployed → simulate OTP delivery
         if (typeof window !== "undefined") {
           sessionStorage.setItem("ash_demo_otp", "123456");
           sessionStorage.setItem("ash_demo_otp_phone", phone);
         }
         toast.info("وضع تجريبي: استخدم الرمز 123456");
+        pushLog({ kind: "request", ok: false, reason: apiMsg || "تعذّر الاتصال — وضع تجريبي" });
       }
       setCode("");
       setExpiresAt(Date.now() + ttlSec * 1000);
