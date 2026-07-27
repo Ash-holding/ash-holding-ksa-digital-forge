@@ -52,8 +52,10 @@ function LoginOtpPage() {
     }
     setLoading(true);
     try {
+      let ttlSec = 600;
       try {
-        await api.post("/whatsapp/otp/request", { phone, purpose });
+        const { data } = await api.post("/whatsapp/otp/request", { phone, purpose });
+        ttlSec = Number(data?.expiresInSec) || 600;
         toast.success("تم إرسال رمز التحقق على واتساب");
       } catch {
         // Demo fallback: backend not deployed → simulate OTP delivery
@@ -63,6 +65,8 @@ function LoginOtpPage() {
         }
         toast.info("وضع تجريبي: استخدم الرمز 123456");
       }
+      setCode("");
+      setExpiresAt(Date.now() + ttlSec * 1000);
       setStep("code");
     } finally {
       setLoading(false);
