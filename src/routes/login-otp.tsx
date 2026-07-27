@@ -30,6 +30,20 @@ function LoginOtpPage() {
   const [name, setName] = useState("");
   const [purpose, setPurpose] = useState<"login" | "signup">("login");
   const [loading, setLoading] = useState(false);
+  const [expiresAt, setExpiresAt] = useState<number | null>(null);
+  const [remaining, setRemaining] = useState(0);
+
+  useEffect(() => {
+    if (!expiresAt) return;
+    const tick = () => setRemaining(Math.max(0, Math.ceil((expiresAt - Date.now()) / 1000)));
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [expiresAt]);
+
+  const expired = step === "code" && expiresAt !== null && remaining <= 0;
+  const mm = String(Math.floor(remaining / 60)).padStart(2, "0");
+  const ss = String(remaining % 60).padStart(2, "0");
 
   const requestOtp = async () => {
     if (!phone || phone.length < 8) {
