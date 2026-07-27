@@ -214,14 +214,16 @@ function LoginOtpPage() {
                 <button
                   type="button"
                   onClick={() => setPurpose("login")}
-                  className={`rounded-md px-3 py-2 text-sm font-semibold transition ${purpose === "login" ? "bg-background shadow" : "text-muted-foreground"}`}
+                  disabled={loading}
+                  className={`rounded-md px-3 py-2 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed ${purpose === "login" ? "bg-background shadow" : "text-muted-foreground"}`}
                 >
                   دخول
                 </button>
                 <button
                   type="button"
                   onClick={() => setPurpose("signup")}
-                  className={`rounded-md px-3 py-2 text-sm font-semibold transition ${purpose === "signup" ? "bg-background shadow" : "text-muted-foreground"}`}
+                  disabled={loading}
+                  className={`rounded-md px-3 py-2 text-sm font-semibold transition disabled:opacity-50 disabled:cursor-not-allowed ${purpose === "signup" ? "bg-background shadow" : "text-muted-foreground"}`}
                 >
                   حساب جديد
                 </button>
