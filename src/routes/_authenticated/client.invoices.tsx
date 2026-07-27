@@ -18,7 +18,8 @@ import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
 import { Money } from "@/components/ui/money";
 import { cn } from "@/lib/utils";
-import { openInvoicePrint } from "@/lib/invoice-print";
+import { openInvoicePrint as _legacy, downloadInvoicePDF } from "@/lib/invoice-print";
+void _legacy;
 
 
 export const Route = createFileRoute("/_authenticated/client/invoices")({
