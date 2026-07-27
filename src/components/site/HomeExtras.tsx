@@ -236,32 +236,76 @@ export function HomeLogos() {
 }
 
 /* ============ Testimonials ============ */
+const TESTI_TONES = [
+  { grad: "from-electric/25 via-cyan-400/15 to-transparent", ring: "border-electric/30", chip: "bg-electric/15 text-electric border-electric/30", glow: "bg-electric/25", avatar: "from-electric to-cyan-400" },
+  { grad: "from-purple-accent/25 via-fuchsia-400/15 to-transparent", ring: "border-purple-accent/30", chip: "bg-purple-accent/15 text-purple-accent border-purple-accent/30", glow: "bg-purple-accent/25", avatar: "from-purple-accent to-fuchsia-400" },
+  { grad: "from-emerald-400/25 via-teal-400/15 to-transparent", ring: "border-emerald-400/30", chip: "bg-emerald-500/15 text-emerald-500 border-emerald-500/30", glow: "bg-emerald-400/25", avatar: "from-emerald-400 to-teal-400" },
+  { grad: "from-amber-400/25 via-orange-400/15 to-transparent", ring: "border-amber-400/30", chip: "bg-amber-500/15 text-amber-600 border-amber-500/30", glow: "bg-amber-400/25", avatar: "from-amber-400 to-orange-400" },
+  { grad: "from-rose-400/25 via-pink-400/15 to-transparent", ring: "border-rose-400/30", chip: "bg-rose-500/15 text-rose-500 border-rose-500/30", glow: "bg-rose-400/25", avatar: "from-rose-400 to-pink-400" },
+  { grad: "from-sky-400/25 via-blue-400/15 to-transparent", ring: "border-sky-400/30", chip: "bg-sky-500/15 text-sky-500 border-sky-500/30", glow: "bg-sky-400/25", avatar: "from-sky-400 to-blue-400" },
+];
+
 const TESTIMONIALS = [
   {
-    name: "أ. سعود الحربي",
-    role: "الرئيس التنفيذي — نور للتجارة",
-    body: "فريق ASH نقل متجرنا لمستوى مختلف تماماً. النمو في المبيعات فاق توقعاتنا بنسبة 340% خلال ستة أشهر.",
+    initials: "س.ح",
+    role: "رئيس تنفيذي",
+    sector: "قطاع التجزئة الرقمية",
+    body: "الفريق نقلنا لمستوى مختلف تماماً. النمو في المبيعات فاق توقعاتنا خلال أشهر قليلة، والتنفيذ كان دقيقاً وسريعاً.",
+    metric: "+340% مبيعات",
     stars: 5,
   },
   {
-    name: "م. لينا الشمري",
-    role: "مديرة التقنية — إيليت العقارية",
-    body: "احترافية استثنائية في التنفيذ. المنصة تعمل الآن بلا انقطاع منذ سنة كاملة وتخدم 45 ألف مستخدم شهرياً.",
+    initials: "ل.ش",
+    role: "مديرة تقنية",
+    sector: "قطاع العقار",
+    body: "احترافية استثنائية في التنفيذ. المنصة تعمل بلا انقطاع منذ سنة كاملة وتخدم عشرات آلاف المستخدمين شهرياً بثبات.",
+    metric: "99.99% تشغيل",
     stars: 5,
   },
   {
-    name: "د. خالد العتيبي",
-    role: "مؤسس — منصة سفر",
-    body: "أفضل شراكة تقنية اختبرناها. سرعة الاستجابة، جودة الكود، والاهتمام بأدق التفاصيل يجعلهم في المقدمة.",
+    initials: "خ.ع",
+    role: "مؤسس منصة",
+    sector: "قطاع السفر والسياحة",
+    body: "أفضل شراكة تقنية اختبرناها. سرعة الاستجابة، جودة الكود، والاهتمام بأدق التفاصيل يجعلهم في المقدمة دائماً.",
+    metric: "×4.8 ROI",
+    stars: 5,
+  },
+  {
+    initials: "ن.ق",
+    role: "مديرة تسويق",
+    sector: "قطاع الرعاية الصحية",
+    body: "استراتيجية المحتوى والإعلانات رفعت ظهورنا العضوي بشكل ملحوظ، مع تقارير أسبوعية واضحة وشفافة.",
+    metric: "+220% ظهور",
+    stars: 5,
+  },
+  {
+    initials: "ع.م",
+    role: "مدير عمليات",
+    sector: "قطاع الخدمات اللوجستية",
+    body: "أتمتة العمليات وفّرت علينا مئات الساعات شهرياً. لوحات التحكم عملية وسهلة على فرق الميدان.",
+    metric: "−62% وقت يدوي",
+    stars: 5,
+  },
+  {
+    initials: "ر.ص",
+    role: "رئيس أمن معلومات",
+    sector: "قطاع مالي",
+    body: "معايير الأمان والامتثال طُبّقت باحترافية عالية، مع تدقيق مستمر واستجابة سريعة لأي ملاحظة.",
+    metric: "0 حوادث أمنية",
     stars: 5,
   },
 ];
 
 export function HomeTestimonials() {
   return (
-    <section className="py-16 md:py-24">
+    <section className="relative py-16 md:py-24 overflow-hidden">
+      <div aria-hidden className="pointer-events-none absolute inset-0 -z-10">
+        <div className="absolute top-1/4 -left-24 h-72 w-72 rounded-full bg-electric/10 blur-3xl" />
+        <div className="absolute bottom-1/4 -right-24 h-72 w-72 rounded-full bg-purple-accent/10 blur-3xl" />
+      </div>
+
       <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
-        <div className="text-center mb-12">
+        <div className="text-center mb-10 md:mb-14">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -273,31 +317,82 @@ export function HomeTestimonials() {
           <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">
             قصص نجاح <span className="gradient-text">حقيقية</span>
           </h2>
+          <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl mx-auto">
+            شهادات من قادة أعمال في قطاعات متنوعة — أسماء الجهات محفوظة احتراماً لسياسات الخصوصية.
+          </p>
         </div>
-        <div className="grid gap-6 md:grid-cols-3">
-          {TESTIMONIALS.map((t, i) => (
-            <motion.div
-              key={t.name}
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className="relative rounded-3xl border border-border bg-card p-8 hover:border-electric/40 hover:shadow-glow transition"
-            >
-              <Quote className="absolute top-6 left-6 h-10 w-10 text-electric/10" />
-              <div className="flex gap-1 mb-4">
-                {Array.from({ length: t.stars }).map((_, k) => (
-                  <Star key={k} className="h-4 w-4 fill-amber-500 text-amber-500" />
-                ))}
-              </div>
-              <p className="text-base leading-relaxed mb-6">{t.body}</p>
-              <div className="pt-4 border-t border-border">
-                <div className="font-bold">{t.name}</div>
-                <div className="text-xs text-muted-foreground">{t.role}</div>
-              </div>
-            </motion.div>
+
+        <div className="grid gap-5 sm:gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {TESTIMONIALS.map((t, i) => {
+            const tone = TESTI_TONES[i % TESTI_TONES.length];
+            return (
+              <motion.article
+                key={i}
+                initial={{ opacity: 0, y: 30, scale: 0.96 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ delay: i * 0.08, duration: 0.5 }}
+                whileHover={{ y: -6 }}
+                className={`group relative overflow-hidden rounded-3xl border ${tone.ring} bg-card p-6 md:p-7 transition-all duration-300 hover:shadow-glow`}
+              >
+                <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${tone.grad} opacity-60`} />
+                <div className={`pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full ${tone.glow} blur-3xl opacity-70 group-hover:opacity-100 transition-opacity`} />
+                <div className={`absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r ${tone.avatar} opacity-80`} />
+
+                <div className="relative">
+                  <Quote className="absolute -top-1 left-0 h-10 w-10 text-foreground/10" />
+
+                  <div className="flex items-center justify-between mb-4 pl-12">
+                    <div className="flex gap-0.5">
+                      {Array.from({ length: t.stars }).map((_, k) => (
+                        <Star key={k} className="h-4 w-4 fill-amber-500 text-amber-500" />
+                      ))}
+                    </div>
+                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${tone.chip}`}>
+                      {t.metric}
+                    </span>
+                  </div>
+
+                  <p className="relative text-[15px] leading-relaxed text-foreground/90 mb-6 min-h-[96px]">
+                    {t.body}
+                  </p>
+
+                  <div className="flex items-center gap-3 pt-4 border-t border-border/60">
+                    <div className={`h-11 w-11 shrink-0 rounded-2xl bg-gradient-to-br ${tone.avatar} text-white font-bold text-sm grid place-items-center shadow-md`}>
+                      {t.initials}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="font-bold text-sm truncate">{t.role}</div>
+                      <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                        <BadgeCheck className="h-3 w-3 text-emerald-500" />
+                        {t.sector}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.article>
+            );
+          })}
+        </div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="mt-10 md:mt-14 flex flex-wrap items-center justify-center gap-3 md:gap-4"
+        >
+          {[
+            { icon: Star, label: "تقييم 4.9/5", tone: "text-amber-500" },
+            { icon: ShieldCheck, label: "خصوصية محفوظة", tone: "text-emerald-500" },
+            { icon: Users, label: "قطاعات متعددة", tone: "text-electric" },
+            { icon: Award, label: "شراكات طويلة الأمد", tone: "text-purple-accent" },
+          ].map((b, i) => (
+            <div key={i} className="inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium">
+              <b.icon className={`h-3.5 w-3.5 ${b.tone}`} />
+              {b.label}
+            </div>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
