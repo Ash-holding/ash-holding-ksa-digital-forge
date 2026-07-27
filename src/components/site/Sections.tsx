@@ -361,16 +361,25 @@ function AboutLiveVisual() {
 
 
 /* ---------------- SERVICES ---------------- */
+const SERVICE_TONES = [
+  { grad: "from-electric/25 via-cyan-400/15 to-transparent", ring: "hover:border-electric/50", icon: "bg-electric/15 text-electric", glow: "bg-electric/30", accent: "text-electric", bar: "from-transparent via-electric to-transparent", num: "from-electric to-cyan-400" },
+  { grad: "from-cyan-400/25 via-teal-400/15 to-transparent", ring: "hover:border-cyan-400/50", icon: "bg-cyan-400/15 text-cyan-400", glow: "bg-cyan-400/30", accent: "text-cyan-400", bar: "from-transparent via-cyan-400 to-transparent", num: "from-cyan-400 to-teal-400" },
+  { grad: "from-purple-accent/25 via-fuchsia-400/15 to-transparent", ring: "hover:border-purple-accent/50", icon: "bg-purple-accent/15 text-purple-accent", glow: "bg-purple-accent/30", accent: "text-purple-accent", bar: "from-transparent via-purple-accent to-transparent", num: "from-purple-accent to-fuchsia-400" },
+  { grad: "from-orange-400/25 via-amber-400/15 to-transparent", ring: "hover:border-orange-400/50", icon: "bg-orange-400/15 text-orange-500", glow: "bg-orange-400/30", accent: "text-orange-500", bar: "from-transparent via-orange-400 to-transparent", num: "from-orange-500 to-amber-400" },
+  { grad: "from-emerald-400/25 via-teal-400/15 to-transparent", ring: "hover:border-emerald-400/50", icon: "bg-emerald-400/15 text-emerald-500", glow: "bg-emerald-400/30", accent: "text-emerald-500", bar: "from-transparent via-emerald-400 to-transparent", num: "from-emerald-500 to-teal-400" },
+  { grad: "from-pink-400/25 via-rose-400/15 to-transparent", ring: "hover:border-pink-400/50", icon: "bg-pink-400/15 text-pink-500", glow: "bg-pink-400/30", accent: "text-pink-500", bar: "from-transparent via-pink-400 to-transparent", num: "from-pink-500 to-rose-400" },
+  { grad: "from-blue-400/25 via-indigo-400/15 to-transparent", ring: "hover:border-blue-400/50", icon: "bg-blue-400/15 text-blue-500", glow: "bg-blue-400/30", accent: "text-blue-500", bar: "from-transparent via-blue-400 to-transparent", num: "from-blue-500 to-indigo-400" },
+];
+
 export function Services() {
   const items = [
-    { icon: Code2, title: "تطوير المواقع والمنصات", desc: "مواقع ومنصات ويب مؤسسية عالية الأداء وقابلة للتوسع.", color: "electric", tags: ["Next.js", "React", "Node.js"] },
-    { icon: Smartphone, title: "تطبيقات الجوال", desc: "تطبيقات iOS و Android بتجربة استخدام سلسة وأداء أصلي.", color: "cyan-accent", tags: ["iOS", "Android", "Flutter"] },
-    { icon: LayoutDashboard, title: "الأنظمة ولوحات التحكم", desc: "أنظمة إدارية مخصصة تربط عملياتك في مكان واحد.", color: "purple-accent", tags: ["ERP", "CRM", "Dashboards"] },
-    { icon: Brain, title: "الذكاء الاصطناعي والأتمتة", desc: "حلول AI وأتمتة تسرّع أعمالك وتحسّن اتخاذ القرار.", color: "orange-accent", tags: ["AI Agents", "RAG", "Automation"] },
-    { icon: Palette, title: "التصميم والهوية", desc: "هويات بصرية وواجهات UI/UX تنقل قيمة علامتك بوضوح.", color: "electric", tags: ["Branding", "UI/UX", "Design System"] },
-    
-    { icon: Wrench, title: "الدعم الفني والتشغيل", desc: "دعم مستمر وتشغيل موثوق بعد الإطلاق على مدار الساعة.", color: "purple-accent", tags: ["24/7", "SLA", "Monitoring"] },
-    { icon: Plug, title: "التكاملات والربط البرمجي", desc: "ربط الأنظمة عبر APIs بأمان وكفاءة عالية.", color: "orange-accent", tags: ["REST", "GraphQL", "Webhooks"] },
+    { icon: Code2, title: "تطوير المواقع والمنصات", desc: "مواقع ومنصات ويب مؤسسية عالية الأداء وقابلة للتوسع.", tags: ["Next.js", "React", "Node.js"] },
+    { icon: Smartphone, title: "تطبيقات الجوال", desc: "تطبيقات iOS و Android بتجربة استخدام سلسة وأداء أصلي.", tags: ["iOS", "Android", "Flutter"] },
+    { icon: LayoutDashboard, title: "الأنظمة ولوحات التحكم", desc: "أنظمة إدارية مخصصة تربط عملياتك في مكان واحد.", tags: ["ERP", "CRM", "Dashboards"] },
+    { icon: Brain, title: "الذكاء الاصطناعي والأتمتة", desc: "حلول AI وأتمتة تسرّع أعمالك وتحسّن اتخاذ القرار.", tags: ["AI Agents", "RAG", "Automation"] },
+    { icon: Palette, title: "التصميم والهوية", desc: "هويات بصرية وواجهات UI/UX تنقل قيمة علامتك بوضوح.", tags: ["Branding", "UI/UX", "Design System"] },
+    { icon: Wrench, title: "الدعم الفني والتشغيل", desc: "دعم مستمر وتشغيل موثوق بعد الإطلاق على مدار الساعة.", tags: ["24/7", "SLA", "Monitoring"] },
+    { icon: Plug, title: "التكاملات والربط البرمجي", desc: "ربط الأنظمة عبر APIs بأمان وكفاءة عالية.", tags: ["REST", "GraphQL", "Webhooks"] },
   ];
 
   const stats = [
@@ -389,9 +398,12 @@ export function Services() {
 
       <div className="relative mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
-          <div className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1 text-xs font-medium mb-4 border border-border">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
+            className="inline-flex items-center gap-2 rounded-full bg-card px-3 py-1 text-xs font-medium mb-4 border border-border"
+          >
             <span className="h-1.5 w-1.5 rounded-full bg-electric animate-pulse" /> خدماتنا
-          </div>
+          </motion.div>
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold leading-tight">
             خدمات <span className="gradient-text">ASH HOLDING</span> الرقمية
           </h2>
@@ -401,51 +413,79 @@ export function Services() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mb-10 sm:mb-14">
-          {stats.map((s) => (
-            <div key={s.l} className="rounded-2xl border border-border bg-card/70 backdrop-blur px-4 py-4 text-center">
-              <div className="text-xl sm:text-2xl md:text-3xl font-extrabold gradient-text">{s.v}</div>
-              <div className="mt-1 text-[11px] sm:text-xs md:text-sm text-muted-foreground">{s.l}</div>
-            </div>
-          ))}
+          {stats.map((s, i) => {
+            const t = SERVICE_TONES[i % SERVICE_TONES.length];
+            return (
+              <motion.div
+                key={s.l}
+                initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.08, type: "spring", stiffness: 120 }}
+                className="relative rounded-2xl border border-border bg-card/70 backdrop-blur px-4 py-4 text-center overflow-hidden"
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${t.grad} opacity-70`} />
+                <div className="relative">
+                  <div className={`text-xl sm:text-2xl md:text-3xl font-extrabold bg-gradient-to-br ${t.num} bg-clip-text text-transparent`}>{s.v}</div>
+                  <div className="mt-1 text-[11px] sm:text-xs md:text-sm text-muted-foreground">{s.l}</div>
+                </div>
+              </motion.div>
+            );
+          })}
         </div>
 
-        <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {items.map((s, i) => (
-            <motion.article
-              key={s.title}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
-              transition={{ delay: Math.min(i * 0.05, 0.3), duration: 0.4 }}
-              className="group relative rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-card hover:shadow-glow hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
-            >
-              <div className={`absolute -top-16 -left-16 h-40 w-40 rounded-full bg-${s.color}/15 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-              <div className={`absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r from-transparent via-${s.color} to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+        <div className="grid gap-3 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          {items.map((s, i) => {
+            const t = SERVICE_TONES[i % SERVICE_TONES.length];
+            return (
+              <motion.article
+                key={s.title}
+                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, margin: "-50px" }}
+                transition={{ delay: Math.min(i * 0.06, 0.3), duration: 0.5, type: "spring", stiffness: 100 }}
+                whileHover={{ y: -6 }}
+                className={`group relative rounded-3xl border border-border bg-card p-5 sm:p-6 shadow-card hover:shadow-glow ${t.ring} transition-all duration-300 overflow-hidden flex flex-col`}
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${t.grad} opacity-40 group-hover:opacity-80 transition-opacity duration-500`} />
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 4, repeat: Infinity, delay: i * 0.3 }}
+                  className={`absolute -top-16 -left-16 h-40 w-40 rounded-full ${t.glow} blur-3xl`}
+                />
+                <div className={`absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r ${t.bar} opacity-60 group-hover:opacity-100 transition-opacity`} />
 
-              <div className="relative flex items-start justify-between mb-4">
-                <div className={`grid h-12 w-12 sm:h-14 sm:w-14 place-items-center rounded-2xl bg-${s.color}/10 text-${s.color} group-hover:scale-110 group-hover:rotate-3 transition-transform duration-300`}>
-                  <s.icon className="h-6 w-6 sm:h-7 sm:w-7" />
+                <div className="relative flex items-start justify-between mb-4">
+                  <motion.div
+                    initial={{ rotate: -15, scale: 0 }}
+                    whileInView={{ rotate: 0, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.06 + 0.2, type: "spring" }}
+                    className={`grid h-12 w-12 sm:h-14 sm:w-14 place-items-center rounded-2xl ${t.icon} backdrop-blur group-hover:scale-110 group-hover:rotate-6 transition-transform duration-300`}
+                  >
+                    <s.icon className="h-6 w-6 sm:h-7 sm:w-7" />
+                  </motion.div>
+                  <span className="text-[10px] font-mono text-muted-foreground/60">0{i + 1}</span>
                 </div>
-                <span className="text-[10px] font-mono text-muted-foreground/60">0{i + 1}</span>
-              </div>
 
-              <h3 className="relative text-base sm:text-lg font-bold mb-2 leading-snug">{s.title}</h3>
-              <p className="relative text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 flex-1">{s.desc}</p>
+                <h3 className="relative text-base sm:text-lg font-bold mb-2 leading-snug">{s.title}</h3>
+                <p className="relative text-xs sm:text-sm text-muted-foreground leading-relaxed mb-4 flex-1">{s.desc}</p>
 
-              <div className="relative flex flex-wrap gap-1.5 mb-4">
-                {s.tags.map((t) => (
-                  <span key={t} className="text-[10px] sm:text-[11px] font-medium px-2 py-0.5 rounded-md bg-secondary text-foreground/70 border border-border">
-                    {t}
-                  </span>
-                ))}
-              </div>
+                <div className="relative flex flex-wrap gap-1.5 mb-4">
+                  {s.tags.map((tag) => (
+                    <span key={tag} className="text-[10px] sm:text-[11px] font-medium px-2 py-0.5 rounded-md bg-background/60 backdrop-blur text-foreground/80 border border-border">
+                      {tag}
+                    </span>
+                  ))}
+                </div>
 
-              <a href="#contact" className={`relative inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold text-${s.color} group-hover:gap-2.5 transition-all`}>
-                اطلب الخدمة
-                <span className="inline-block rotate-180">→</span>
-              </a>
-            </motion.article>
-          ))}
+                <a href="#contact" className={`relative inline-flex items-center gap-1.5 text-xs sm:text-sm font-semibold ${t.accent} group-hover:gap-2.5 transition-all`}>
+                  اطلب الخدمة
+                  <span className="inline-block rotate-180">→</span>
+                </a>
+              </motion.article>
+            );
+          })}
         </div>
 
         <div className="mt-10 sm:mt-14 flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
@@ -460,6 +500,7 @@ export function Services() {
     </section>
   );
 }
+
 
 /* ---------------- HOSTING ---------------- */
 export function Hosting() {
