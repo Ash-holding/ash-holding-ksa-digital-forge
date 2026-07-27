@@ -9,6 +9,7 @@ export function Footer() {
       links: [
         { label: "من نحن", to: "/about" },
         { label: "لماذا ASH", to: "/why" },
+        { label: "أعمالنا", to: "/portfolio" },
         { label: "آلية العمل", to: "/process" },
         { label: "الأسئلة الشائعة", to: "/faq" },
         { label: "تواصل معنا", to: "/contact" },

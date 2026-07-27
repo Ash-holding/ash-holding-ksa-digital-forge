@@ -4,6 +4,9 @@ import { Footer } from "@/components/site/Footer";
 import {
   Hero, About, Services, Hosting, Marketing, Process, ClientPortal, Why, CTA,
 } from "@/components/site/Sections";
+import {
+  HomeLogos, HomeStats, HomeFeaturedProjects, HomeTestimonials,
+} from "@/components/site/HomeExtras";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -15,11 +18,15 @@ function Home() {
       <Header />
       <main>
         <Hero />
+        <HomeLogos />
         <About />
+        <HomeStats />
         <Services />
+        <HomeFeaturedProjects />
         <Hosting />
         <Marketing />
         <Process />
+        <HomeTestimonials />
         <ClientPortal />
         <Why />
         <CTA />
@@ -28,3 +35,4 @@ function Home() {
     </div>
   );
 }
+
