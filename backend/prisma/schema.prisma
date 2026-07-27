@@ -51,6 +51,21 @@ enum ProjectStatus {
   ON_HOLD
 }
 
+enum ProjectRequestStatus {
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  CONVERTED
+}
+
+enum ProjectRequestPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
 enum NoteVisibility {
   INTERNAL
   CLIENT
@@ -215,6 +230,7 @@ model Client {
   tickets    SupportTicket[]
   payments   Payment[]
   files      File[]
+  projectRequests ProjectRequest[]
 
   @@index([status])
   @@index([verificationStatus])
