@@ -16,6 +16,7 @@ import { Route as SlaRouteImport } from './routes/sla'
 import { Route as ProcessRouteImport } from './routes/process'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
+import { Route as LoginOtpRouteImport } from './routes/login-otp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FaqRouteImport } from './routes/faq'
@@ -89,6 +90,11 @@ const PrivacyRoute = PrivacyRouteImport.update({
 const PortfolioRoute = PortfolioRouteImport.update({
   id: '/portfolio',
   path: '/portfolio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginOtpRoute = LoginOtpRouteImport.update({
+  id: '/login-otp',
+  path: '/login-otp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -317,6 +323,7 @@ export interface FileRoutesByFullPath {
   '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/login-otp': typeof LoginOtpRoute
   '/portfolio': typeof PortfolioRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/process': typeof ProcessRoute
@@ -364,6 +371,7 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/login-otp': typeof LoginOtpRoute
   '/portfolio': typeof PortfolioRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/process': typeof ProcessRoute
@@ -411,6 +419,7 @@ export interface FileRoutesById {
   '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
+  '/login-otp': typeof LoginOtpRoute
   '/portfolio': typeof PortfolioRouteWithChildren
   '/privacy': typeof PrivacyRoute
   '/process': typeof ProcessRoute
@@ -460,6 +469,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/forgot-password'
     | '/login'
+    | '/login-otp'
     | '/portfolio'
     | '/privacy'
     | '/process'
@@ -507,6 +517,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/forgot-password'
     | '/login'
+    | '/login-otp'
     | '/portfolio'
     | '/privacy'
     | '/process'
@@ -553,6 +564,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/forgot-password'
     | '/login'
+    | '/login-otp'
     | '/portfolio'
     | '/privacy'
     | '/process'
@@ -602,6 +614,7 @@ export interface RootRouteChildren {
   FaqRoute: typeof FaqRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
+  LoginOtpRoute: typeof LoginOtpRoute
   PortfolioRoute: typeof PortfolioRouteWithChildren
   PrivacyRoute: typeof PrivacyRoute
   ProcessRoute: typeof ProcessRoute
@@ -662,6 +675,13 @@ declare module '@tanstack/react-router' {
       path: '/portfolio'
       fullPath: '/portfolio'
       preLoaderRoute: typeof PortfolioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login-otp': {
+      id: '/login-otp'
+      path: '/login-otp'
+      fullPath: '/login-otp'
+      preLoaderRoute: typeof LoginOtpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -1058,6 +1078,7 @@ const rootRouteChildren: RootRouteChildren = {
   FaqRoute: FaqRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
+  LoginOtpRoute: LoginOtpRoute,
   PortfolioRoute: PortfolioRouteWithChildren,
   PrivacyRoute: PrivacyRoute,
   ProcessRoute: ProcessRoute,
