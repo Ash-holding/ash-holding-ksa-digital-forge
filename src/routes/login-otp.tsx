@@ -101,8 +101,12 @@ function LoginOtpPage() {
           const msg = apiMsg || "";
           if (status === 404 || msg.includes("لا يوجد حساب")) {
             toast.error("لا يوجد حساب مرتبط بهذا الرقم", {
-              description: "بدّل إلى تبويب «إنشاء حساب» لتسجيل عميل جديد بنفس الرقم.",
+              description: "تم تحويلك تلقائياً لإنشاء حساب جديد بنفس الرقم.",
             });
+            setPurpose("signup");
+            setStep("phone");
+            setCode("");
+            setExpiresAt(null);
           } else if (msg.includes("انتهت")) {
             toast.error("انتهت صلاحية الرمز", {
               description: "اضغط «إعادة إرسال الرمز» لاستلام رمز جديد صالح لـ 10 دقائق.",
