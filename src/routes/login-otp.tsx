@@ -286,7 +286,11 @@ function LoginOtpPage() {
                 </Button>
               )}
               <div className="flex items-center justify-between text-xs">
-                <button className="text-muted-foreground hover:text-foreground" onClick={() => setStep("phone")}>
+                <button
+                  className="text-muted-foreground hover:text-foreground disabled:opacity-40"
+                  onClick={() => setStep("phone")}
+                  disabled={loading}
+                >
                   تغيير الرقم
                 </button>
                 <button
