@@ -14,6 +14,11 @@ const MAP: Record<string, { label: string; cls: string }> = {
   TESTING: { label: "قيد الاختبار", cls: "bg-indigo-500/10 text-indigo-400 ring-indigo-500/20" },
   COMPLETED: { label: "مكتمل", cls: "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20" },
   ON_HOLD: { label: "متوقف", cls: "bg-rose-500/10 text-rose-400 ring-rose-500/20" },
+  // Project request
+  UNDER_REVIEW: { label: "قيد الدراسة", cls: "bg-cyan-500/10 text-cyan-400 ring-cyan-500/20" },
+  APPROVED: { label: "مقبول", cls: "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20" },
+  REJECTED: { label: "مرفوض", cls: "bg-rose-500/10 text-rose-400 ring-rose-500/20" },
+  CONVERTED: { label: "حُوّل إلى مشروع", cls: "bg-purple-accent/10 text-purple-accent ring-purple-accent/20" },
   // Invoice
   DRAFT: { label: "مسودة", cls: "bg-slate-500/10 text-slate-300 ring-slate-500/20" },
   UNPAID: { label: "غير مدفوعة", cls: "bg-amber-500/10 text-amber-400 ring-amber-500/20" },
