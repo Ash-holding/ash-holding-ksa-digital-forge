@@ -274,9 +274,12 @@ function ProjectsView({ onNew }: { onNew: () => void }) {
           )}
         </div>
       )}
+      </>
+      )}
     </div>
   );
 }
+
 
 /* ---------------- REQUESTS VIEW ---------------- */
 
