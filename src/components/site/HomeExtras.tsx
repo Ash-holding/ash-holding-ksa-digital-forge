@@ -333,39 +333,39 @@ export function HomeTestimonials() {
                 viewport={{ once: true, margin: "-60px" }}
                 transition={{ delay: i * 0.08, duration: 0.5 }}
                 whileHover={{ y: -6 }}
-                className={`group relative overflow-hidden rounded-3xl border ${tone.ring} bg-card p-6 md:p-7 transition-all duration-300 hover:shadow-glow`}
+                className={`group relative overflow-hidden rounded-2xl md:rounded-3xl border ${tone.ring} bg-card p-4 md:p-7 transition-all duration-300 hover:shadow-glow`}
               >
                 <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${tone.grad} opacity-60`} />
                 <div className={`pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full ${tone.glow} blur-3xl opacity-70 group-hover:opacity-100 transition-opacity`} />
                 <div className={`absolute top-0 inset-x-0 h-[3px] bg-gradient-to-r ${tone.avatar} opacity-80`} />
 
                 <div className="relative">
-                  <Quote className="absolute -top-1 left-0 h-10 w-10 text-foreground/10" />
+                  <Quote className="absolute -top-1 left-0 h-7 w-7 md:h-10 md:w-10 text-foreground/10" />
 
-                  <div className="flex items-center justify-between mb-4 pl-12">
+                  <div className="flex items-center justify-between gap-2 mb-3 md:mb-4 pl-8 md:pl-12">
                     <div className="flex gap-0.5">
                       {Array.from({ length: t.stars }).map((_, k) => (
-                        <Star key={k} className="h-4 w-4 fill-amber-500 text-amber-500" />
+                        <Star key={k} className="h-3 w-3 md:h-4 md:w-4 fill-amber-500 text-amber-500" />
                       ))}
                     </div>
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full border ${tone.chip}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 md:py-1 rounded-full border ${tone.chip} shrink-0`}>
                       {t.metric}
                     </span>
                   </div>
 
-                  <p className="relative text-[15px] leading-relaxed text-foreground/90 mb-6 min-h-[96px]">
+                  <p className="relative text-[13px] md:text-[15px] leading-relaxed text-foreground/90 mb-4 md:mb-6 md:min-h-[96px]">
                     {t.body}
                   </p>
 
-                  <div className="flex items-center gap-3 pt-4 border-t border-border/60">
-                    <div className={`h-11 w-11 shrink-0 rounded-2xl bg-gradient-to-br ${tone.avatar} text-white font-bold text-sm grid place-items-center shadow-md`}>
+                  <div className="flex items-center gap-2.5 md:gap-3 pt-3 md:pt-4 border-t border-border/60">
+                    <div className={`h-9 w-9 md:h-11 md:w-11 shrink-0 rounded-xl md:rounded-2xl bg-gradient-to-br ${tone.avatar} text-white font-bold text-xs md:text-sm grid place-items-center shadow-md`}>
                       {t.initials}
                     </div>
-                    <div className="min-w-0">
-                      <div className="font-bold text-sm truncate">{t.role}</div>
-                      <div className="text-xs text-muted-foreground truncate flex items-center gap-1">
-                        <BadgeCheck className="h-3 w-3 text-emerald-500" />
-                        {t.sector}
+                    <div className="min-w-0 flex-1">
+                      <div className="font-bold text-xs md:text-sm truncate">{t.role}</div>
+                      <div className="text-[11px] md:text-xs text-muted-foreground truncate flex items-center gap-1">
+                        <BadgeCheck className="h-3 w-3 text-emerald-500 shrink-0" />
+                        <span className="truncate">{t.sector}</span>
                       </div>
                     </div>
                   </div>
