@@ -109,6 +109,19 @@ function LoginPage() {
             </Button>
           </form>
 
+          <div className="mt-4 flex items-center gap-3">
+            <div className="h-px flex-1 bg-border" />
+            <span className="text-[11px] text-muted-foreground">أو</span>
+            <div className="h-px flex-1 bg-border" />
+          </div>
+          <Link
+            to="/login-otp"
+            className="mt-3 flex w-full items-center justify-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-3 py-2.5 text-sm font-semibold text-emerald-400 hover:bg-emerald-500/15 transition"
+          >
+            <svg viewBox="0 0 32 32" className="h-4 w-4" fill="currentColor" aria-hidden><path d="M16 3C9 3 3.5 8.5 3.5 15.5c0 2.3.6 4.5 1.8 6.4L3 29l7.4-2.2c1.8 1 3.9 1.5 6 1.5h.1C23.5 28.3 29 22.8 29 15.8 29 8.8 23.5 3 16 3zm0 22.6c-1.9 0-3.8-.5-5.4-1.5l-.4-.2-4.4 1.3 1.3-4.3-.2-.4a10.4 10.4 0 0 1-1.6-5.6C5.3 9.7 10.1 4.9 16 4.9c5.9 0 10.7 4.8 10.7 10.8S21.9 25.6 16 25.6z"/></svg>
+            الدخول عبر رمز الواتساب
+          </Link>
+
           <div className="mt-8 rounded-2xl border border-dashed border-border bg-card/40 p-4 text-xs text-muted-foreground">
             <div className="font-semibold text-foreground mb-1">حساب تجريبي:</div>
             <div>مدير: <span dir="ltr" className="font-mono">admin@ashholding.sa</span> / <span dir="ltr" className="font-mono">Admin@12345</span></div>

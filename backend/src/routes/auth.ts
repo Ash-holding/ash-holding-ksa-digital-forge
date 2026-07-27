@@ -11,6 +11,9 @@ import { requireAuth } from "../middleware/auth.js";
 import { authLimiter } from "../middleware/rate-limit.js";
 import { logAudit } from "../lib/audit.js";
 import { normalizeIp, lookupIp } from "../lib/geo.js";
+import { WA } from "../lib/whatsapp.js";
+
+
 
 
 export const authRouter = Router();
@@ -78,6 +81,15 @@ authRouter.post("/login", authLimiter, async (req, res, next) => {
 
     const tokens = await issueTokens(req, user);
     await logAudit(req, "auth.login", "User", user.id);
+    // Login alert via WhatsApp (best-effort, non-blocking)
+    const notifyPhone = user.phone || user.client?.phone || null;
+    if (notifyPhone) {
+      WA.notify(
+        notifyPhone,
+        `ASH HOLDING\nتم تسجيل الدخول لحسابك.\nالوقت: ${new Date().toLocaleString("ar-SA")}\nIP: ${ip ?? "غير معروف"}\nإذا لم يكن أنت، غيّر كلمة المرور فوراً.`,
+        { userId: user.id, kind: "auth.login", entityId: user.id },
+      );
+    }
     return res.json({
       ...tokens,
       user: { id: user.id, email: user.email, name: user.name, role: user.role, avatarUrl: user.avatarUrl },

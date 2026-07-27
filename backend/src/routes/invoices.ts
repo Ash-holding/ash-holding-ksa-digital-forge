@@ -4,6 +4,15 @@ import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireStaff } from "../middleware/auth.js";
 import { currentClientId, isStaff, paging } from "../lib/scope.js";
 import { logAudit } from "../lib/audit.js";
+import { WA } from "../lib/whatsapp.js";
+
+async function clientPhone(clientId: string): Promise<string | null> {
+  const c = await prisma.client.findUnique({
+    where: { id: clientId },
+    include: { user: { select: { phone: true, name: true } } },
+  });
+  return c?.phone || c?.user?.phone || null;
+}
 
 export const invoicesRouter = Router();
 invoicesRouter.use(requireAuth);
@@ -100,6 +109,12 @@ invoicesRouter.post("/", requireStaff, async (req, res, next) => {
       include: { items: true },
     });
     await logAudit(req, "invoice.create", "Invoice", invoice.id);
+    const phone = await clientPhone(data.clientId);
+    WA.notify(
+      phone,
+      `ASH HOLDING — فاتورة جديدة\nرقم: ${invoice.invoiceNumber}\nالإجمالي: ${invoice.total} ${invoice.currency}\n${data.dueAt ? `تاريخ الاستحقاق: ${new Date(data.dueAt).toLocaleDateString("ar-SA")}\n` : ""}اطلع عليها من بوابة العميل.`,
+      { kind: "invoice.create", entityId: invoice.id },
+    );
     res.status(201).json({ invoice });
   } catch (e) { next(e); }
 });
@@ -126,6 +141,12 @@ invoicesRouter.post("/:id/mark-paid", requireStaff, async (req, res, next) => {
       data: { status: "PAID", paidAt: new Date() },
     });
     await logAudit(req, "invoice.mark_paid", "Invoice", inv.id);
+    const phone = await clientPhone(inv.clientId);
+    WA.notify(
+      phone,
+      `ASH HOLDING — تم استلام الدفع ✅\nفاتورة: ${inv.invoiceNumber}\nالمبلغ: ${inv.total} ${inv.currency}\nشكراً لتعاملكم معنا.`,
+      { kind: "invoice.paid", entityId: inv.id },
+    );
     res.json({ invoice: inv });
   } catch (e) { next(e); }
 });
