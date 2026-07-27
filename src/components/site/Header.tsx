@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import {
   Menu, X, ChevronDown, LogIn, Home, Info, Sparkles, Workflow, HelpCircle, Phone, LifeBuoy,
   Code2, Smartphone, LayoutDashboard, Brain, Palette, GraduationCap, Plug, Wrench,
@@ -77,7 +78,7 @@ const NAV: NavItem[] = [
       { icon: BarChart3, title: "التقارير والتحليلات", desc: "تتبع الأداء وتحسين القرارات التسويقية.", href: "#marketing", tone: "teal" },
     ],
   },
-  { label: "حسابي", href: "#portal" },
+  { label: "حسابي", href: "/login" },
 ];
 
 export function Header() {
@@ -228,13 +229,13 @@ export function Header() {
         </nav>
 
         <div className="flex items-center gap-2">
-          <a
-            href="#portal"
+          <Link
+            to="/login"
             className="hidden md:inline-flex items-center gap-2 rounded-xl bg-brand px-4 py-2.5 text-sm font-semibold text-primary-foreground shadow-glow hover:opacity-95 transition"
           >
             <LogIn className="h-4 w-4" />
             دخول العملاء
-          </a>
+          </Link>
           <button
             className="lg:hidden grid h-10 w-10 place-items-center rounded-xl border border-border bg-card"
             onClick={() => setOpen(!open)}
@@ -287,9 +288,9 @@ export function Header() {
               )}
             </div>
           ))}
-          <a href="#portal" className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-primary-foreground shadow-glow">
+          <Link to="/login" onClick={() => setOpen(false)} className="mt-4 flex items-center justify-center gap-2 rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-primary-foreground shadow-glow">
             <LogIn className="h-4 w-4" /> دخول العملاء
-          </a>
+          </Link>
         </div>
       </div>
     </header>

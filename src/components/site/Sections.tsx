@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "@tanstack/react-router";
 import {
   Sparkles, Star, ArrowLeft, Code2, Smartphone, LayoutDashboard, Brain, Palette,
   GraduationCap, Wrench, Plug, Search, Compass, PenTool, TestTube2, Rocket,
@@ -882,8 +883,8 @@ export function ClientPortal() {
             الملفات، والمدفوعات من مكان واحد.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
-            <a href="#" className="rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-primary-foreground shadow-glow">دخول العملاء</a>
-            <a href="#contact" className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold">طلب حساب جديد</a>
+            <Link to="/login" className="rounded-xl bg-brand px-5 py-3 text-sm font-semibold text-primary-foreground shadow-glow">دخول العملاء</Link>
+            <Link to="/login-otp" className="rounded-xl border border-border bg-card px-5 py-3 text-sm font-semibold">طلب حساب جديد</Link>
           </div>
         </div>
         <motion.div
@@ -993,8 +994,8 @@ export function CTA() {
               أرسل لنا فكرتك، ونحولها إلى خطة تنفيذ واضحة قابلة للتسليم والتطوير.
             </p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
-              <a href="#" className="rounded-xl bg-white text-navy-deep px-6 py-3.5 text-sm font-semibold shadow-glow hover:bg-ice transition">تواصل معنا</a>
-              <a href="#portal" className="rounded-xl glass-dark text-white px-6 py-3.5 text-sm font-semibold hover:bg-white/10 transition">دخول العملاء</a>
+              <Link to="/contact" className="rounded-xl bg-white text-navy-deep px-6 py-3.5 text-sm font-semibold shadow-glow hover:bg-ice transition">تواصل معنا</Link>
+              <Link to="/login" className="rounded-xl glass-dark text-white px-6 py-3.5 text-sm font-semibold hover:bg-white/10 transition">دخول العملاء</Link>
             </div>
           </div>
         </div>
