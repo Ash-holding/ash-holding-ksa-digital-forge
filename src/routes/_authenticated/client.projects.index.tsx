@@ -41,7 +41,9 @@ type SortKey = "recent" | "due" | "progress" | "budget";
 type Tab = "projects" | "requests";
 
 function ClientProjectsPage() {
-  const [tab, setTab] = useState<Tab>("projects");
+  const search = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const initialTab: Tab = search?.get("tab") === "requests" ? "requests" : "projects";
+  const [tab, setTab] = useState<Tab>(initialTab);
 
   return (
     <div className="space-y-3">
