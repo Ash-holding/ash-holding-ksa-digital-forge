@@ -29,7 +29,7 @@ const DEFAULTS: Seed[] = [
     minAmount: 5000, maxAmount: 100000, minDownPaymentPct: 10,
     minTermMonths: 3, maxTermMonths: 24, allowedTermsMonths: [3, 6, 12, 18, 24],
     ratePct: 8.5, adminFeePct: 1, adminFeeFlat: 100,
-    requiredDocsAr: ["الهوية الوطنية", "شهادة راتب حديثة", "كشف حساب بنكي (3 أشهر)"],
+    requiredDocsAr: ["صورة الهوية الوطنية", "شهادة راتب / تعريف حديث", "كشف حساب بنكي (آخر 3 أشهر)", "تقرير سمة (SIMAH) — اختياري"],
     eligibilityNoteAr: "دخل شهري لا يقل عن 4,000 ﷼، وأن لا تتجاوز نسبة الاستقطاع 45٪.",
   },
   {
@@ -40,7 +40,7 @@ const DEFAULTS: Seed[] = [
     minAmount: 20000, maxAmount: 250000, minDownPaymentPct: 15,
     minTermMonths: 6, maxTermMonths: 36, allowedTermsMonths: [12, 18, 24, 30, 36],
     ratePct: 7.25, adminFeePct: 0.75, adminFeeFlat: 150,
-    requiredDocsAr: ["الهوية الوطنية", "تعريف بالراتب", "كشف حساب (6 أشهر)", "إثبات سكن"],
+    requiredDocsAr: ["صورة الهوية الوطنية", "تعريف بالراتب", "كشف حساب بنكي (آخر 6 أشهر)", "تقرير سمة (SIMAH)", "إثبات سكن"],
     eligibilityNoteAr: "دخل شهري لا يقل عن 12,000 ﷼، ومدة عمل لا تقل عن سنة.",
   },
   {
@@ -51,7 +51,7 @@ const DEFAULTS: Seed[] = [
     minAmount: 30000, maxAmount: 500000, minDownPaymentPct: 20,
     minTermMonths: 6, maxTermMonths: 36, allowedTermsMonths: [6, 12, 18, 24, 36],
     ratePct: 9.5, adminFeePct: 1.25, adminFeeFlat: 250,
-    requiredDocsAr: ["السجل التجاري", "شهادة ضريبة القيمة المضافة", "قوائم مالية (سنة)", "كشف حساب المنشأة (6 أشهر)"],
+    requiredDocsAr: ["السجل التجاري", "شهادة ضريبة القيمة المضافة", "قوائم مالية (سنة)", "كشف حساب المنشأة (آخر 6 أشهر)", "تقرير سمة تجاري (SIMAH Corporate)"],
     eligibilityNoteAr: "منشأة نشطة وسارية، وإيرادات سنوية لا تقل عن 500,000 ﷼.",
   },
 ];

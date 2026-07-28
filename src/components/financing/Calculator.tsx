@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Loader2, Calculator as CalcIcon, Info } from "lucide-react";
+import { Loader2, Calculator as CalcIcon, Info, ArrowLeft, FileCheck2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { api, apiError } from "@/lib/api";
 import { toast } from "sonner";
 
@@ -226,12 +227,31 @@ export function FinancingCalculator() {
           {quote?.disclaimerAr ??
             "النتيجة تقديرية ولا تمثل موافقة. يخضع القرار النهائي لدراسة ائتمانية داخلية."}
         </div>
-        <a
-          href={product ? `/client/financing/apply/${product.id}?amount=${amount}&down=${downPayment}&term=${term}` : "#"}
-          className={`block w-full rounded-2xl py-3 text-center text-sm font-semibold ring-1 transition ${product ? "bg-white text-slate-900 ring-white hover:bg-white/90" : "bg-white/10 text-slate-400 ring-white/15 pointer-events-none"}`}
-        >
-          تقديم طلب تمويل
-        </a>
+        {product ? (
+          <Link
+            to="/client/financing/apply/$productId"
+            params={{ productId: product.id }}
+            search={{ amount, down: downPayment, term }}
+            className="group mt-2 block rounded-2xl bg-white p-4 text-slate-900 shadow-lg ring-1 ring-white transition hover:shadow-xl hover:ring-white/80"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-white">
+                <FileCheck2 className="h-5 w-5" />
+              </div>
+              <div className="min-w-0 flex-1 text-right">
+                <div className="text-sm font-bold">متابعة — استكمال بيانات الطلب</div>
+                <div className="text-[11px] text-slate-500">
+                  الهوية • كشف الحساب • تقرير سمة • الموافقات
+                </div>
+              </div>
+              <ArrowLeft className="h-4 w-4 text-slate-500 transition group-hover:-translate-x-1" />
+            </div>
+          </Link>
+        ) : (
+          <div className="mt-2 block w-full rounded-2xl bg-white/10 py-3 text-center text-sm text-slate-400 ring-1 ring-white/15">
+            اختر منتجاً أولاً
+          </div>
+        )}
       </motion.aside>
     </div>
   );
