@@ -289,6 +289,7 @@ model WalletTransaction {
   bankRef       String?
   iban          String?
   note          String?
+  receiptUrl    String?
   createdById   String?
   approvedById  String?
   approvedAt    DateTime?
