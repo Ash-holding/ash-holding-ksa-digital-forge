@@ -240,7 +240,7 @@ affiliateAdminRouter.post("/affiliates/:id/reject", async (req, res, next) => {
       where: { id: req.params.id }, data: { status: "REJECTED", suspendReason: reason },
     });
     await prisma.affiliateApplication.updateMany({
-      where: { affiliateId: a.id }, data: { status: "REJECTED", reviewedAt: new Date(), reviewedById: user.id, rejectionReason: reason },
+      where: { affiliateId: a.id }, data: { status: "REJECTED", reviewedAt: new Date(), reviewedById: user.id, reviewNote: reason },
     });
     WA.notify(a.phone, `ASH HOLDING — نعتذر، لم يتم اعتماد طلبك${reason ? `\nالسبب: ${reason}` : ""}`,
       { kind: "affiliate.rejected", entityId: a.id });
