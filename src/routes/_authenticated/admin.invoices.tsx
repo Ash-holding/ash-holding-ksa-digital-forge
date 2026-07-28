@@ -180,3 +180,20 @@ function InvoicesPage() {
     </>
   );
 }
+
+function LinkPill({ to, params, icon: Icon, label, tone, mono }: { to: string; params: Record<string, string>; icon: any; label: string; tone: "blue" | "violet" | "amber"; mono?: boolean }) {
+  const cls = {
+    blue:   "border-sky-500/30 bg-sky-500/10 text-sky-600 hover:bg-sky-500/15",
+    violet: "border-violet-500/30 bg-violet-500/10 text-violet-600 hover:bg-violet-500/15",
+    amber:  "border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/15",
+  }[tone];
+  return (
+    <Link to={to as any} params={params as any}
+      className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10.5px] font-bold transition-colors max-w-[160px] ${cls}`}
+    >
+      <Icon className="h-3 w-3 shrink-0" />
+      <span className={`truncate ${mono ? "font-mono" : ""}`} dir={mono ? "ltr" : undefined}>{label}</span>
+      <ExternalLink className="h-2.5 w-2.5 opacity-60 shrink-0" />
+    </Link>
+  );
+}
