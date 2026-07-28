@@ -28,6 +28,7 @@ export function setTokens(access: string | null, refresh: string | null) {
   if (!isBrowser()) return;
   if (access) localStorage.setItem(ACCESS_KEY, access); else localStorage.removeItem(ACCESS_KEY);
   if (refresh) localStorage.setItem(REFRESH_KEY, refresh); else localStorage.removeItem(REFRESH_KEY);
+  if (!access) localStorage.removeItem("ash_user_cache");
   window.dispatchEvent(new Event("ash-auth-change"));
 }
 
