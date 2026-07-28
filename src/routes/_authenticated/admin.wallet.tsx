@@ -138,7 +138,7 @@ function AdminWallet() {
                 {pending.map((tx: any) => (
                   <PendingRow key={tx.id} tx={tx}
                     onApprove={() => approve.mutate(tx.id)}
-                    onReject={(r) => reject.mutate({ id: tx.id, reason: r })}
+                    onReject={(r: string) => reject.mutate({ id: tx.id, reason: r })}
                   />
                 ))}
               </div>
