@@ -120,8 +120,8 @@ export function InternalCreditReportPanel({ report }: { report: CreditReport }) 
       {report.flags.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-1.5">
           {report.flags.map((flag) => (
-            <span key={flag} className="text-[11px] px-2 py-1 rounded-full bg-rose-500/15 text-rose-200 ring-1 ring-rose-400/30 font-mono font-semibold">
-              {flag}
+            <span key={flag} className="text-[11px] px-2.5 py-1 rounded-full bg-rose-500/15 text-rose-100 ring-1 ring-rose-400/30 font-semibold">
+              {FLAG_LABELS_AR[flag] ?? flag}
             </span>
           ))}
         </div>
