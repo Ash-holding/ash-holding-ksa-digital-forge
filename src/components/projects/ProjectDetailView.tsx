@@ -696,3 +696,316 @@ function ProjectChat({ projectId, isAdmin, currentUserId, messages, loading }: {
     </div>
   );
 }
+
+// ============================================================
+// Linked request card — shows the original REQ this project came from
+// ============================================================
+const CATEGORY_LABEL: Record<string, string> = {
+  WEBSITE: "موقع إلكتروني", MOBILE_APP: "تطبيق جوال", ADMIN_SYSTEM: "نظام إداري",
+  HOSTING: "استضافة", VPS: "خادم VPS", DEDICATED_SERVER: "خادم مخصص",
+  SMTP: "خدمة SMTP", MARKETING: "تسويق رقمي", DESIGN: "تصميم وهوية",
+  SUPPORT: "دعم وصيانة", OTHER: "طلب مخصص",
+};
+
+function RequestLinkCard({ req, requestRef }: { req: LinkedRequest; requestRef: string }) {
+  const budget = (req.budgetMin || req.budgetMax)
+    ? `${req.budgetMin ? Number(req.budgetMin).toLocaleString("en-US") : "—"} – ${req.budgetMax ? Number(req.budgetMax).toLocaleString("en-US") : "—"} ر.س`
+    : null;
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={springIn}
+      className="rounded-2xl border border-cyan-accent/25 bg-gradient-to-l from-cyan-accent/5 via-card to-card p-4 md:p-5"
+    >
+      <div className="flex items-start gap-3 flex-wrap">
+        <div className="grid h-10 w-10 place-items-center rounded-xl bg-cyan-accent/15 text-cyan-accent shrink-0">
+          <Inbox className="h-5 w-5" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-accent/10 text-cyan-accent border border-cyan-accent/25">
+              {requestRef}
+            </span>
+            <StatusBadge value={req.status} />
+            <StatusBadge value={req.priority} />
+            <span className="text-[10px] rounded-full bg-muted px-2 py-0.5 font-semibold">
+              {CATEGORY_LABEL[req.category] ?? req.category}
+            </span>
+          </div>
+          <div className="font-semibold text-sm">أُنشئ هذا المشروع من طلب رسمي: {req.title}</div>
+          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[11px] text-muted-foreground">
+            <span>📅 استُلم {formatDate(req.createdAt)}</span>
+            {req.targetDate && <span>⏰ مستهدف {formatDate(req.targetDate)}</span>}
+            {budget && <span>💰 {budget}</span>}
+            {req.contactPhone && <span>📱 {req.contactPhone}</span>}
+          </div>
+          {req.adminNote && (
+            <div className="mt-2 rounded-lg bg-muted/40 p-2 text-[11px] text-foreground/80 whitespace-pre-wrap">
+              <span className="font-semibold text-cyan-accent">ملاحظة الإدارة: </span>{req.adminNote}
+            </div>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ============================================================
+// Admin control panel — inline edit status/budget/dueDate
+// ============================================================
+const PROJECT_STATUSES = ["NEW","PLANNING","DESIGN","DEVELOPMENT","WAITING_CLIENT","TESTING","COMPLETED","ON_HOLD"] as const;
+const PROJECT_STATUS_LABEL: Record<string, string> = {
+  NEW: "جديد", PLANNING: "تخطيط", DESIGN: "تصميم", DEVELOPMENT: "تطوير",
+  WAITING_CLIENT: "بانتظار العميل", TESTING: "اختبار", COMPLETED: "مكتمل", ON_HOLD: "متوقف",
+};
+
+function AdminControlPanel({ project, projectId }: { project: ProjectData; projectId: string }) {
+  const qc = useQueryClient();
+  const [status, setStatus] = useState(project.status);
+  const [budget, setBudget] = useState<string>(project.budget ? String(project.budget) : "");
+  const [dueDate, setDueDate] = useState<string>(project.dueDate ? project.dueDate.slice(0, 10) : "");
+
+  useEffect(() => {
+    setStatus(project.status);
+    setBudget(project.budget ? String(project.budget) : "");
+    setDueDate(project.dueDate ? project.dueDate.slice(0, 10) : "");
+  }, [project.status, project.budget, project.dueDate]);
+
+  const dirty =
+    status !== project.status ||
+    budget !== (project.budget ? String(project.budget) : "") ||
+    dueDate !== (project.dueDate ? project.dueDate.slice(0, 10) : "");
+
+  const save = useMutation({
+    mutationFn: () => api.patch(`/projects/${projectId}`, {
+      status,
+      budget: budget ? Number(budget) : null,
+      dueDate: dueDate || null,
+    }),
+    onSuccess: () => {
+      toast.success("تم حفظ التغييرات ✓ وسيتم إخطار العميل");
+      qc.invalidateQueries({ queryKey: ["project", projectId] });
+      qc.invalidateQueries({ queryKey: ["projects"] });
+    },
+    onError: (e) => toast.error(apiError(e)),
+  });
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={springIn}
+      className="rounded-2xl border border-electric/25 bg-gradient-to-br from-electric/5 via-card to-card p-4 md:p-5"
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <div className="grid h-8 w-8 place-items-center rounded-lg bg-electric/15 text-electric">
+          <Pencil className="h-4 w-4" />
+        </div>
+        <div>
+          <div className="font-semibold text-sm">لوحة تحكم الإدارة</div>
+          <div className="text-[10px] text-muted-foreground">تعديلات فورية تنعكس على العميل ويصله إشعار واتساب</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        <div className="space-y-1.5">
+          <Label className="text-[11px]">الحالة</Label>
+          <select value={status} onChange={(e) => setStatus(e.target.value)}
+            className="w-full h-9 rounded-md border border-input bg-background px-3 text-sm">
+            {PROJECT_STATUSES.map((s) => <option key={s} value={s}>{PROJECT_STATUS_LABEL[s]}</option>)}
+          </select>
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-[11px]">الميزانية (ر.س)</Label>
+          <Input type="number" step="100" value={budget} onChange={(e) => setBudget(e.target.value)}
+            placeholder="0" className="h-9" />
+        </div>
+        <div className="space-y-1.5">
+          <Label className="text-[11px]">تاريخ التسليم</Label>
+          <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} className="h-9" />
+        </div>
+        <div className="flex items-end">
+          <Button className="w-full h-9 gap-1.5" disabled={!dirty || save.isPending} onClick={() => save.mutate()}>
+            <Save className="h-3.5 w-3.5" /> {save.isPending ? "جاري الحفظ…" : dirty ? "حفظ التغييرات" : "لا تغييرات"}
+          </Button>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+// ============================================================
+// Invoices panel — linked to project (and to originating request)
+// ============================================================
+const INVOICE_STATUS_LABEL: Record<string, { label: string; className: string }> = {
+  DRAFT:     { label: "مسودة",   className: "bg-muted text-muted-foreground border-border" },
+  UNPAID:    { label: "غير مدفوعة", className: "bg-amber-500/10 text-amber-600 border-amber-500/30" },
+  PAID:      { label: "مدفوعة",  className: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" },
+  OVERDUE:   { label: "متأخرة",  className: "bg-destructive/10 text-destructive border-destructive/30" },
+  CANCELLED: { label: "ملغاة",   className: "bg-muted text-muted-foreground border-border" },
+};
+
+function InvoicesPanel({
+  projectId, projectRef, requestRef, invoices, isAdmin, defaultAmount,
+}: {
+  projectId: string; projectRef: string; requestRef: string | null;
+  invoices: InvoiceRow[]; isAdmin: boolean; defaultAmount: number;
+}) {
+  const qc = useQueryClient();
+  const [open, setOpen] = useState(false);
+
+  const create = useMutation({
+    mutationFn: (data: Record<string, unknown>) => api.post(`/projects/${projectId}/invoice`, data),
+    onSuccess: () => {
+      toast.success("تم إنشاء الفاتورة وإرسالها للعميل ✓");
+      qc.invalidateQueries({ queryKey: ["project", projectId] });
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+      setOpen(false);
+    },
+    onError: (e) => toast.error(apiError(e)),
+  });
+
+  const total = invoices.reduce((s, i) => s + Number(i.total || 0), 0);
+  const paid = invoices.filter((i) => i.status === "PAID").reduce((s, i) => s + Number(i.total || 0), 0);
+  const outstanding = total - paid;
+
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, ...springIn }}
+      className="rounded-2xl border border-border bg-card p-4 md:p-5"
+    >
+      <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+        <div className="flex items-center gap-2">
+          <div className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-500/10 text-emerald-600">
+            <Receipt className="h-4 w-4" />
+          </div>
+          <div>
+            <div className="font-semibold text-sm">الفواتير المرتبطة</div>
+            <div className="text-[10px] text-muted-foreground">
+              مرتبطة برقم المشروع {projectRef}{requestRef ? ` والطلب ${requestRef}` : ""}
+            </div>
+          </div>
+        </div>
+        {isAdmin && (
+          <Button size="sm" onClick={() => setOpen(true)} className="gap-1.5">
+            <Plus className="h-3.5 w-3.5" /> فاتورة جديدة
+          </Button>
+        )}
+      </div>
+
+      {/* Summary */}
+      {invoices.length > 0 && (
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="rounded-xl bg-muted/40 p-3">
+            <div className="text-[10px] text-muted-foreground mb-0.5">إجمالي الفواتير</div>
+            <div className="text-lg font-bold tabular-nums">{total.toLocaleString("en-US")} <span className="text-[10px] font-normal text-muted-foreground">ر.س</span></div>
+          </div>
+          <div className="rounded-xl bg-emerald-500/10 p-3">
+            <div className="text-[10px] text-muted-foreground mb-0.5">مدفوع</div>
+            <div className="text-lg font-bold tabular-nums text-emerald-600">{paid.toLocaleString("en-US")}</div>
+          </div>
+          <div className="rounded-xl bg-amber-500/10 p-3">
+            <div className="text-[10px] text-muted-foreground mb-0.5">متبقٍ</div>
+            <div className="text-lg font-bold tabular-nums text-amber-600">{outstanding.toLocaleString("en-US")}</div>
+          </div>
+        </div>
+      )}
+
+      {invoices.length === 0 ? (
+        <div className="rounded-xl border border-dashed border-border p-6 text-center">
+          <FileText className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
+          <div className="text-sm font-medium">لا توجد فواتير بعد</div>
+          <div className="text-[11px] text-muted-foreground mt-1">
+            {isAdmin ? "أنشئ أول فاتورة لهذا المشروع بضغطة زر" : "لم يُصدر فريقنا أي فاتورة لهذا المشروع بعد"}
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {invoices.map((inv) => {
+            const meta = INVOICE_STATUS_LABEL[inv.status] ?? INVOICE_STATUS_LABEL.DRAFT;
+            return (
+              <div key={inv.id} className="flex items-center justify-between gap-3 rounded-xl border border-border p-3 hover:border-electric/40 hover:bg-muted/20 transition">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="grid h-9 w-9 place-items-center rounded-lg bg-muted shrink-0">
+                    <Receipt className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="min-w-0">
+                    <div className="font-mono text-[12px] font-semibold truncate">{inv.invoiceNumber}</div>
+                    <div className="text-[10px] text-muted-foreground">
+                      {formatDate(inv.issuedAt)}{inv.dueAt ? ` • استحقاق ${formatDate(inv.dueAt)}` : ""}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 shrink-0">
+                  <div className="text-right">
+                    <div className="text-sm font-bold tabular-nums">{Number(inv.total).toLocaleString("en-US")} <span className="text-[10px] font-normal text-muted-foreground">{inv.currency}</span></div>
+                    <span className={cn("inline-block mt-0.5 text-[10px] px-2 py-0.5 rounded-full border", meta.className)}>
+                      {meta.label}
+                    </span>
+                  </div>
+                  <a
+                    href={`/${isAdmin ? "admin" : "client"}/invoices`}
+                    className="grid h-8 w-8 place-items-center rounded-lg border border-border hover:border-electric/40 hover:text-electric transition"
+                    title="فتح في الفواتير"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Quick create sheet */}
+      <FormSheet
+        open={open} onOpenChange={setOpen}
+        title="فاتورة جديدة"
+        submitText="إنشاء وإرسال"
+        onSubmit={async (e) => {
+          const fd = new FormData(e.currentTarget);
+          const raw = Object.fromEntries(fd.entries()) as Record<string, string>;
+          await create.mutateAsync({
+            title: raw.title || undefined,
+            description: raw.description || undefined,
+            amount: Number(raw.amount),
+            taxRate: Number(raw.taxRate || 15),
+            dueAt: raw.dueAt || undefined,
+            notes: raw.notes || undefined,
+          });
+        }}
+      >
+        <div className="space-y-3">
+          <div className="rounded-lg bg-muted/40 p-2.5 text-[11px] text-muted-foreground">
+            ستُربط تلقائياً بالمشروع <span className="font-mono font-bold text-foreground">{projectRef}</span>
+            {requestRef && <> والطلب <span className="font-mono font-bold text-foreground">{requestRef}</span></>}
+          </div>
+          <div className="space-y-1.5">
+            <Label>عنوان البند</Label>
+            <Input name="title" placeholder="سيستخدم اسم المشروع إن ترك فارغاً" />
+          </div>
+          <div className="space-y-1.5">
+            <Label>وصف مختصر</Label>
+            <Textarea name="description" rows={2} placeholder="مثال: الدفعة الأولى — 40% من قيمة المشروع" />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label>المبلغ (قبل الضريبة) *</Label>
+              <Input name="amount" type="number" step="0.01" required defaultValue={defaultAmount || undefined} />
+            </div>
+            <div className="space-y-1.5">
+              <Label>الضريبة %</Label>
+              <Input name="taxRate" type="number" step="0.5" defaultValue={15} />
+            </div>
+            <div className="space-y-1.5 col-span-2">
+              <Label>تاريخ الاستحقاق</Label>
+              <Input name="dueAt" type="date" />
+            </div>
+          </div>
+          <div className="space-y-1.5">
+            <Label>ملاحظات (اختياري)</Label>
+            <Textarea name="notes" rows={2} />
+          </div>
+        </div>
+      </FormSheet>
+    </motion.section>
+  );
+}
+
