@@ -31,7 +31,11 @@ const CATEGORIES = [
 const PRIORITIES = [["LOW","منخفضة"],["NORMAL","عادية"],["HIGH","عالية"],["URGENT","عاجلة"]] as const;
 const STATUSES = [
   ["PENDING","قيد الانتظار"],["UNDER_REVIEW","قيد الدراسة"],
-  ["APPROVED","مقبول"],["REJECTED","مرفوض"],["CONVERTED","محوّل لمشروع"],
+  ["PROPOSAL_SENT","عرض مُرسَل"],["CLIENT_REVISION","طلب تعديل"],
+  ["AWAITING_SIGNATURE","بانتظار التوقيع"],["SIGNED","موقّع"],
+  ["IN_PROGRESS","قيد التنفيذ"],["DELIVERED","تم التسليم"],
+  ["APPROVED","مقبول"],["REJECTED","مرفوض"],
+  ["CONVERTED","محوّل لمشروع"],["COMPLETED","مكتمل"],
 ] as const;
 
 type Form = {
