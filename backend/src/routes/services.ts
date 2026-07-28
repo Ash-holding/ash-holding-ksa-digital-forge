@@ -49,6 +49,24 @@ servicesRouter.get("/", async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+servicesRouter.get("/:id", async (req, res, next) => {
+  try {
+    const s = await prisma.clientService.findUnique({
+      where: { id: req.params.id },
+      include: {
+        client: { include: { user: { select: { name: true, email: true, phone: true } } } },
+        project: { select: { id: true, title: true } },
+      },
+    });
+    if (!s) return res.status(404).json({ error: "غير موجود" });
+    if (!isStaff(req)) {
+      const cid = await currentClientId(req);
+      if (s.clientId !== cid) return res.status(403).json({ error: "Forbidden" });
+    }
+    res.json({ service: s });
+  } catch (e) { next(e); }
+});
+
 servicesRouter.post("/", requireStaff, async (req, res, next) => {
   try {
     const data = serviceSchema.parse(req.body);
