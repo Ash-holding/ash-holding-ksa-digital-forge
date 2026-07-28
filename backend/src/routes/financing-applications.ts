@@ -237,21 +237,28 @@ financingApplicationsRouter.post("/:id/submit", async (req, res, next) => {
       yearsOfService: app.yearsOfService,
     });
 
+    const creditReport = computeInternalCreditReport(app);
+
     const updated = await prisma.financingApplication.update({
       where: { id: app.id },
       data: {
         status: "SUBMITTED",
         submittedAt: new Date(),
         computedScore: score,
+        internalCreditReport: creditReport as never,
         expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       },
     });
     await appendEvent({
       applicationId: app.id, actorId: req.user!.sub, actorRole: req.user!.role,
       type: "submitted", fromStatus: app.status, toStatus: "SUBMITTED",
-      message: `تم تقديم الطلب — سيتم بدء المراجعة (النقاط الأولية: ${score}/100)`,
+      message: `تم تقديم الطلب — التقييم الائتماني الداخلي: ${creditReport.score} (${creditReport.grade}) — ${creditReport.riskLevel}`,
+      metadata: { creditScore: creditReport.score, grade: creditReport.grade, flags: creditReport.flags },
     });
-    await notifyApplicant(app.id, `📝 تم استلام طلب التمويل ${app.code} — سيبدأ فريق آش المراجعة خلال ساعات العمل.`);
+    await notifyApplicant(
+      app.id,
+      bankMessage("RECEIVED", { code: app.code, amount: Number(app.amount), productAr: (app as any).product?.nameAr }),
+    );
     res.json(updated);
   } catch (e) { next(e); }
 });
