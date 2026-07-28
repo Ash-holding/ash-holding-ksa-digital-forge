@@ -1,4 +1,10 @@
-import rateLimit, { ipKeyGenerator } from "express-rate-limit";
+import rateLimit from "express-rate-limit";
+import type { Request } from "express";
+
+function ipKey(req: Request): string {
+  const xf = (req.headers["x-forwarded-for"] as string | undefined)?.split(",")[0]?.trim();
+  return xf || req.ip || "0.0.0.0";
+}
 import type { Request } from "express";
 
 export const authLimiter = rateLimit({
