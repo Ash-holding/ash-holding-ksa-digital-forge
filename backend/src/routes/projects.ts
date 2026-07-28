@@ -664,13 +664,17 @@ projectsRouter.get("/requests/list", async (req, res, next) => {
     ]);
 
     const now = Date.now();
+    const inFlight = ["PROPOSAL_SENT","CLIENT_REVISION","AWAITING_SIGNATURE"];
+    const running = ["SIGNED","IN_PROGRESS","DELIVERED"];
     const stats = {
       total: all.length,
       pending: all.filter((r) => r.status === "PENDING").length,
       underReview: all.filter((r) => r.status === "UNDER_REVIEW").length,
-      approved: all.filter((r) => r.status === "APPROVED" || r.status === "CONVERTED").length,
+      proposal: all.filter((r) => inFlight.includes(r.status)).length,
+      running: all.filter((r) => running.includes(r.status)).length,
+      approved: all.filter((r) => ["APPROVED","CONVERTED","COMPLETED"].includes(r.status)).length,
       rejected: all.filter((r) => r.status === "REJECTED").length,
-      urgent: all.filter((r) => r.priority === "URGENT" && r.status !== "REJECTED" && r.status !== "CONVERTED").length,
+      urgent: all.filter((r) => r.priority === "URGENT" && !["REJECTED","CONVERTED","COMPLETED"].includes(r.status)).length,
       last24h: all.filter((r) => now - new Date(r.createdAt).getTime() < 86400000).length,
     };
     res.json({ rows, total, page, pageSize, stats });
