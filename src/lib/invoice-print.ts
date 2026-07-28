@@ -141,126 +141,134 @@ function buildInvoiceNode(inv: InvoiceLike): HTMLDivElement {
   const fractionHalalah = Math.round((total - wholeSAR) * 100);
   const amountWords = `${numToArabicWords(wholeSAR)} ريال${fractionHalalah ? ` و${numToArabicWords(fractionHalalah)} هللة` : ""} فقط لا غير`;
 
-  // ── Row cells
+  // ── Design tokens (locked)
+  const C = {
+    white: "#FFFFFF",
+    ink: "#0A2540",       // deep navy
+    blue: "#0E4C92",      // corporate blue
+    soft: "#E6EEF7",      // soft blue rows
+    line: "#D8E1EC",      // hairline
+    muted: "#5B6B7A",
+    dim: "#8A99AB",
+  };
+
   const rowsHtml = items.map((it, i) => {
     const qty = itemQty(it);
     const unit = Number(it.unitPrice ?? it.total ?? 0);
     const line = Number(it.total ?? unit * qty);
     const desc = (it.description ?? "").toString().trim();
+    const zebra = i % 2 === 1 ? C.soft : C.white;
     return `
-      <tr>
-        <td style="padding:16px 14px;border-bottom:1px solid #ecebe4;color:#a89968;font-family:ui-monospace,monospace;font-size:11px;vertical-align:top;width:44px">${String(i + 1).padStart(2,"0")}</td>
-        <td style="padding:16px 14px;border-bottom:1px solid #ecebe4;vertical-align:top">
-          <div style="font-weight:800;font-size:13px;color:#111827;line-height:1.5">${itemLabel(it, projectTitle)}</div>
-          ${desc && desc !== itemLabel(it, projectTitle) ? `<div style="font-size:11px;color:#6b7280;line-height:1.7;margin-top:3px">${desc}</div>` : ""}
+      <tr style="background:${zebra}">
+        <td style="padding:14px 14px;border-bottom:1px solid ${C.line};color:${C.dim};font-family:'DM Serif Display',Georgia,serif;font-size:14px;vertical-align:top;width:48px" dir="ltr">${String(i + 1).padStart(2,"0")}</td>
+        <td style="padding:14px 14px;border-bottom:1px solid ${C.line};vertical-align:top">
+          <div style="font-weight:700;font-size:13px;color:${C.ink};line-height:1.6">${itemLabel(it, projectTitle)}</div>
+          ${desc && desc !== itemLabel(it, projectTitle) ? `<div style="font-size:11px;color:${C.muted};line-height:1.8;margin-top:4px;font-weight:400">${desc}</div>` : ""}
         </td>
-        <td style="padding:16px 14px;border-bottom:1px solid #ecebe4;text-align:center;color:#374151;font-size:12px;font-variant-numeric:tabular-nums;width:70px">${qty}</td>
-        <td style="padding:16px 14px;border-bottom:1px solid #ecebe4;text-align:end;color:#374151;font-size:12px;font-variant-numeric:tabular-nums;width:120px" dir="ltr">${fmtSAR(unit)}</td>
-        <td style="padding:16px 14px;border-bottom:1px solid #ecebe4;text-align:end;color:#111827;font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;width:130px" dir="ltr">${fmtSAR(line)}</td>
+        <td style="padding:14px 14px;border-bottom:1px solid ${C.line};text-align:center;color:${C.ink};font-size:12px;font-variant-numeric:tabular-nums;width:70px">${qty}</td>
+        <td style="padding:14px 14px;border-bottom:1px solid ${C.line};text-align:end;color:${C.ink};font-size:12px;font-variant-numeric:tabular-nums;width:120px" dir="ltr">${fmtSAR(unit)}</td>
+        <td style="padding:14px 14px;border-bottom:1px solid ${C.line};text-align:end;color:${C.ink};font-size:13px;font-weight:800;font-variant-numeric:tabular-nums;width:130px" dir="ltr">${fmtSAR(line)}</td>
       </tr>`;
   }).join("");
 
   const notes = inv.notes ?? "يُرجى تحويل المبلغ إلى الحساب البنكي أدناه أو السداد من خلال المحفظة الرقمية عبر بوابة العميل. لأي استفسار: billing@ash-holding.sa";
 
   const wrapper = document.createElement("div");
-  wrapper.style.cssText = "position:fixed;left:-10000px;top:0;width:794px;background:#fbfaf5;color:#111827;direction:rtl;box-sizing:border-box;font-family:'Cairo','IBM Plex Sans Arabic','Segoe UI',Tahoma,sans-serif;overflow:hidden";
+  wrapper.style.cssText = `position:fixed;left:-10000px;top:0;width:794px;background:${C.white};color:${C.ink};direction:rtl;box-sizing:border-box;font-family:'Fira Sans','IBM Plex Sans Arabic','Noto Sans Arabic','Cairo','Segoe UI',Tahoma,sans-serif;overflow:hidden`;
   wrapper.setAttribute("dir", "rtl");
 
   wrapper.innerHTML = `
-    <!-- Vertical gold rule on the right edge (RTL leading) + subtle pattern -->
-    <div style="position:relative;padding:0 0 0 0;background:
-        radial-gradient(circle at 100% 0%, rgba(201,168,76,0.08), transparent 45%),
-        radial-gradient(circle at 0% 100%, rgba(11,18,32,0.04), transparent 40%),
-        #fbfaf5">
-      <div style="position:absolute;top:0;bottom:0;right:0;width:6px;background:linear-gradient(180deg,#c9a84c 0%,#e8c97a 50%,#8a7233 100%)"></div>
+    <div style="position:relative;background:${C.white}">
+      <!-- Top corporate blue rule -->
+      <div style="height:4px;background:${C.blue}"></div>
 
-      <!-- ══════════ HERO ══════════ -->
-      <div style="padding:44px 44px 22px 38px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end">
-        <!-- Right (visually first in RTL): brand + tax invoice tag -->
+      <!-- ══════════ HERO — magazine masthead ══════════ -->
+      <div style="padding:36px 44px 20px 44px;display:grid;grid-template-columns:1fr auto;gap:24px;align-items:end">
+        <!-- Right (RTL leading): brand -->
         <div>
-          <div style="display:flex;align-items:center;gap:12px;margin-bottom:18px">
-            <div style="width:46px;height:46px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#e8c97a,#8a7233);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:#0b1220;font-family:'Cairo',sans-serif;box-shadow:0 2px 0 #6b5828, inset 0 1px 0 rgba(255,255,255,0.4)">ش</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+            <div style="width:44px;height:44px;border-radius:6px;background:${C.blue};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:20px;color:${C.white};font-family:'Fira Sans',sans-serif;letter-spacing:0">ش</div>
             <div>
-              <div style="font-size:16px;font-weight:900;color:#111827;letter-spacing:.3px">شركة علي صالح الشهري القابضة</div>
-              <div style="font-size:10.5px;color:#8a7233;letter-spacing:2.4px;font-weight:700;margin-top:2px">ASH · HOLDING</div>
+              <div style="font-size:16px;font-weight:700;color:${C.ink};letter-spacing:.2px">شركة علي صالح الشهري القابضة</div>
+              <div style="font-size:10.5px;color:${C.blue};letter-spacing:3px;font-weight:600;margin-top:3px" dir="ltr">ASH · HOLDING</div>
             </div>
           </div>
-          <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border:1px solid #d4c68a;border-radius:2px;background:#fefdf6">
-            <span style="width:6px;height:6px;background:#c9a84c;border-radius:50%"></span>
-            <span style="font-size:10px;font-weight:800;color:#6b5828;letter-spacing:2.6px">فاتورة ضريبية · TAX INVOICE</span>
+          <div style="display:inline-flex;align-items:center;gap:8px;padding:5px 12px;background:${C.soft};border-radius:3px">
+            <span style="width:5px;height:5px;background:${C.blue};border-radius:50%"></span>
+            <span style="font-size:10px;font-weight:700;color:${C.blue};letter-spacing:2.4px">فاتورة ضريبية · TAX INVOICE</span>
           </div>
         </div>
 
-        <!-- Left (visually): oversized invoice number in serif -->
+        <!-- Left: editorial invoice number -->
         <div style="text-align:left;direction:ltr">
-          <div style="font-size:10px;color:#a89968;letter-spacing:3px;font-weight:700;margin-bottom:4px">№ INVOICE</div>
-          <div style="font-family:'Playfair Display','Cormorant Garamond',Georgia,serif;font-size:42px;font-weight:800;color:#0b1220;line-height:1;letter-spacing:-1px">${invNo}</div>
+          <div style="font-size:9.5px;color:${C.muted};letter-spacing:3.5px;font-weight:700;margin-bottom:2px;font-family:'Fira Sans',sans-serif">INVOICE №</div>
+          <div style="font-family:'DM Serif Display',Georgia,serif;font-size:44px;font-weight:400;color:${C.ink};line-height:1;letter-spacing:-.5px">${invNo}</div>
           <div style="margin-top:10px">
             <span style="display:inline-block;padding:5px 12px;border-radius:2px;font-weight:800;font-size:10.5px;background:${st.bg};color:${st.color};border:1px solid ${st.border};letter-spacing:1px">${st.label.toUpperCase()}</span>
           </div>
         </div>
       </div>
 
-      <!-- thin hairline divider -->
-      <div style="margin:0 38px 0 44px;height:1px;background:linear-gradient(90deg,transparent,#d4c68a 20%,#d4c68a 80%,transparent)"></div>
+      <!-- Hairline -->
+      <div style="margin:0 44px;height:1px;background:${C.line}"></div>
 
       <!-- ══════════ META STRIP ══════════ -->
-      <div style="padding:20px 38px 20px 44px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
+      <div style="padding:18px 44px 22px 44px;display:grid;grid-template-columns:repeat(4,1fr);gap:20px">
         ${[
           ["تاريخ الإصدار", issueDate],
           ["تاريخ الاستحقاق", dueDate],
           ["المرجع", reqRef || invNo],
           ["العملة", `${currency} · ريال سعودي`],
         ].map(([k,v]) => `
-          <div>
-            <div style="font-size:9px;color:#a89968;font-weight:800;letter-spacing:2px;margin-bottom:5px">${k}</div>
-            <div style="font-size:12.5px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums">${v}</div>
+          <div style="border-inline-start:2px solid ${C.blue};padding-inline-start:10px">
+            <div style="font-size:9px;color:${C.muted};font-weight:700;letter-spacing:2px;margin-bottom:5px">${k}</div>
+            <div style="font-size:13px;font-weight:700;color:${C.ink};font-variant-numeric:tabular-nums">${v}</div>
           </div>`).join("")}
       </div>
 
       <!-- ══════════ PARTIES ══════════ -->
-      <div style="margin:0 38px 22px 44px;display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid #ecebe4;border-radius:4px;overflow:hidden;background:#ffffff">
-        <div style="padding:18px 20px;border-inline-end:1px solid #ecebe4;background:linear-gradient(180deg,#fefdf6,#ffffff)">
+      <div style="margin:0 44px 22px 44px;display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid ${C.line};border-radius:4px;overflow:hidden;background:${C.white}">
+        <div style="padding:18px 20px;border-inline-end:1px solid ${C.line};background:${C.soft}">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
-            <span style="width:3px;height:12px;background:#c9a84c"></span>
-            <span style="font-size:9.5px;color:#8a7233;font-weight:800;letter-spacing:2.4px">فاتورة إلى · BILL TO</span>
+            <span style="width:3px;height:12px;background:${C.blue}"></span>
+            <span style="font-size:9.5px;color:${C.blue};font-weight:800;letter-spacing:2.4px">فاتورة إلى · BILL TO</span>
           </div>
-          <div style="font-size:14.5px;font-weight:800;color:#111827;margin-bottom:4px">${clientName}</div>
-          ${clientCompany ? `<div style="font-size:11.5px;color:#4b5563;line-height:1.9">${clientCompany}</div>` : ""}
-          ${clientEmail ? `<div style="font-size:11.5px;color:#4b5563;line-height:1.9" dir="ltr">${clientEmail}</div>` : ""}
-          ${clientPhone ? `<div style="font-size:11.5px;color:#4b5563;line-height:1.9" dir="ltr">${clientPhone}</div>` : ""}
+          <div style="font-size:15px;font-weight:800;color:${C.ink};margin-bottom:4px">${clientName}</div>
+          ${clientCompany ? `<div style="font-size:11.5px;color:${C.muted};line-height:1.9">${clientCompany}</div>` : ""}
+          ${clientEmail ? `<div style="font-size:11.5px;color:${C.muted};line-height:1.9" dir="ltr">${clientEmail}</div>` : ""}
+          ${clientPhone ? `<div style="font-size:11.5px;color:${C.muted};line-height:1.9" dir="ltr">${clientPhone}</div>` : ""}
         </div>
-        <div style="padding:18px 20px">
+        <div style="padding:18px 20px;background:${C.white}">
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:10px">
-            <span style="width:3px;height:12px;background:#0b1220"></span>
-            <span style="font-size:9.5px;color:#374151;font-weight:800;letter-spacing:2.4px">من · FROM</span>
+            <span style="width:3px;height:12px;background:${C.ink}"></span>
+            <span style="font-size:9.5px;color:${C.ink};font-weight:800;letter-spacing:2.4px">من · FROM</span>
           </div>
-          <div style="font-size:14.5px;font-weight:800;color:#111827;margin-bottom:4px">شركة علي صالح الشهري القابضة</div>
-          <div style="font-size:11.5px;color:#4b5563;line-height:1.9">الرياض · المملكة العربية السعودية</div>
-          <div style="font-size:11.5px;color:#4b5563;line-height:1.9">الرقم الضريبي: <span dir="ltr">300000000000003</span></div>
-          <div style="font-size:11.5px;color:#4b5563;line-height:1.9" dir="ltr">billing@ash-holding.sa</div>
+          <div style="font-size:15px;font-weight:800;color:${C.ink};margin-bottom:4px">شركة علي صالح الشهري القابضة</div>
+          <div style="font-size:11.5px;color:${C.muted};line-height:1.9">الرياض · المملكة العربية السعودية</div>
+          <div style="font-size:11.5px;color:${C.muted};line-height:1.9">الرقم الضريبي: <span dir="ltr">300000000000003</span></div>
+          <div style="font-size:11.5px;color:${C.muted};line-height:1.9" dir="ltr">billing@ash-holding.sa</div>
         </div>
       </div>
 
-      <!-- ══════════ PROJECT LINE ══════════ -->
-      <div style="margin:0 38px 8px 44px;padding:12px 16px;background:#0b1220;border-radius:4px;color:#f5f5f0;display:flex;justify-content:space-between;align-items:center;gap:12px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:9.5px;color:#c9a84c;letter-spacing:2px;font-weight:800">المشروع</span>
-          <span style="font-size:13px;font-weight:700">${projectTitle}</span>
+      <!-- ══════════ PROJECT BANNER (deep navy) ══════════ -->
+      <div style="margin:0 44px 10px 44px;padding:14px 18px;background:${C.ink};border-radius:4px;color:${C.white};display:flex;justify-content:space-between;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;gap:12px">
+          <span style="font-size:9.5px;color:${C.soft};letter-spacing:2.4px;font-weight:700;padding-inline-end:12px;border-inline-end:1px solid rgba(255,255,255,.18)">المشروع</span>
+          <span style="font-size:14px;font-weight:700;color:${C.white}">${projectTitle}</span>
         </div>
-        ${duration ? `<div style="font-size:11px;color:#cbb977"><span style="color:#94a3b8">المدة:</span> <strong style="color:#e8c97a">${duration} يوم</strong></div>` : ""}
+        ${duration ? `<div style="font-size:11px;color:${C.soft}"><span style="opacity:.7">المدة:</span> <strong style="color:${C.white}">${duration} يوم</strong></div>` : ""}
       </div>
 
       <!-- ══════════ ITEMS ══════════ -->
-      <div style="margin:14px 38px 0 44px">
-        <table style="width:100%;border-collapse:collapse;font-size:12px;background:#ffffff;border:1px solid #ecebe4;border-radius:4px;overflow:hidden">
+      <div style="margin:14px 44px 0 44px">
+        <table style="width:100%;border-collapse:collapse;font-size:12px;background:${C.white};border:1px solid ${C.line};border-radius:4px;overflow:hidden">
           <thead>
-            <tr style="background:#fefdf6">
-              <th style="padding:11px 14px;text-align:start;font-size:9.5px;color:#8a7233;font-weight:800;letter-spacing:2px;border-bottom:2px solid #d4c68a">#</th>
-              <th style="padding:11px 14px;text-align:start;font-size:9.5px;color:#8a7233;font-weight:800;letter-spacing:2px;border-bottom:2px solid #d4c68a">الوصف · DESCRIPTION</th>
-              <th style="padding:11px 14px;text-align:center;font-size:9.5px;color:#8a7233;font-weight:800;letter-spacing:2px;border-bottom:2px solid #d4c68a">الكمية</th>
-              <th style="padding:11px 14px;text-align:end;font-size:9.5px;color:#8a7233;font-weight:800;letter-spacing:2px;border-bottom:2px solid #d4c68a">سعر الوحدة</th>
-              <th style="padding:11px 14px;text-align:end;font-size:9.5px;color:#8a7233;font-weight:800;letter-spacing:2px;border-bottom:2px solid #d4c68a">الإجمالي (SAR)</th>
+            <tr style="background:${C.white}">
+              <th style="padding:12px 14px;text-align:start;font-size:9.5px;color:${C.blue};font-weight:800;letter-spacing:2px;border-bottom:2px solid ${C.blue}">#</th>
+              <th style="padding:12px 14px;text-align:start;font-size:9.5px;color:${C.blue};font-weight:800;letter-spacing:2px;border-bottom:2px solid ${C.blue}">الوصف · DESCRIPTION</th>
+              <th style="padding:12px 14px;text-align:center;font-size:9.5px;color:${C.blue};font-weight:800;letter-spacing:2px;border-bottom:2px solid ${C.blue}">الكمية</th>
+              <th style="padding:12px 14px;text-align:end;font-size:9.5px;color:${C.blue};font-weight:800;letter-spacing:2px;border-bottom:2px solid ${C.blue}">سعر الوحدة</th>
+              <th style="padding:12px 14px;text-align:end;font-size:9.5px;color:${C.blue};font-weight:800;letter-spacing:2px;border-bottom:2px solid ${C.blue}">الإجمالي (SAR)</th>
             </tr>
           </thead>
           <tbody>${rowsHtml}</tbody>
@@ -268,72 +276,71 @@ function buildInvoiceNode(inv: InvoiceLike): HTMLDivElement {
       </div>
 
       <!-- ══════════ SUMMARY + AMOUNT IN WORDS ══════════ -->
-      <div style="margin:18px 38px 0 44px;display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:stretch">
+      <div style="margin:18px 44px 0 44px;display:grid;grid-template-columns:1fr 300px;gap:18px;align-items:stretch">
         <!-- Amount in words -->
-        <div style="border:1px solid #d4c68a;border-radius:4px;padding:14px 18px;background:#fefdf6;display:flex;flex-direction:column;justify-content:center">
+        <div style="border:1px solid ${C.line};border-radius:4px;padding:16px 18px;background:${C.soft};display:flex;flex-direction:column;justify-content:center;position:relative">
+          <div style="position:absolute;top:0;bottom:0;right:0;width:3px;background:${C.blue}"></div>
           <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px">
-            <span style="width:3px;height:11px;background:#c9a84c"></span>
-            <span style="font-size:9.5px;color:#8a7233;font-weight:800;letter-spacing:2.4px">المبلغ كتابةً · AMOUNT IN WORDS</span>
+            <span style="font-size:9.5px;color:${C.blue};font-weight:800;letter-spacing:2.4px">المبلغ كتابةً · AMOUNT IN WORDS</span>
           </div>
-          <div style="font-size:13px;font-weight:700;color:#111827;line-height:1.8">${amountWords}</div>
+          <div style="font-size:14px;font-weight:700;color:${C.ink};line-height:1.8">${amountWords}</div>
         </div>
 
         <!-- Totals card -->
-        <div style="border:1px solid #ecebe4;border-radius:4px;background:#ffffff;overflow:hidden">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font-size:11.5px;color:#4b5563;border-bottom:1px dashed #ecebe4">
+        <div style="border:1px solid ${C.line};border-radius:4px;background:${C.white};overflow:hidden">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;font-size:11.5px;color:${C.muted};border-bottom:1px solid ${C.line}">
             <span>المجموع الفرعي</span>
-            <span dir="ltr" style="font-variant-numeric:tabular-nums;font-weight:700;color:#111827">${fmtSAR(subtotal)}</span>
+            <span dir="ltr" style="font-variant-numeric:tabular-nums;font-weight:700;color:${C.ink}">${fmtSAR(subtotal)}</span>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font-size:11.5px;color:#4b5563;border-bottom:1px dashed #ecebe4">
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:11px 14px;font-size:11.5px;color:${C.muted};border-bottom:1px solid ${C.line}">
             <span>ضريبة القيمة المضافة (${taxRate}%)</span>
-            <span dir="ltr" style="font-variant-numeric:tabular-nums;font-weight:700;color:#111827">${fmtSAR(tax)}</span>
+            <span dir="ltr" style="font-variant-numeric:tabular-nums;font-weight:700;color:${C.ink}">${fmtSAR(tax)}</span>
           </div>
-          <div style="position:relative;padding:14px 16px;background:linear-gradient(135deg,#0b1220 0%,#1a2540 100%);color:#fefdf6">
-            <div style="position:absolute;top:0;right:0;left:0;height:2px;background:linear-gradient(90deg,#c9a84c,#e8c97a,#c9a84c)"></div>
-            <div style="font-size:9.5px;color:#c9a84c;letter-spacing:2.4px;font-weight:800;margin-bottom:2px">الإجمالي المستحق · TOTAL DUE</div>
+          <div style="position:relative;padding:16px 16px;background:${C.blue};color:${C.white}">
+            <div style="font-size:9.5px;color:${C.soft};letter-spacing:2.4px;font-weight:800;margin-bottom:4px">الإجمالي المستحق · TOTAL DUE</div>
             <div style="display:flex;justify-content:space-between;align-items:baseline">
-              <span style="font-size:11px;color:#94a3b8" dir="ltr">${currency}</span>
-              <span dir="ltr" style="font-family:'Playfair Display',Georgia,serif;font-size:26px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.5px">${fmtSAR(total)}</span>
+              <span style="font-size:11px;color:${C.soft};opacity:.85" dir="ltr">${currency}</span>
+              <span dir="ltr" style="font-family:'DM Serif Display',Georgia,serif;font-size:30px;font-weight:400;font-variant-numeric:tabular-nums;letter-spacing:-.5px">${fmtSAR(total)}</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- ══════════ PAYMENT ══════════ -->
-      <div style="margin:18px 38px 0 44px;border:1px solid #ecebe4;border-radius:4px;background:#ffffff;overflow:hidden">
-        <div style="padding:10px 16px;background:#fefdf6;border-bottom:1px solid #ecebe4;display:flex;align-items:center;gap:8px">
-          <span style="width:3px;height:12px;background:#c9a84c"></span>
-          <span style="font-size:10px;color:#8a7233;font-weight:800;letter-spacing:2.4px">تفاصيل الدفع · PAYMENT DETAILS</span>
+      <div style="margin:18px 44px 0 44px;border:1px solid ${C.line};border-radius:4px;background:${C.white};overflow:hidden">
+        <div style="padding:11px 16px;background:${C.soft};border-bottom:1px solid ${C.line};display:flex;align-items:center;gap:8px">
+          <span style="width:3px;height:12px;background:${C.blue}"></span>
+          <span style="font-size:10px;color:${C.blue};font-weight:800;letter-spacing:2.4px">تفاصيل الدفع · PAYMENT DETAILS</span>
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;padding:14px 16px;gap:14px">
-          <div style="font-size:11.5px;color:#4b5563;line-height:2">
-            <div><span style="color:#8a7233;font-weight:800">المستفيد:</span> شركة علي صالح الشهري القابضة</div>
-            <div><span style="color:#8a7233;font-weight:800">البنك:</span> بنك ساب (SAB)</div>
-            <div dir="ltr" style="text-align:right;font-family:ui-monospace,monospace;margin-top:4px;padding:6px 10px;background:#fefdf6;border:1px dashed #d4c68a;border-radius:3px;font-size:12px;color:#0b1220;font-weight:700">SA37 4500 0000 2623 5939 1001</div>
+          <div style="font-size:11.5px;color:${C.muted};line-height:2">
+            <div><span style="color:${C.ink};font-weight:800">المستفيد:</span> شركة علي صالح الشهري القابضة</div>
+            <div><span style="color:${C.ink};font-weight:800">البنك:</span> بنك ساب (SAB)</div>
+            <div dir="ltr" style="text-align:right;font-family:ui-monospace,'SFMono-Regular',monospace;margin-top:6px;padding:8px 10px;background:${C.soft};border:1px dashed ${C.blue};border-radius:3px;font-size:12.5px;color:${C.ink};font-weight:700;letter-spacing:.5px">SA37 4500 0000 2623 5939 1001</div>
           </div>
-          <div style="font-size:11.5px;color:#4b5563;line-height:2">
-            <div><span style="color:#8a7233;font-weight:800">شروط:</span> يستحق السداد خلال 7 أيام</div>
-            <div><span style="color:#8a7233;font-weight:800">مرجع التحويل:</span> <span dir="ltr" style="font-family:ui-monospace,monospace;color:#111827;font-weight:700">${reqRef || invNo}</span></div>
-            <div><span style="color:#8a7233;font-weight:800">أو:</span> الدفع الفوري عبر المحفظة الرقمية في بوابة العميل</div>
+          <div style="font-size:11.5px;color:${C.muted};line-height:2">
+            <div><span style="color:${C.ink};font-weight:800">شروط:</span> يستحق السداد خلال 7 أيام</div>
+            <div><span style="color:${C.ink};font-weight:800">مرجع التحويل:</span> <span dir="ltr" style="font-family:ui-monospace,monospace;color:${C.ink};font-weight:700">${reqRef || invNo}</span></div>
+            <div><span style="color:${C.ink};font-weight:800">أو:</span> الدفع الفوري عبر المحفظة الرقمية في بوابة العميل</div>
           </div>
         </div>
       </div>
 
       <!-- ══════════ NOTES ══════════ -->
-      <div style="margin:14px 38px 0 44px;padding:12px 16px;background:transparent;border-inline-start:3px solid #c9a84c">
-        <div style="font-size:9.5px;color:#8a7233;font-weight:800;letter-spacing:2.4px;margin-bottom:4px">ملاحظات · NOTES</div>
-        <div style="font-size:11.5px;color:#4b5563;line-height:1.9">${notes}</div>
+      <div style="margin:14px 44px 0 44px;padding:12px 16px;background:${C.white};border-inline-start:3px solid ${C.blue}">
+        <div style="font-size:9.5px;color:${C.blue};font-weight:800;letter-spacing:2.4px;margin-bottom:4px">ملاحظات · NOTES</div>
+        <div style="font-size:11.5px;color:${C.muted};line-height:1.9">${notes}</div>
       </div>
 
       <!-- ══════════ FOOTER ══════════ -->
-      <div style="margin-top:24px;padding:16px 38px 20px 44px;border-top:1px solid #ecebe4;display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center">
-        <div style="width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#e8c97a,#8a7233);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#0b1220">ش</div>
-        <div style="text-align:center;font-size:10px;color:#6b7280;line-height:1.8">
+      <div style="margin-top:26px;padding:16px 44px 20px 44px;border-top:1px solid ${C.line};display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center">
+        <div style="width:38px;height:38px;border-radius:6px;background:${C.blue};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:${C.white}">ش</div>
+        <div style="text-align:center;font-size:10px;color:${C.muted};line-height:1.8">
           فاتورة ضريبية إلكترونية صادرة وفق نظام هيئة الزكاة والضريبة والجمارك — لا تحتاج إلى توقيع أو ختم يدوي.
-          <br><span style="color:#a89968">Electronic Tax Invoice · Compliant with ZATCA e-invoicing regulations</span>
+          <br><span style="color:${C.dim}" dir="ltr">Electronic Tax Invoice · Compliant with ZATCA e-invoicing regulations</span>
         </div>
-        <div style="text-align:left;direction:ltr;font-size:10px;color:#a89968;font-family:ui-monospace,monospace;line-height:1.6">
-          <div style="color:#111827;font-weight:700">ash-holding.sa</div>
+        <div style="text-align:left;direction:ltr;font-size:10px;color:${C.dim};font-family:ui-monospace,monospace;line-height:1.6">
+          <div style="color:${C.ink};font-weight:700">ash-holding.sa</div>
           <div>Page 1 / 1</div>
         </div>
       </div>
