@@ -35,7 +35,10 @@ function ProjectRequestsPage() {
     queryFn: async () => (await api.get("/projects/requests/list", { params: { status: status ?? undefined, pageSize: 100 } })).data,
     refetchInterval: 8000,
     refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    retry: 1,
   });
+
 
   const rows = (list.data?.rows ?? []) as any[];
   const stats = list.data?.stats ?? { total: 0, pending: 0, underReview: 0, approved: 0, rejected: 0, urgent: 0, last24h: 0 };
