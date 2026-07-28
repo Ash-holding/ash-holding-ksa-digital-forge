@@ -26,6 +26,19 @@ export type CreditReport = {
   disclosureAr: string;
 };
 
+const FLAG_LABELS_AR: Record<string, string> = {
+  insufficient_income: "دخل غير كافٍ",
+  high_dti: "نسبة التزامات مرتفعة",
+  dsr_unsustainable: "قدرة سداد غير مستدامة",
+  iti_high: "القسط يستهلك نصف الدخل",
+  missing_national_id: "الهوية الوطنية غير مُدخلة",
+  short_employment: "مدة عمل قصيرة",
+  no_bank_statement: "لا يوجد كشف حساب",
+  no_simah_report: "لا يوجد تقرير سمة",
+  high_amount: "المبلغ المطلوب مرتفع",
+  long_tenure: "مدة سداد طويلة",
+};
+
 const gradeColor: Record<string, string> = {
   "A+": "from-emerald-500 to-teal-500",
   A: "from-emerald-500 to-lime-500",
