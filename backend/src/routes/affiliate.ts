@@ -629,13 +629,13 @@ affiliateRouter.post("/withdrawals", requireAuth, async (req, res, next) => {
       await tx.affiliateLedgerEntry.createMany({
         data: [
           {
-            affiliateId, entryType: "WITHDRAWAL_REQUESTED", bucket: "AVAILABLE",
+            affiliateId, entryType: "WITHDRAWAL_HOLD", bucket: "AVAILABLE",
             amount: -body.amount, currency: "SAR", withdrawalId: w.id,
             balanceBefore: aBefore, balanceAfter: aBefore - body.amount,
             note: `حجز مبلغ لطلب سحب ${requestNumber}`,
           },
           {
-            affiliateId, entryType: "WITHDRAWAL_REQUESTED", bucket: "RESERVED",
+            affiliateId, entryType: "WITHDRAWAL_HOLD", bucket: "RESERVED",
             amount: body.amount, currency: "SAR", withdrawalId: w.id,
             balanceBefore: rBefore, balanceAfter: rBefore + body.amount,
             note: `حجز مبلغ لطلب سحب ${requestNumber}`,
