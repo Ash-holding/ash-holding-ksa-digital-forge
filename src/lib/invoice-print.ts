@@ -360,10 +360,10 @@ export async function downloadInvoicePDF(input: InvoiceLike): Promise<void> {
     doc.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Playfair+Display:wght@700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Fira+Sans:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-html,body{margin:0;padding:0;background:#fff;font-family:"Cairo","IBM Plex Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif;-webkit-font-smoothing:antialiased}
-*{font-family:inherit !important;letter-spacing:normal !important;word-spacing:normal !important;box-sizing:border-box}
+html,body{margin:0;padding:0;background:#fff;font-family:"Fira Sans","IBM Plex Sans Arabic","Noto Sans Arabic","Segoe UI",Tahoma,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
 </style>
 </head><body></body></html>`);
     doc.close();
@@ -375,14 +375,14 @@ html,body{margin:0;padding:0;background:#fff;font-family:"Cairo","IBM Plex Sans 
     try {
       await (doc as any).fonts?.ready;
       await Promise.all([
-        (doc as any).fonts?.load('400 14px "Cairo"'),
-        (doc as any).fonts?.load('600 14px "Cairo"'),
-        (doc as any).fonts?.load('700 18px "Cairo"'),
-        (doc as any).fonts?.load('800 22px "Cairo"'),
-        (doc as any).fonts?.load('900 22px "Cairo"'),
+        (doc as any).fonts?.load('400 14px "Fira Sans"'),
+        (doc as any).fonts?.load('700 14px "Fira Sans"'),
+        (doc as any).fonts?.load('400 14px "IBM Plex Sans Arabic"'),
+        (doc as any).fonts?.load('700 14px "IBM Plex Sans Arabic"'),
+        (doc as any).fonts?.load('400 44px "DM Serif Display"'),
       ]);
     } catch { /* fonts API unavailable */ }
-    await new Promise((r) => setTimeout(r, 400));
+    await new Promise((r) => setTimeout(r, 450));
 
     const canvas = await html2canvas(node, {
       scale: 2,
