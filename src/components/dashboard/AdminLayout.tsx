@@ -124,37 +124,55 @@ export function AdminLayout({ children }: { children: ReactNode }) {
       {/* Main */}
       <div className="flex-1 min-w-0 flex flex-col">
         {/* Top bar */}
-        <header className="h-16 border-b border-border bg-background/70 backdrop-blur-md sticky top-0 z-30">
-          <div className="h-full px-4 md:px-6 flex items-center gap-3">
+        <header className="h-16 border-b border-border/70 bg-background/80 backdrop-blur-xl sticky top-0 z-30">
+          <div className="h-full px-3 sm:px-4 md:px-6 flex items-center gap-2 sm:gap-3">
             <button
               onClick={() => setOpen(true)}
-              className="lg:hidden grid h-9 w-9 place-items-center rounded-lg border border-border"
+              className="lg:hidden grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-border hover:bg-muted/60 transition"
               aria-label="menu"
             ><Menu className="h-4 w-4" /></button>
 
-            <div className="relative flex-1 max-w-md hidden sm:block">
-              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input placeholder="بحث سريع..." className="w-full h-9 rounded-lg bg-muted/40 border border-border pr-9 pl-3 text-sm outline-none focus:ring-2 focus:ring-electric/40" />
+            {/* Search — takes remaining space */}
+            <div className="relative flex-1 min-w-0 max-w-xl">
+              <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+              <input
+                placeholder="بحث سريع..."
+                className="w-full h-9 rounded-lg bg-muted/40 border border-border/70 pr-9 pl-3 text-sm outline-none focus:ring-2 focus:ring-electric/40 focus:border-electric/40 transition placeholder:text-muted-foreground/60"
+              />
             </div>
-            <div className="flex-1 sm:hidden" />
 
-            <button className="grid h-9 w-9 place-items-center rounded-lg border border-border relative"
-              onClick={() => toast.info("لا توجد إشعارات جديدة")}
-              aria-label="notifications"
-            >
-              <Bell className="h-4 w-4" />
-            </button>
-            <div className="hidden sm:flex items-center gap-2 rounded-lg border border-border px-2.5 h-9">
-              <div className="h-7 w-7 grid place-items-center rounded-md bg-electric/10 text-electric text-xs font-bold">
-                {user?.name?.[0] ?? "؟"}
+            {/* Actions cluster */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <button
+                className="grid h-9 w-9 place-items-center rounded-lg border border-border/70 hover:bg-muted/60 hover:border-electric/40 transition relative"
+                onClick={() => toast.info("لا توجد إشعارات جديدة")}
+                aria-label="notifications"
+              >
+                <Bell className="h-4 w-4" />
+              </button>
+
+              {/* User pill (desktop) */}
+              <div className="hidden md:flex items-center gap-2 rounded-lg border border-border/70 bg-muted/30 pr-2 pl-2.5 h-9 max-w-[220px]">
+                <div className="h-6 w-6 shrink-0 grid place-items-center rounded-md bg-gradient-to-br from-electric to-purple-500 text-white text-[11px] font-bold">
+                  {user?.name?.[0] ?? "؟"}
+                </div>
+                <div className="text-xs font-semibold truncate">{user?.name}</div>
               </div>
-              <div className="text-xs font-semibold hidden md:block max-w-[120px] truncate">{user?.name}</div>
+
+              {/* Avatar only (mobile) */}
+              <div className="md:hidden h-9 w-9 grid place-items-center rounded-lg border border-border/70 bg-muted/30">
+                <div className="h-6 w-6 grid place-items-center rounded-md bg-gradient-to-br from-electric to-purple-500 text-white text-[11px] font-bold">
+                  {user?.name?.[0] ?? "؟"}
+                </div>
+              </div>
+
+              <button
+                onClick={async () => { await logout(); toast.success("تم تسجيل الخروج"); navigate({ to: "/login" }); }}
+                className="grid h-9 w-9 place-items-center rounded-lg border border-border/70 text-rose-400 hover:bg-rose-500/10 hover:border-rose-500/40 transition"
+                title="خروج"
+                aria-label="logout"
+              ><LogOut className="h-4 w-4" /></button>
             </div>
-            <button
-              onClick={async () => { await logout(); toast.success("تم تسجيل الخروج"); navigate({ to: "/login" }); }}
-              className="grid h-9 w-9 place-items-center rounded-lg border border-border text-rose-400 hover:bg-rose-500/10"
-              title="خروج"
-            ><LogOut className="h-4 w-4" /></button>
           </div>
         </header>
 
