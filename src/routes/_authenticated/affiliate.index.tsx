@@ -29,6 +29,7 @@ function fmt(n: number) {
 }
 
 function Dashboard() {
+  const [copied, setCopied] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["affiliate-dashboard"],
     queryFn: async () => (await api.get("/affiliate/dashboard")).data as Dashboard,
