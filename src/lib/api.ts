@@ -3,8 +3,20 @@ import { demoResolve, isDemoMode } from "./demo-data";
 
 
 // Default to same-origin /api (works when Nginx على ash-holding.sa يمرر /api للباك اند).
-// عرّف VITE_API_URL وقت البناء لتوجيه دومين مختلف مثل https://api.ash-holding.sa/api
-const BASE = (import.meta.env.VITE_API_URL as string | undefined) || "/api";
+// في معاينات Lovable (lovableproject.com / lovable.app / lovable.dev) نوجّه للـ API الحقيقي مباشرة.
+function resolveBase(): string {
+  const envUrl = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+  if (envUrl) return envUrl;
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    const isLovablePreview = /lovableproject\.com$|lovable\.app$|lovable\.dev$/.test(host);
+    if (isLovablePreview && host !== "ash-holding.lovable.app") {
+      return "https://ash-holding.sa/api";
+    }
+  }
+  return "/api";
+}
+const BASE = resolveBase();
 
 export const ACCESS_KEY = "ash_access";
 export const REFRESH_KEY = "ash_refresh";
