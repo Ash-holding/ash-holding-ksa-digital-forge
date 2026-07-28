@@ -71,6 +71,7 @@ app.use("/api/settings", settingsRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/wallet", walletRouter);
 app.use("/api/affiliate", affiliateRouter);
+app.use("/api/admin/affiliate", affiliateAdminRouter);
 
 app.use("/api", notFoundHandler);
 app.use(errorHandler);
