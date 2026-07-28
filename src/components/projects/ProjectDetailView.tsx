@@ -50,10 +50,31 @@ type Message = {
 
 type ProjectData = {
   id: string; title: string; description?: string | null; status: string;
-  progress: number; budget?: string | null; startDate?: string | null;
+  progress: number; budget?: string | number | null; startDate?: string | null;
   dueDate?: string | null; createdAt: string;
-  client: { id: string; user: { name: string; email: string } };
+  client: { id: string; user: { name: string; email: string; phone?: string | null } };
 };
+
+type LinkedRequest = {
+  id: string; title: string; category: string; priority: string; status: string;
+  budgetMin?: string | number | null; budgetMax?: string | number | null;
+  targetDate?: string | null; createdAt: string;
+  contactName?: string | null; contactPhone?: string | null; adminNote?: string | null;
+};
+
+type InvoiceRow = {
+  id: string; invoiceNumber: string; status: string;
+  subtotal: string | number; taxAmount: string | number; total: string | number;
+  currency: string; issuedAt: string; dueAt?: string | null; paidAt?: string | null;
+};
+
+type ProjectResponse = {
+  project: ProjectData & { invoices?: InvoiceRow[] };
+  linkedRequest?: LinkedRequest | null;
+  requestRef?: string | null;
+  projectRef?: string | null;
+};
+
 
 const STAGE_META: Record<Stage["status"], { label: string; icon: typeof Clock; tone: string; dot: string; ring: string }> = {
   PENDING:     { label: "لم تبدأ",     icon: Clock,        tone: "bg-muted text-muted-foreground border-border",              dot: "bg-muted-foreground/40",  ring: "ring-border" },
@@ -87,11 +108,12 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
 
   const project = useQuery({
     queryKey: ["project", projectId],
-    queryFn: async () => (await api.get(`/projects/${projectId}`)).data.project as ProjectData,
+    queryFn: async () => (await api.get(`/projects/${projectId}`)).data as ProjectResponse,
     refetchInterval: 30000,
     staleTime: 15000,
-    placeholderData: seededProject,
+    placeholderData: seededProject ? { project: seededProject } as ProjectResponse : undefined,
   });
+
 
   const stages = useQuery({
     queryKey: ["project", projectId, "stages"],
@@ -135,10 +157,15 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
     onError: (e) => toast.error(apiError(e)),
   });
 
-  const p = project.data;
+  const p = project.data?.project;
+  const linkedRequest = project.data?.linkedRequest;
+  const requestRef = project.data?.requestRef;
+  const projectRef = project.data?.projectRef ?? (p ? `PRJ-${p.id.slice(0,6).toUpperCase()}` : "");
+  const invoicesList = project.data?.project.invoices ?? [];
   const stagesList = stages.data ?? [];
   const doneCount = stagesList.filter(s => s.status === "DONE").length;
   const activeCount = stagesList.filter(s => s.status === "IN_PROGRESS").length;
+
 
   return (
     <div className="space-y-6 pb-10">
@@ -171,11 +198,18 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
                   initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
                   className="flex items-center gap-2 flex-wrap mb-3"
                 >
-                  <Badge variant="outline" className="gap-1.5 bg-background/60 backdrop-blur">
+                  <Badge variant="outline" className="gap-1.5 bg-background/60 backdrop-blur font-mono text-[10px]">
                     <Layers className="h-3 w-3" />
-                    <span className="font-mono text-[10px]">#{p.id.slice(0, 6).toUpperCase()}</span>
+                    {projectRef}
                   </Badge>
+                  {requestRef && (
+                    <Badge variant="outline" className="gap-1.5 bg-cyan-accent/10 border-cyan-accent/30 text-cyan-accent font-mono text-[10px]">
+                      <Inbox className="h-3 w-3" />
+                      {requestRef}
+                    </Badge>
+                  )}
                   <StatusBadge value={p.status} />
+
                 </motion.div>
 
                 <motion.h1
