@@ -5,8 +5,9 @@ import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "
 import {
   MessageSquare, Send, Plus, Trash2, Layers, Calendar, Wallet,
   CheckCircle2, Clock, Ban, PlayCircle, Pencil, Lock, User as UserIcon,
-  Sparkles, TrendingUp, ChevronRight,
+  Sparkles, TrendingUp, ChevronRight, FileText, Save, Inbox, Receipt, ExternalLink,
 } from "lucide-react";
+
 import { api, apiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
