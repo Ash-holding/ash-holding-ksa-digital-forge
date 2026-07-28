@@ -14,6 +14,7 @@ export function Footer() {
         { label: "الأسئلة الشائعة", to: "/faq" },
         { label: "تواصل معنا", to: "/contact" },
         { label: "تمويل خدمات ASH", to: "/financing" },
+        { label: "الإفصاحات والحوكمة", to: "/financing/disclosures" },
       ],
     },
     {

@@ -151,6 +151,11 @@ function AdminContractDetail() {
         />
       </section>
 
+      {/* Risk / governance / early-settlement approvals */}
+      <AdminRiskPanel contractId={data.id} />
+
+
+
       {!isFinal && !isActive && (
         <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 space-y-2">
           <div className="text-sm font-semibold text-rose-300 flex items-center gap-2"><Ban className="h-4 w-4" /> إلغاء العقد</div>
