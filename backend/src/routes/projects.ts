@@ -1,10 +1,11 @@
 import { Router } from "express";
 import { z } from "zod";
+import crypto from "crypto";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireStaff } from "../middleware/auth.js";
 import { currentClientId, isStaff, paging } from "../lib/scope.js";
 import { logAudit } from "../lib/audit.js";
-import { WA } from "../lib/whatsapp.js";
+import { WA, generateOtp, normalizePhone } from "../lib/whatsapp.js";
 
 // ---------- WhatsApp helpers ----------
 async function clientPhone(clientId: string): Promise<string | null> {
