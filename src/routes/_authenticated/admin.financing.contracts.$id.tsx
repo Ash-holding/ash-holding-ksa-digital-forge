@@ -65,6 +65,15 @@ function AdminContractDetail() {
     onError: (e) => toast.error(apiError(e) || "فشل التفعيل"),
   });
 
+  const sendPromissory = useMutation({
+    mutationFn: () => api.post(`/financing/admin/contracts/${id}/promissory/send`),
+    onSuccess: () => {
+      toast.success("📜 تم إرسال السند التنفيذي للعميل — بانتظار موافقته");
+      qc.invalidateQueries({ queryKey: ["admin-fin-contract", id] });
+    },
+    onError: (e) => toast.error(apiError(e) || "تعذر إرسال السند التنفيذي"),
+  });
+
   const [cancelReason, setCancelReason] = useState("");
   const cancel = useMutation({
     mutationFn: () => api.post(`/financing/admin/contracts/${id}/cancel`, { reasonAr: cancelReason.trim() }),
