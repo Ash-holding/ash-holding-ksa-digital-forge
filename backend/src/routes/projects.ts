@@ -464,12 +464,24 @@ projectsRouter.patch("/requests/:id", requireStaff, async (req, res, next) => {
     const statusChanged = existing.status !== updated.status;
     const noteChanged = (existing.adminNote || "") !== (updated.adminNote || "") && !!updated.adminNote;
     if (statusChanged || noteChanged) {
+      const ref = shortRef("REQ", updated.id);
       const phone = updated.contactPhone || (await clientPhone(updated.clientId));
-      const lines = [`ASH HOLDING — تحديث على طلبك 📩`, `العنوان: ${updated.title}`];
-      if (statusChanged) lines.push(`الحالة الجديدة: ${REQUEST_STATUS_LABEL[updated.status] || updated.status}`);
-      if (noteChanged) lines.push(`ملاحظة الإدارة: ${updated.adminNote}`);
-      if (updated.status === "CONVERTED") lines.push(`تم فتح مشروع رسمي — يمكنك متابعته من قسم "مشاريعي".`);
-      lines.push(`للتفاصيل ادخل بوابة العميل.`);
+      const lines: string[] = [
+        `📩 *تحديث رسمي على طلبك*`,
+        DIVIDER,
+        `🔖 *رقم الطلب:* ${ref}`,
+        `📁 *العنوان:* ${updated.title}`,
+      ];
+      if (statusChanged) lines.push(`📊 *الحالة الجديدة:* ${REQUEST_STATUS_LABEL[updated.status] || updated.status}`);
+      if (noteChanged) lines.push(DIVIDER, `📝 *ملاحظة الإدارة:*\n${updated.adminNote}`);
+      if (updated.status === "CONVERTED") {
+        lines.push(DIVIDER, `🚀 *تم فتح مشروع رسمي* بناءً على هذا الطلب.`, `يمكنك متابعته من قسم *"مشاريعي"* في بوابة العميل.`);
+      } else if (updated.status === "APPROVED") {
+        lines.push(DIVIDER, `✅ تمت *الموافقة المبدئية* على طلبك، وسيتواصل معك فريقنا لاستكمال التفاصيل.`);
+      } else if (updated.status === "REJECTED") {
+        lines.push(DIVIDER, `❌ نأسف لإبلاغك بأن الطلب *غير مقبول* حالياً. يمكنك التواصل معنا لمزيد من التوضيح.`);
+      }
+      lines.push(DIVIDER, `للاطلاع على التفاصيل الكاملة، تفضل بزيارة بوابة العميل.${SIGNATURE}`);
       WA.notify(phone, lines.join("\n"), { kind: "project_request.status", entityId: updated.id });
     }
 
@@ -478,17 +490,11 @@ projectsRouter.patch("/requests/:id", requireStaff, async (req, res, next) => {
 });
 
 
-// DELETE — client can delete own PENDING; staff can delete any
-projectsRouter.delete("/requests/:id", async (req, res, next) => {
+// DELETE — STAFF ONLY (clients cannot delete requests to preserve audit trail)
+projectsRouter.delete("/requests/:id", requireStaff, async (req, res, next) => {
   try {
     const existing = await prisma.projectRequest.findUnique({ where: { id: req.params.id } });
     if (!existing) return res.status(404).json({ error: "غير موجود" });
-    if (!isStaff(req)) {
-      const cid = await currentClientId(req);
-      if (existing.clientId !== cid || existing.status !== "PENDING") {
-        return res.status(403).json({ error: "لا يمكن حذف هذا الطلب" });
-      }
-    }
     await prisma.projectRequest.delete({ where: { id: req.params.id } });
     await logAudit(req, "project_request.delete", "ProjectRequest", req.params.id);
     res.json({ ok: true });
