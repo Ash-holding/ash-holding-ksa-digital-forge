@@ -35,7 +35,10 @@ function ProjectRequestsPage() {
     queryFn: async () => (await api.get("/projects/requests/list", { params: { status: status ?? undefined, pageSize: 100 } })).data,
     refetchInterval: 8000,
     refetchOnWindowFocus: true,
+    refetchOnMount: "always",
+    retry: 1,
   });
+
 
   const rows = (list.data?.rows ?? []) as any[];
   const stats = list.data?.stats ?? { total: 0, pending: 0, underReview: 0, approved: 0, rejected: 0, urgent: 0, last24h: 0 };
@@ -83,6 +86,20 @@ function ProjectRequestsPage() {
           { key: "REJECTED", label: "مرفوضة", count: stats.rejected },
         ]}
       />
+
+      {list.isError && (
+        <div className="rounded-2xl border border-rose-400/40 bg-rose-500/10 p-3 text-[12px] text-rose-200">
+          تعذّر تحميل طلبات المشاريع: {apiError(list.error)}
+          <Button size="sm" variant="outline" className="ms-2 h-7" onClick={() => list.refetch()}>إعادة المحاولة</Button>
+        </div>
+      )}
+      {!list.isLoading && !list.isError && rows.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-border bg-card/40 p-6 text-center text-[12px] text-muted-foreground">
+          لا توجد طلبات مطابقة. إن كان العميل قد أرسل طلبًا للتو، اضغط تحديث.
+          <Button size="sm" variant="outline" className="ms-2 h-7" onClick={() => list.refetch()}>تحديث الآن</Button>
+        </div>
+      )}
+
 
       {/* Kanban */}
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
