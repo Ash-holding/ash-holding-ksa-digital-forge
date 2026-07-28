@@ -19,8 +19,9 @@ import { Router } from "express";
 import { z } from "zod";
 import { randomBytes } from "crypto";
 import { prisma } from "../lib/prisma.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, requireRole } from "../middleware/auth.js";
 import { WA } from "../lib/whatsapp.js";
+import { releaseMaturedCommissions } from "../lib/commission.js";
 
 export const affiliateRouter = Router();
 
