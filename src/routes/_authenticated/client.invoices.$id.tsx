@@ -132,6 +132,14 @@ function ClientInvoiceDetail() {
     setTimeout(() => setCopied(null), 1500);
   };
 
+  // Totals & derived amounts (no logic change — pure presentation)
+  const paidSum = useMemo(
+    () => (inv?.payments ?? []).filter((p: any) => p.status === "SUCCESS").reduce((s: number, p: any) => s + Number(p.amount ?? 0), 0),
+    [inv?.payments],
+  );
+  const remaining = Math.max(0, total - paidSum);
+  const isPaid = inv?.status === "PAID";
+
   return (
     <DetailShell
       backTo="/client/invoices"
@@ -144,26 +152,239 @@ function ClientInvoiceDetail() {
       onRefresh={() => q.refetch()}
       refreshing={q.isFetching}
       actions={inv && (
-        <Button size="sm" className="gap-1.5" onClick={() => downloadInvoicePDF(inv)}>
-          <Download className="h-4 w-4" />تحميل PDF
-        </Button>
+        <div className="flex items-center gap-1.5 print:hidden">
+          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => window.print()}>
+            <Printer className="h-4 w-4" />طباعة
+          </Button>
+          <Button size="sm" className="gap-1.5" onClick={() => downloadInvoicePDF(inv)}>
+            <Download className="h-4 w-4" />تحميل PDF
+          </Button>
+        </div>
       )}
     >
+      {/* Print-only CSS: hide chrome, show a clean A4 invoice card */}
+      <style>{`
+        @media print {
+          @page { size: A4; margin: 14mm; }
+          body { background: #fff !important; }
+          .print\\:hidden { display: none !important; }
+          .invoice-doc { box-shadow: none !important; border-color: #d4d4d8 !important; break-inside: avoid; }
+          .invoice-doc * { animation: none !important; transition: none !important; }
+        }
+      `}</style>
+
       {q.isLoading || !inv ? (
         <Skeleton className="h-64" />
       ) : (
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4">
-            <DetailSection title="ملخص الفاتورة" icon={Receipt}>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <KV k="المبلغ الإجمالي" v={<Money value={inv.total} className="text-electric font-black text-base" />} />
-                <KV k="المبلغ الفرعي" v={<Money value={inv.subtotal} />} />
-                <KV k="الضريبة" v={<Money value={inv.taxAmount} />} />
-                <KV k="الخصم" v={<Money value={inv.discount ?? 0} />} />
-                <KV k="تاريخ الاستحقاق" v={formatDate(inv.dueAt)} />
-                <KV k="تاريخ الدفع" v={formatDate(inv.paidAt)} />
+            {/* ============ FORMAL INVOICE DOCUMENT CARD ============ */}
+            <motion.section
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              className="invoice-doc relative overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
+              dir="rtl"
+            >
+              {/* Top brand strip */}
+              <div className="relative border-b border-border/60 bg-gradient-to-l from-primary/8 via-card to-card px-5 sm:px-7 py-5">
+                <div className="absolute inset-y-0 right-0 w-1.5 bg-gradient-to-b from-electric via-primary to-navy-deep" />
+                <div className="grid grid-cols-[1fr_auto] items-start gap-4">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2.5">
+                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground font-black text-lg shadow-sm">
+                        <Building2 className="h-5.5 w-5.5" />
+                      </span>
+                      <div className="min-w-0">
+                        <h2 className="font-black text-lg sm:text-xl tracking-tight truncate">ASH HOLDING</h2>
+                        <p className="text-[11px] text-muted-foreground truncate">شركة علي صالح الشهري القابضة · المملكة العربية السعودية</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-left shrink-0">
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                      <Hash className="h-3 w-3" /> فاتورة ضريبية
+                    </div>
+                    <div className="mt-1.5 font-mono text-sm font-bold" dir="ltr">{inv.invoiceNumber}</div>
+                  </div>
+                </div>
               </div>
-            </DetailSection>
+
+              {/* Meta grid: dates + status + paid badge */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-border/60 divide-x divide-x-reverse divide-border/60">
+                <MetaCell label="تاريخ الإصدار" value={formatDate(inv.issueDate || inv.createdAt)} />
+                <MetaCell label="تاريخ الاستحقاق" value={formatDate(inv.dueAt)} />
+                <MetaCell label="تاريخ الدفع" value={formatDate(inv.paidAt)} />
+                <MetaCell label="حالة الفاتورة" value={
+                  <div className="flex items-center gap-1.5">
+                    <StatusBadge value={inv.status} />
+                    {isPaid && (
+                      <motion.span
+                        initial={{ scale: 0, rotate: -30 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 260, damping: 14, delay: 0.2 }}
+                        className="inline-grid h-5 w-5 place-items-center rounded-full bg-emerald-500 text-white shadow-sm"
+                        aria-label="مدفوعة"
+                      >
+                        <Check className="h-3 w-3" strokeWidth={3} />
+                      </motion.span>
+                    )}
+                  </div>
+                } />
+              </div>
+
+              {/* Bill-to + Project ref */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 border-b border-border/60 sm:divide-x sm:divide-x-reverse divide-border/60">
+                <div className="p-5">
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-2">فاتورة إلى</div>
+                  <div className="font-bold text-sm">{inv.client?.user?.name ?? inv.client?.company ?? "—"}</div>
+                  {inv.client?.company && inv.client?.user?.name && (
+                    <div className="text-xs text-muted-foreground mt-0.5">{inv.client.company}</div>
+                  )}
+                  <div className="mt-1 text-xs text-muted-foreground truncate" dir="ltr">{inv.client?.user?.email ?? ""}</div>
+                  <div className="text-xs text-muted-foreground" dir="ltr">{inv.client?.user?.phone ?? ""}</div>
+                </div>
+                <div className="p-5 bg-muted/20">
+                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-2">مرجع المشروع</div>
+                  <div className="font-mono font-bold text-sm" dir="ltr">{inv.requestRef ?? "—"}</div>
+                  <div className="text-xs text-muted-foreground mt-0.5 truncate">
+                    {inv.linkedRequest?.title ?? inv.project?.title ?? "—"}
+                  </div>
+                  <div className="mt-1 text-[11px] text-muted-foreground">العملة: <span className="font-semibold">{inv.currency}</span></div>
+                </div>
+              </div>
+
+              {/* Items — desktop table + mobile card list */}
+              <div className="p-5">
+                <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-3">البنود</div>
+
+                {/* Desktop */}
+                <div className="hidden sm:block overflow-x-auto rounded-xl border border-border/60">
+                  <table className="w-full text-sm">
+                    <thead className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
+                      <tr>
+                        <th className="text-right py-2.5 px-3 font-semibold">البند</th>
+                        <th className="text-center py-2.5 px-3 font-semibold w-20">الكمية</th>
+                        <th className="text-center py-2.5 px-3 font-semibold w-32">سعر الوحدة</th>
+                        <th className="text-left py-2.5 px-3 font-semibold w-32">الإجمالي</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(inv.items ?? []).map((it: any, i: number) => (
+                        <motion.tr
+                          key={it.id}
+                          initial={{ opacity: 0, y: 6 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.05 + i * 0.04 }}
+                          className="border-t border-border/50 hover:bg-primary/5 transition-colors"
+                        >
+                          <td className="py-2.5 px-3">
+                            <div className="font-semibold">{it.title}</div>
+                            {it.description && <div className="text-[11px] text-muted-foreground mt-0.5 whitespace-pre-wrap">{it.description}</div>}
+                          </td>
+                          <td className="py-2.5 px-3 text-center tabular-nums">{it.quantity}</td>
+                          <td className="py-2.5 px-3 text-center"><Money value={it.unitPrice} /></td>
+                          <td className="py-2.5 px-3 text-left font-bold"><Money value={it.total} /></td>
+                        </motion.tr>
+                      ))}
+                      {(!inv.items || inv.items.length === 0) && (
+                        <tr><td colSpan={4} className="text-center py-6 text-muted-foreground text-xs">لا توجد بنود</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile: card per item */}
+                <div className="sm:hidden space-y-2">
+                  {(inv.items ?? []).map((it: any, i: number) => (
+                    <motion.div
+                      key={it.id}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.05 + i * 0.04 }}
+                      className="rounded-xl border border-border/60 bg-muted/20 p-3"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="font-semibold text-sm">{it.title}</div>
+                          {it.description && <div className="text-[11px] text-muted-foreground mt-0.5">{it.description}</div>}
+                        </div>
+                        <div className="font-black text-sm shrink-0"><Money value={it.total} /></div>
+                      </div>
+                      <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
+                        <span>الكمية: <span className="text-foreground font-semibold tabular-nums">{it.quantity}</span></span>
+                        <span>السعر: <Money value={it.unitPrice} /></span>
+                      </div>
+                    </motion.div>
+                  ))}
+                  {(!inv.items || inv.items.length === 0) && (
+                    <p className="text-center py-6 text-muted-foreground text-xs">لا توجد بنود</p>
+                  )}
+                </div>
+
+                {/* Totals panel */}
+                <div className="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4">
+                  {/* Notes / terms */}
+                  <div className="rounded-xl border border-dashed border-border/70 bg-muted/10 p-4">
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-2">ملاحظات وشروط الدفع</div>
+                    <p className="text-xs whitespace-pre-wrap text-muted-foreground leading-relaxed">
+                      {inv.notes || "السداد خلال المدة المحددة أعلاه. جميع المبالغ بالريال السعودي (SAR) وتشمل ضريبة القيمة المضافة حسب النسبة الموضحة."}
+                    </p>
+                    <div className="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground">
+                      <QrCode className="h-3.5 w-3.5" />
+                      <span>يمكن التحقق من صحة الفاتورة عبر رمز QR بعد السداد من صفحة الإيصال</span>
+                    </div>
+                  </div>
+
+                  {/* Totals */}
+                  <div className="w-full sm:w-72 rounded-xl border border-border/70 overflow-hidden">
+                    <TotalRow label="المبلغ الفرعي" value={<Money value={inv.subtotal} />} />
+                    {Number(inv.discount ?? 0) > 0 && (
+                      <TotalRow label="الخصم" value={<span className="text-rose-600">- <Money value={inv.discount ?? 0} /></span>} />
+                    )}
+                    <TotalRow label={`ضريبة القيمة المضافة (${Number(inv.taxRate ?? 15)}%)`} value={<Money value={inv.taxAmount} />} />
+                    <div className="flex items-center justify-between gap-2 bg-primary text-primary-foreground px-4 py-3">
+                      <span className="text-[11px] font-bold uppercase tracking-wider opacity-90">الإجمالي النهائي</span>
+                      <span className="font-black text-lg tabular-nums" dir="ltr">
+                        {total.toLocaleString("ar-SA", { minimumFractionDigits: 2 })}
+                        <span className="text-[10px] opacity-80 ms-1">{inv.currency}</span>
+                      </span>
+                    </div>
+                    {paidSum > 0 && (
+                      <TotalRow label="المسدد" value={<span className="text-emerald-600">- {paidSum.toLocaleString("ar-SA", { minimumFractionDigits: 2 })}</span>} muted />
+                    )}
+                    {remaining > 0 && (
+                      <div className="flex items-center justify-between gap-2 bg-amber-500/10 border-t border-amber-500/30 px-4 py-2.5">
+                        <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">المبلغ المتبقي</span>
+                        <span className="font-black text-sm tabular-nums text-amber-700 dark:text-amber-400" dir="ltr">
+                          {remaining.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} {inv.currency}
+                        </span>
+                      </div>
+                    )}
+                    {isPaid && (
+                      <div className="flex items-center justify-center gap-1.5 bg-emerald-500/10 border-t border-emerald-500/30 px-4 py-2.5 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold">
+                        <BadgeCheck className="h-3.5 w-3.5" /> مسددة بالكامل
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Signature / stamp footer */}
+                <div className="mt-6 grid grid-cols-2 gap-4 pt-4 border-t border-dashed border-border/60">
+                  <div className="text-center">
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-6">توقيع المُصدِر</div>
+                    <div className="mx-auto max-w-[180px] border-t border-border/70 pt-1 text-[10px] text-muted-foreground">ASH HOLDING</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-2">الختم</div>
+                    <div className="mx-auto grid h-14 w-14 place-items-center rounded-full border-2 border-primary/40 text-primary/60">
+                      <Stamp className="h-6 w-6" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.section>
+
 
             {/* INSTANT RECEIPT — shown right after wallet payment */}
             {receipt && (
