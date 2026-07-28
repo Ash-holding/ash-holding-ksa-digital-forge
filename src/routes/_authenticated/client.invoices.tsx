@@ -149,7 +149,17 @@ function ClientInvoicesPage() {
         <EmptyState />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((r, i) => <InvoiceCard key={r.id} inv={r} index={i} onOpen={() => nav({ to: "/client/invoices/$id", params: { id: r.id } })} />)}
+          {filtered.map((r, i) => (
+            <InvoiceCard
+              key={r.id}
+              inv={r}
+              index={i}
+              onOpen={() => nav({ to: "/client/invoices/$id", params: { id: r.id } })}
+              walletBal={walletBal}
+              onPayWallet={() => payWallet.mutateAsync(r.id)}
+              paying={payWallet.isPending && payWallet.variables === r.id}
+            />
+          ))}
         </div>
       )}
     </div>
