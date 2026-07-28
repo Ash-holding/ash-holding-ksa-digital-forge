@@ -1,5 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ import { formatDate } from "@/lib/format";
 import { Money } from "@/components/ui/money";
 import { cn } from "@/lib/utils";
 import { downloadInvoicePDF } from "@/lib/invoice-print";
+import { ConfirmDialog } from "@/components/dashboard/ConfirmDialog";
 
 export const Route = createFileRoute("/_authenticated/client/invoices")({
   component: ClientInvoicesPage,
@@ -30,6 +31,7 @@ type SortKey = "recent" | "due" | "amount";
 
 function ClientInvoicesPage() {
   const nav = useNavigate();
+  const qc = useQueryClient();
   const [status, setStatus] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<SortKey>("recent");
@@ -39,6 +41,25 @@ function ClientInvoicesPage() {
     queryFn: async () => (await api.get("/invoices", { params: { pageSize: 100 } })).data,
     refetchInterval: 15000,
     refetchOnWindowFocus: true,
+  });
+
+  const walletQ = useQuery({
+    queryKey: ["wallet-me"],
+    queryFn: async () => (await api.get("/wallet/me")).data,
+    refetchInterval: 15000,
+  });
+  const walletBal = Number(walletQ.data?.wallet?.balance ?? 0);
+
+  const payWallet = useMutation({
+    mutationFn: async (invoiceId: string) => (await api.post(`/invoices/${invoiceId}/pay-wallet`)).data,
+    onSuccess: (data, invoiceId) => {
+      toast.success("تم السداد من المحفظة بنجاح");
+      if (data?.wallet) qc.setQueryData(["wallet-me"], (old: any) => (old ? { ...old, wallet: data.wallet } : old));
+      qc.invalidateQueries({ queryKey: ["client-invoices"] });
+      qc.invalidateQueries({ queryKey: ["wallet-me"] });
+      qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.error || "تعذّر السداد من المحفظة"),
   });
 
   const rows = (list.data?.rows ?? []) as any[];
@@ -129,7 +150,17 @@ function ClientInvoicesPage() {
         <EmptyState />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((r, i) => <InvoiceCard key={r.id} inv={r} index={i} onOpen={() => nav({ to: "/client/invoices/$id", params: { id: r.id } })} />)}
+          {filtered.map((r, i) => (
+            <InvoiceCard
+              key={r.id}
+              inv={r}
+              index={i}
+              onOpen={() => nav({ to: "/client/invoices/$id", params: { id: r.id } })}
+              walletBal={walletBal}
+              onPayWallet={() => payWallet.mutateAsync(r.id)}
+              paying={payWallet.isPending && payWallet.variables === r.id}
+            />
+          ))}
         </div>
       )}
     </div>
@@ -140,7 +171,7 @@ function ClientInvoicesPage() {
 /* Card                                                                 */
 /* ------------------------------------------------------------------ */
 
-function InvoiceCard({ inv, index, onOpen }: { inv: any; index: number; onOpen: () => void }) {
+function InvoiceCard({ inv, index, onOpen, walletBal, onPayWallet, paying }: { inv: any; index: number; onOpen: () => void; walletBal: number; onPayWallet: () => Promise<any>; paying: boolean }) {
   const isPaid = inv.status === "PAID";
   const isCancelled = inv.status === "CANCELLED";
   const overdue = !isPaid && !isCancelled && inv.dueAt && new Date(inv.dueAt).getTime() < Date.now();
@@ -263,15 +294,43 @@ function InvoiceCard({ inv, index, onOpen }: { inv: any; index: number; onOpen: 
             </span>
           )}
         </div>
-        <Button
-          size="sm"
-          variant={isPaid || isCancelled ? "outline" : "default"}
-          className="h-8 gap-1.5 text-[11px]"
-          onClick={onOpen}
-        >
-          {isPaid || isCancelled ? "التفاصيل" : (<><CreditCard className="h-3.5 w-3.5" /> ادفع الآن</>)}
-          <ArrowLeft className="h-3 w-3" />
-        </Button>
+        {(() => {
+          const total = Number(inv.total ?? 0);
+          const canPayWallet = !isPaid && !isCancelled && walletBal >= total && total > 0;
+          if (isPaid || isCancelled) {
+            return (
+              <Button size="sm" variant="outline" className="h-8 gap-1.5 text-[11px]" onClick={onOpen}>
+                التفاصيل
+                <ArrowLeft className="h-3 w-3" />
+              </Button>
+            );
+          }
+          if (canPayWallet) {
+            const after = walletBal - total;
+            return (
+              <ConfirmDialog
+                variant="default"
+                title="السداد من المحفظة الرقمية"
+                description={`سيتم خصم ${total.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س من رصيد محفظتك الحالي (${walletBal.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س). الرصيد بعد الخصم: ${after.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س. هل تريد المتابعة؟`}
+                confirmText={paying ? "جارٍ السداد..." : `تأكيد الخصم`}
+                cancelText="إلغاء"
+                onConfirm={async () => { await onPayWallet(); }}
+                trigger={
+                  <Button size="sm" variant="default" className="h-8 gap-1.5 text-[11px]" disabled={paying}>
+                    <Wallet className="h-3.5 w-3.5" />
+                    ادفع من المحفظة
+                  </Button>
+                }
+              />
+            );
+          }
+          return (
+            <Button size="sm" variant="default" className="h-8 gap-1.5 text-[11px]" onClick={onOpen}>
+              <CreditCard className="h-3.5 w-3.5" /> ادفع الآن
+              <ArrowLeft className="h-3 w-3" />
+            </Button>
+          );
+        })()}
       </div>
     </motion.article>
   );
