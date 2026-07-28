@@ -84,27 +84,31 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
 
               {step === "review" ? (
                 <div className="p-5 space-y-4">
-                  <div className="rounded-2xl border border-border bg-background/60 p-4">
-                    <div className="text-[11px] text-muted-foreground mb-1">المشروع</div>
-                    <div className="font-bold text-[14px] mb-3">{title}</div>
-                    <div className="grid grid-cols-2 gap-3 text-[12px]">
-                      <div><div className="text-muted-foreground text-[10px]">القيمة</div><div className="font-black text-electric">{amount.toLocaleString("ar-SA")} ر.س</div></div>
-                      <div><div className="text-muted-foreground text-[10px]">المدة</div><div className="font-black">{duration} يوم</div></div>
+                  <div className="rounded-2xl border border-border bg-background p-4">
+                    <div className="text-[11px] text-foreground/60 mb-1">المشروع</div>
+                    <div className="font-bold text-[15px] text-foreground mb-3">{title}</div>
+                    <div className="grid grid-cols-2 gap-3 text-[13px]">
+                      <div><div className="text-foreground/60 text-[10px] mb-0.5">القيمة</div><div className="font-black text-electric text-base">{amount.toLocaleString("ar-SA")} ر.س</div></div>
+                      <div><div className="text-foreground/60 text-[10px] mb-0.5">المدة</div><div className="font-black text-foreground text-base">{duration} يوم</div></div>
                     </div>
                     {scope && (
-                      <div className="mt-3 pt-3 border-t border-border/60">
-                        <div className="text-[10px] text-muted-foreground mb-1">نطاق العمل</div>
-                        <div className="text-[12px] whitespace-pre-wrap leading-relaxed">{scope}</div>
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <div className="text-[10px] text-foreground/60 mb-1">نطاق العمل</div>
+                        <div className="text-[13px] whitespace-pre-wrap leading-relaxed text-foreground/90">{scope}</div>
                       </div>
                     )}
                   </div>
 
-                  <div className="rounded-2xl bg-amber-500/10 border border-amber-500/30 p-3 text-[11px] text-amber-500 leading-relaxed">
-                    عند الضغط على «طلب رمز التوقيع» سيتم إرسال رمز تحقّق مكوّن من 6 أرقام إلى واتساب الرقم المرتبط بحسابك. الرمز صالح لمدة 15 دقيقة ويُعتبر توقيعك رسمياً وملزماً قانونياً.
+                  <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/30 p-3 text-[12px] text-emerald-700 dark:text-emerald-300 leading-relaxed">
+                    📄 <strong>العقد الرسمي</strong> يُصدر تلقائياً بعد التوقيع الرقمي وسداد الفاتورة، ويصبح متاحاً للقراءة والتحميل بصيغة PDF من صفحة «العقود».
+                  </div>
+
+                  <div className="rounded-2xl bg-amber-500/10 border border-amber-500/40 p-3 text-[12px] text-amber-700 dark:text-amber-200 leading-relaxed">
+                    عند الضغط على «طلب رمز التوقيع» سيتم إرسال رمز تحقّق مكوّن من 6 أرقام إلى واتساب الرقم المرتبط بحسابك. الرمز صالح لمدة 15 دقيقة ويُعتبر توقيعك رسمياً وملزماً قانونياً وفق نظام التعاملات الإلكترونية بالمملكة.
                   </div>
 
                   <Button onClick={requestOtp} disabled={sending}
-                    className="w-full gap-2 bg-gradient-to-r from-electric to-purple-accent shadow-glow h-11">
+                    className="w-full gap-2 bg-gradient-to-r from-electric to-purple-accent shadow-glow h-11 text-white font-bold">
                     {sending ? <Loader2 className="h-4 w-4 animate-spin" /> : <MessageCircle className="h-4 w-4" />}
                     {sending ? "جارٍ الإرسال…" : "طلب رمز التوقيع عبر واتساب"}
                   </Button>
