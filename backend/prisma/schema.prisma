@@ -1272,6 +1272,11 @@ model FinancingSetting {
   lastReviewedAt       DateTime?
   publicContactEmail   String?
   complaintsEmail      String?
+  reminderDaysBefore   Int      @default(3)
+  gracePeriodDays      Int      @default(3)
+  latePenaltyPct       Decimal  @default(1.0) @db.Decimal(6,3)
+  latePenaltyCapPct    Decimal  @default(5.0) @db.Decimal(6,3)
+  autopayDefaultOn     Boolean  @default(true)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }
