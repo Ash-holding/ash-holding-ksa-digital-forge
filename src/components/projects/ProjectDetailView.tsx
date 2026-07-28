@@ -454,28 +454,45 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
 
 function MetaPill({ icon: Icon, label }: { icon: typeof Clock; label: string }) {
   return (
-    <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/70 backdrop-blur px-3 py-1.5 text-xs font-medium text-foreground">
+    <motion.div
+      variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+      whileHover={{ y: -1, scale: 1.02 }}
+      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/70 backdrop-blur px-3 py-1.5 text-xs font-medium text-foreground"
+    >
       <Icon className="h-3.5 w-3.5 text-muted-foreground" />
       {label}
-    </div>
+    </motion.div>
   );
 }
 
 function MiniStat({ label, value, tone }: { label: string; value: number; tone?: string }) {
   return (
-    <div className="rounded-lg bg-muted/50 px-2 py-1.5">
-      <div className={cn("text-base font-bold tabular-nums leading-none", tone ?? "text-foreground")}>{value}</div>
+    <motion.div
+      initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+      whileHover={{ y: -2 }}
+      className="rounded-lg bg-muted/60 hover:bg-muted transition-colors px-2 py-1.5"
+    >
+      <div className={cn("text-base font-bold tabular-nums leading-none", tone ?? "text-foreground")}>
+        <AnimatedNumber value={value} />
+      </div>
       <div className="text-[10px] text-muted-foreground mt-0.5">{label}</div>
-    </div>
+    </motion.div>
   );
 }
 
 function EmptyStages({ isAdmin, onAdd }: { isAdmin: boolean; onAdd: () => void }) {
   return (
-    <div className="rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center">
-      <div className="mx-auto h-12 w-12 rounded-2xl bg-electric/10 flex items-center justify-center mb-3">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={springIn}
+      className="rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center"
+    >
+      <motion.div
+        animate={{ y: [0, -4, 0], rotate: [0, 4, -4, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        className="mx-auto h-12 w-12 rounded-2xl bg-electric/10 flex items-center justify-center mb-3"
+      >
         <Sparkles className="h-6 w-6 text-electric" />
-      </div>
+      </motion.div>
       <div className="font-semibold">لا توجد مراحل بعد</div>
       <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
         قسّم المشروع إلى مراحل واضحة ليتابع العميل التقدم أولاً بأول.
@@ -486,9 +503,10 @@ function EmptyStages({ isAdmin, onAdd }: { isAdmin: boolean; onAdd: () => void }
           <ChevronRight className="h-4 w-4 rotate-180" />
         </Button>
       )}
-    </div>
+    </motion.div>
   );
 }
+
 
 function ProjectChat({ projectId, isAdmin, currentUserId, messages, loading }: {
   projectId: string; isAdmin: boolean; currentUserId?: string; messages: Message[]; loading: boolean;
