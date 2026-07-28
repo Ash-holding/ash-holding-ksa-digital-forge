@@ -40,7 +40,7 @@ const DEFAULTS: Seed[] = [
     minAmount: 20000, maxAmount: 250000, minDownPaymentPct: 15,
     minTermMonths: 6, maxTermMonths: 36, allowedTermsMonths: [12, 18, 24, 30, 36],
     ratePct: 7.25, adminFeePct: 0.75, adminFeeFlat: 150,
-    requiredDocsAr: ["الهوية الوطنية", "تعريف بالراتب", "كشف حساب (6 أشهر)", "إثبات سكن"],
+    requiredDocsAr: ["صورة الهوية الوطنية", "تعريف بالراتب", "كشف حساب بنكي (آخر 6 أشهر)", "تقرير سمة (SIMAH)", "إثبات سكن"],
     eligibilityNoteAr: "دخل شهري لا يقل عن 12,000 ﷼، ومدة عمل لا تقل عن سنة.",
   },
   {
