@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -15,7 +15,7 @@ import { FilterChips } from "@/components/admin/FilterChips";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { ConfirmDialog } from "@/components/dashboard/ConfirmDialog";
-import { ProjectRequestSheet } from "@/components/client/ProjectRequestSheet";
+
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -32,7 +32,6 @@ type Tab = "projects" | "requests";
 
 function ClientProjectsPage() {
   const [tab, setTab] = useState<Tab>("projects");
-  const [sheetOpen, setSheetOpen] = useState(false);
 
   return (
     <div className="space-y-3">
@@ -43,11 +42,13 @@ function ClientProjectsPage() {
         actions={
           <div className="flex items-center gap-2">
             <LiveBadge interval={15} />
-            <Button size="sm" onClick={() => setSheetOpen(true)}
+            <Button asChild size="sm"
               className="gap-1.5 bg-gradient-to-r from-electric to-purple-accent shadow-glow">
-              <Rocket className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">طلب مشروع جديد</span>
-              <span className="sm:hidden">طلب</span>
+              <Link to="/client/projects/new">
+                <Rocket className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">طلب مشروع جديد</span>
+                <span className="sm:hidden">طلب</span>
+              </Link>
             </Button>
           </div>
         }
@@ -59,14 +60,12 @@ function ClientProjectsPage() {
         <TabBtn active={tab === "requests"} onClick={() => setTab("requests")} icon={Inbox} label="طلباتي" />
       </div>
 
-      {tab === "projects" ? <ProjectsView onNew={() => setSheetOpen(true)} /> : <RequestsView onNew={() => setSheetOpen(true)} />}
-
-      <ProjectRequestSheet open={sheetOpen} onOpenChange={setSheetOpen} />
+      {tab === "projects" ? <ProjectsView /> : <RequestsView />}
     </div>
   );
 }
 
-function EmptyProjectsHero({ onNew }: { onNew: () => void }) {
+function EmptyProjectsHero() {
   return (
     <div className="relative overflow-hidden rounded-3xl border border-border bg-gradient-to-br from-electric/5 via-card to-purple-accent/5 p-6 sm:p-10">
       <div className="absolute -top-16 -left-16 h-48 w-48 rounded-full bg-electric/20 blur-3xl" />
@@ -81,8 +80,8 @@ function EmptyProjectsHero({ onNew }: { onNew: () => void }) {
             قدّم طلب مشروع جديد خلال دقائق. فريقنا يراجع الطلب فورًا ويتواصل معك خلال 24 ساعة عمل عبر بوابتك أو واتساب.
           </p>
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <Button size="sm" onClick={onNew} className="gap-1.5 h-10 px-4 bg-gradient-to-r from-electric to-purple-accent shadow-glow">
-              <Rocket className="h-4 w-4" />طلب مشروع جديد
+            <Button asChild size="sm" className="gap-1.5 h-10 px-4 bg-gradient-to-r from-electric to-purple-accent shadow-glow">
+              <Link to="/client/projects/new"><Rocket className="h-4 w-4" />طلب مشروع جديد</Link>
             </Button>
             <div className="inline-flex items-center gap-1.5 text-[11px] text-muted-foreground">
               <Zap className="h-3 w-3 text-amber-500" />استجابة خلال 24 ساعة
@@ -122,7 +121,7 @@ function TabBtn({ active, onClick, icon: Icon, label }: { active: boolean; onCli
 
 /* ---------------- PROJECTS VIEW ---------------- */
 
-function ProjectsView({ onNew }: { onNew: () => void }) {
+function ProjectsView() {
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string | null>(null);
   const [q, setQ] = useState("");
@@ -205,7 +204,7 @@ function ProjectsView({ onNew }: { onNew: () => void }) {
       />
 
       {!list.isLoading && rows.length === 0 ? (
-        <EmptyProjectsHero onNew={onNew} />
+        <EmptyProjectsHero />
       ) : (
       <>
 
@@ -283,7 +282,7 @@ function ProjectsView({ onNew }: { onNew: () => void }) {
 
 /* ---------------- REQUESTS VIEW ---------------- */
 
-function RequestsView({ onNew }: { onNew: () => void }) {
+function RequestsView() {
   const qc = useQueryClient();
   const [status, setStatus] = useState<string | null>(null);
 
@@ -336,8 +335,8 @@ function RequestsView({ onNew }: { onNew: () => void }) {
           </div>
           <div className="font-black text-lg mb-1">لا توجد طلبات بعد</div>
           <p className="text-sm text-muted-foreground mb-4">ابدأ مشروعك الجديد بضغطة واحدة — سنراجعه ونعود لك خلال 24 ساعة.</p>
-          <Button onClick={onNew} className="gap-1.5 bg-gradient-to-r from-electric to-purple-accent">
-            <Plus className="h-4 w-4" />طلب مشروع جديد
+          <Button asChild className="gap-1.5 bg-gradient-to-r from-electric to-purple-accent">
+            <Link to="/client/projects/new"><Plus className="h-4 w-4" />طلب مشروع جديد</Link>
           </Button>
         </div>
       ) : (
