@@ -27,10 +27,17 @@ function notifyAdmins(message: string, meta?: { kind?: string; entityId?: string
 
 const REQUEST_STATUS_LABEL: Record<string, string> = {
   PENDING: "⏳ قيد الانتظار",
-  UNDER_REVIEW: "🔍 قيد المراجعة",
-  APPROVED: "✅ تمت الموافقة",
+  UNDER_REVIEW: "🔍 قيد الدراسة",
+  PROPOSAL_SENT: "📤 عرض مُرسَل",
+  CLIENT_REVISION: "✍️ طلب تعديل",
+  AWAITING_SIGNATURE: "🖋️ بانتظار التوقيع",
+  SIGNED: "✅ موقّع رقمياً",
+  IN_PROGRESS: "🚧 قيد التنفيذ",
+  DELIVERED: "📦 تم التسليم",
+  APPROVED: "👍 تمت الموافقة",
   REJECTED: "❌ مرفوض",
   CONVERTED: "🚀 تم تحويله لمشروع رسمي",
+  COMPLETED: "🏁 مكتمل",
 };
 
 const PROJECT_STATUS_LABEL: Record<string, string> = {
