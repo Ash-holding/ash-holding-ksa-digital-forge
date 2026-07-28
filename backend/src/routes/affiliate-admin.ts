@@ -307,6 +307,7 @@ affiliateAdminRouter.post("/rules", async (req, res, next) => {
   try {
     const body = ruleSchema.parse(req.body);
     const rule = await prisma.commissionRule.create({ data: body as Prisma.CommissionRuleCreateInput });
+    await logAudit(req, "commission_rule.create", "CommissionRule", rule.id, { scope: rule.scope, valueType: rule.valueType });
     res.status(201).json({ rule });
   } catch (e) { next(e); }
 });
@@ -317,6 +318,7 @@ affiliateAdminRouter.patch("/rules/:id", async (req, res, next) => {
     const rule = await prisma.commissionRule.update({
       where: { id: req.params.id }, data: body as Prisma.CommissionRuleUpdateInput,
     });
+    await logAudit(req, "commission_rule.update", "CommissionRule", rule.id, body as Record<string, unknown>);
     res.json({ rule });
   } catch (e) { next(e); }
 });
@@ -324,6 +326,7 @@ affiliateAdminRouter.patch("/rules/:id", async (req, res, next) => {
 affiliateAdminRouter.delete("/rules/:id", async (req, res, next) => {
   try {
     await prisma.commissionRule.delete({ where: { id: req.params.id } });
+    await logAudit(req, "commission_rule.delete", "CommissionRule", req.params.id);
     res.json({ ok: true });
   } catch (e) { next(e); }
 });
