@@ -98,7 +98,9 @@ app.use("/api", notFoundHandler);
 app.use(errorHandler);
 
 const port = Number(process.env.PORT || 4000);
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`ASH HOLDING API listening on :${port}`);
   console.log(`Uploads directory: ${uploadDir}`);
+  await seedDefaultFinancingProducts();
+  console.log(`[financing] default products ensured`);
 });
