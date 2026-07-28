@@ -352,23 +352,63 @@ projectsRouter.post("/requests", async (req, res, next) => {
     await logAudit(req, "project_request.create", "ProjectRequest", created.id);
 
     // ---------- WhatsApp notifications ----------
+    const ref = shortRef("REQ", created.id);
     const clientName = created.client?.user?.name || created.contactName || "عميل";
+    const clientEmail = created.client?.user?.email || "—";
     const clientContact = created.contactPhone || (await clientPhone(created.clientId));
     const budgetLine =
       created.budgetMin || created.budgetMax
-        ? `\nالميزانية: ${created.budgetMin ?? "?"} - ${created.budgetMax ?? "?"} ر.س`
-        : "";
+        ? `${fmtMoney(created.budgetMin)} – ${fmtMoney(created.budgetMax)}`
+        : "—";
+    const shortDesc = created.description
+      ? (created.description.length > 220 ? created.description.slice(0, 220) + "…" : created.description)
+      : "—";
 
-    // → notify admins
+    // → notify admins (full detail)
     notifyAdmins(
-      `ASH HOLDING — طلب مشروع جديد 🆕\nمن: ${clientName}\nالعنوان: ${created.title}\nالتصنيف: ${created.category}\nالأولوية: ${created.priority}${budgetLine}\nراجع لوحة الأدمن للتفاصيل.`,
+      [
+        `🆕 *طلب مشروع جديد*`,
+        DIVIDER,
+        `🔖 *رقم الطلب:* ${ref}`,
+        `👤 *العميل:* ${clientName}`,
+        `📧 *البريد:* ${clientEmail}`,
+        clientContact ? `📱 *الجوال:* ${clientContact}` : "",
+        DIVIDER,
+        `📁 *العنوان:* ${created.title}`,
+        `🏷️ *التصنيف:* ${CATEGORY_LABEL[created.category] || created.category}`,
+        `⚡ *الأولوية:* ${PRIORITY_LABEL[created.priority] || created.priority}`,
+        `📊 *الحالة:* ${REQUEST_STATUS_LABEL[created.status] || created.status}`,
+        `💰 *الميزانية:* ${budgetLine}`,
+        created.targetDate ? `⏰ *التاريخ المستهدف:* ${fmtDate(created.targetDate)}` : "",
+        `📅 *تاريخ الإرسال:* ${fmtDate(created.createdAt)}`,
+        DIVIDER,
+        `📝 *الوصف:*\n${shortDesc}`,
+        DIVIDER,
+        `👉 يُرجى مراجعة الطلب من لوحة الإدارة والرد خلال 24 ساعة عمل.${SIGNATURE}`,
+      ].filter(Boolean).join("\n"),
       { kind: "project_request.new", entityId: created.id },
     );
 
-    // → confirm to client
+    // → confirm to client (official receipt)
     WA.notify(
       clientContact,
-      `ASH HOLDING — تم استلام طلبك ✅\nالعنوان: ${created.title}\nالحالة: ${REQUEST_STATUS_LABEL[created.status] || created.status}\nسنراجع الطلب ونعود إليك قريباً.`,
+      [
+        `✅ *تم استلام طلبك بنجاح*`,
+        `عزيزنا العميل، شكراً لثقتك بـ *ASH HOLDING*.`,
+        DIVIDER,
+        `🔖 *رقم الطلب:* ${ref}`,
+        `📁 *العنوان:* ${created.title}`,
+        `🏷️ *التصنيف:* ${CATEGORY_LABEL[created.category] || created.category}`,
+        `⚡ *الأولوية:* ${PRIORITY_LABEL[created.priority] || created.priority}`,
+        `📊 *الحالة الحالية:* ${REQUEST_STATUS_LABEL[created.status] || created.status}`,
+        `💰 *الميزانية المقترحة:* ${budgetLine}`,
+        created.targetDate ? `⏰ *التاريخ المستهدف:* ${fmtDate(created.targetDate)}` : "",
+        `📅 *تاريخ الاستلام:* ${fmtDate(created.createdAt)}`,
+        DIVIDER,
+        `سيقوم فريقنا المختص بمراجعة طلبك والرد عليك خلال *24 ساعة عمل*.`,
+        `يمكنك متابعة حالة الطلب أولاً بأول من *بوابة العميل*.`,
+        `\n⚠️ يرجى الاحتفاظ بالرقم المرجعي للطلب لأي استفسار مستقبلي.${SIGNATURE}`,
+      ].filter(Boolean).join("\n"),
       { kind: "project_request.created", entityId: created.id },
     );
 
