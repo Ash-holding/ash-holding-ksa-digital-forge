@@ -69,7 +69,17 @@ function ClientContractDetail() {
     onError: (e) => toast.error(apiError(e) || "تعذر توقيع العقد"),
   });
 
+  const toggleAutopay = useMutation({
+    mutationFn: (enabled: boolean) => api.patch(`/financing/contracts/${id}/autopay`, { enabled }),
+    onSuccess: (_r, enabled) => {
+      toast.success(enabled ? "✅ تم تفعيل السداد التلقائي" : "تم إيقاف السداد التلقائي");
+      qc.invalidateQueries({ queryKey: ["client-fin-contract", id] });
+    },
+    onError: (e) => toast.error(apiError(e) || "تعذر تحديث السداد التلقائي"),
+  });
+
   if (isLoading || !data) return <div className="p-8 text-sm text-muted-foreground">جاري التحميل…</div>;
+
 
   const canSign = data.status === "AWAITING_CLIENT_SIGNATURE";
   const canDownload = ["SIGNED", "ACTIVE", "COMPLETED"].includes(data.status);
