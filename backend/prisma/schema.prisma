@@ -1236,6 +1236,7 @@ model FinancingProduct {
   updatedAt           DateTime               @updatedAt
 
   services            FinancingProductService[]
+  applications        FinancingApplication[]
 
   @@index([status])
   @@index([customerType, status])
@@ -1308,4 +1309,151 @@ model FinancingAuditLog {
   @@index([entityType, entityId])
   @@index([actorId])
   @@index([createdAt])
+}
+
+// ============================================================
+// Phase 3 — Financing Application Lifecycle (human review)
+// ============================================================
+
+enum FinancingApplicationStatus {
+  DRAFT
+  SUBMITTED
+  KYC_REVIEW
+  KYC_APPROVED
+  KYC_REJECTED
+  CREDIT_REVIEW
+  RISK_REVIEW
+  COMMITTEE_REVIEW
+  PENDING_FINAL
+  MORE_INFO
+  APPROVED
+  REJECTED
+  CANCELLED
+  EXPIRED
+}
+
+enum FinancingDecisionStage {
+  KYC
+  CREDIT
+  RISK
+  COMMITTEE
+  FINAL
+}
+
+enum FinancingDecisionOutcome {
+  APPROVE
+  REJECT
+  REQUEST_INFO
+  ESCALATE
+}
+
+model FinancingApplication {
+  id                 String                     @id @default(cuid())
+  code               String                     @unique
+  applicantId        String
+  clientId           String?
+  productId          String
+  status             FinancingApplicationStatus @default(DRAFT)
+  amount             Decimal                    @db.Decimal(14, 2)
+  downPayment        Decimal                    @default(0) @db.Decimal(14, 2)
+  termMonths         Int
+  purposeAr          String?
+  serviceLabel       String?
+
+  // Applicant profile (INDIVIDUAL)
+  fullNameAr         String?
+  nationalId         String?
+  birthDate          DateTime?
+  employer           String?
+  jobTitle           String?
+  employmentType     String?
+  yearsOfService     Int?
+  monthlyIncome      Decimal?                   @db.Decimal(12, 2)
+  monthlyObligations Decimal?                   @db.Decimal(12, 2)
+
+  // Business (BUSINESS)
+  businessName       String?
+  crNumber           String?
+  vatNumber          String?
+  annualRevenue      Decimal?                   @db.Decimal(14, 2)
+
+  // Consents
+  consentTerms       Boolean                    @default(false)
+  consentDataUse     Boolean                    @default(false)
+  consentCreditCheck Boolean                    @default(false)
+
+  // Decision
+  computedScore      Int?
+  quoteSnapshot      Json?
+  finalApprovedById  String?
+  finalApprovedAt    DateTime?
+  rejectionReasonAr  String?
+  submittedAt        DateTime?
+  expiresAt          DateTime?
+
+  createdAt          DateTime                   @default(now())
+  updatedAt          DateTime                   @updatedAt
+
+  product            FinancingProduct           @relation(fields: [productId], references: [id])
+  documents          FinancingApplicationDocument[]
+  events             FinancingApplicationEvent[]
+  decisions          FinancingApplicationDecision[]
+
+  @@index([status])
+  @@index([applicantId])
+  @@index([clientId])
+  @@index([productId])
+}
+
+model FinancingApplicationDocument {
+  id            String                        @id @default(cuid())
+  applicationId String
+  code          String
+  labelAr       String
+  filePath      String
+  fileMime      String?
+  fileSize      Int?
+  uploadedById  String
+  status        FinancingComplianceItemStatus @default(UPLOADED)
+  reviewedById  String?
+  reviewedAt    DateTime?
+  notes         String?
+  createdAt     DateTime                      @default(now())
+
+  application   FinancingApplication          @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+}
+
+model FinancingApplicationEvent {
+  id            String                       @id @default(cuid())
+  applicationId String
+  actorId       String?
+  actorRole     String?
+  type          String
+  fromStatus    FinancingApplicationStatus?
+  toStatus      FinancingApplicationStatus?
+  message       String?
+  metadata      Json?
+  createdAt     DateTime                     @default(now())
+
+  application   FinancingApplication         @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
+}
+
+model FinancingApplicationDecision {
+  id            String                       @id @default(cuid())
+  applicationId String
+  stage         FinancingDecisionStage
+  outcome       FinancingDecisionOutcome
+  reviewerId    String
+  reviewerRole  String?
+  score         Int?
+  notesAr       String?
+  createdAt     DateTime                     @default(now())
+
+  application   FinancingApplication         @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([applicationId])
 }

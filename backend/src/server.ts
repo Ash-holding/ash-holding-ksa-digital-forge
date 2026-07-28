@@ -28,6 +28,8 @@ import { affiliateRouter } from "./routes/affiliate.js";
 import { affiliateAdminRouter } from "./routes/affiliate-admin.js";
 import { financingRouter } from "./routes/financing.js";
 import { financingAdminRouter } from "./routes/financing-admin.js";
+import { financingApplicationsRouter } from "./routes/financing-applications.js";
+import { financingApplicationsAdminRouter } from "./routes/financing-applications-admin.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rate-limit.js";
 
@@ -75,6 +77,8 @@ app.use("/api/notifications", notificationsRouter);
 app.use("/api/wallet", walletRouter);
 app.use("/api/affiliate", affiliateRouter);
 app.use("/api/admin/affiliate", affiliateAdminRouter);
+app.use("/api/financing/applications", financingApplicationsRouter);
+app.use("/api/admin/financing/applications", financingApplicationsAdminRouter);
 app.use("/api/admin/financing", financingAdminRouter);
 
 app.use("/api", notFoundHandler);
