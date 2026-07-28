@@ -34,6 +34,7 @@ import { financingContractsRouter } from "./routes/financing-contracts.js";
 import { financingOpsRouter, financingOpsPublicRouter } from "./routes/financing-ops.js";
 import { financingClosureRouter, financingDisclosuresPublicRouter } from "./routes/financing-closure.js";
 import { financingReportsRouter } from "./routes/financing-reports.js";
+import { financingIfrs9Router } from "./routes/financing-ifrs9.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rate-limit.js";
 
@@ -90,6 +91,7 @@ app.use("/api/financing", financingContractsRouter);
 app.use("/api/financing", financingOpsRouter);
 app.use("/api/financing", financingClosureRouter);
 app.use("/api/admin/financing/reports", financingReportsRouter);
+app.use("/api/admin/financing/ifrs9", financingIfrs9Router);
 
 app.use("/api", notFoundHandler);
 app.use(errorHandler);
