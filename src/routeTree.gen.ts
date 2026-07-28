@@ -90,6 +90,7 @@ import { Route as AuthenticatedAdminProjectsIdRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminProjectRequestsIdRouteImport } from './routes/_authenticated/admin.project-requests.$id'
 import { Route as AuthenticatedAdminPaymentsIdRouteImport } from './routes/_authenticated/admin.payments.$id'
 import { Route as AuthenticatedAdminInvoicesIdRouteImport } from './routes/_authenticated/admin.invoices.$id'
+import { Route as AuthenticatedAdminFinancingOpsRouteImport } from './routes/_authenticated/admin.financing.ops'
 import { Route as AuthenticatedAdminFinancingIdRouteImport } from './routes/_authenticated/admin.financing.$id'
 import { Route as AuthenticatedAdminContractsIdRouteImport } from './routes/_authenticated/admin.contracts.$id'
 import { Route as AuthenticatedAdminClientsNewRouteImport } from './routes/_authenticated/admin.clients.new'
@@ -555,6 +556,12 @@ const AuthenticatedAdminInvoicesIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedAdminInvoicesRoute,
   } as any)
+const AuthenticatedAdminFinancingOpsRoute =
+  AuthenticatedAdminFinancingOpsRouteImport.update({
+    id: '/ops',
+    path: '/ops',
+    getParentRoute: () => AuthenticatedAdminFinancingRoute,
+  } as any)
 const AuthenticatedAdminFinancingIdRoute =
   AuthenticatedAdminFinancingIdRouteImport.update({
     id: '/$id',
@@ -679,6 +686,7 @@ export interface FileRoutesByFullPath {
   '/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
   '/admin/contracts/$id': typeof AuthenticatedAdminContractsIdRoute
   '/admin/financing/$id': typeof AuthenticatedAdminFinancingIdRoute
+  '/admin/financing/ops': typeof AuthenticatedAdminFinancingOpsRoute
   '/admin/invoices/$id': typeof AuthenticatedAdminInvoicesIdRoute
   '/admin/payments/$id': typeof AuthenticatedAdminPaymentsIdRoute
   '/admin/project-requests/$id': typeof AuthenticatedAdminProjectRequestsIdRoute
@@ -764,6 +772,7 @@ export interface FileRoutesByTo {
   '/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
   '/admin/contracts/$id': typeof AuthenticatedAdminContractsIdRoute
   '/admin/financing/$id': typeof AuthenticatedAdminFinancingIdRoute
+  '/admin/financing/ops': typeof AuthenticatedAdminFinancingOpsRoute
   '/admin/invoices/$id': typeof AuthenticatedAdminInvoicesIdRoute
   '/admin/payments/$id': typeof AuthenticatedAdminPaymentsIdRoute
   '/admin/project-requests/$id': typeof AuthenticatedAdminProjectRequestsIdRoute
@@ -857,6 +866,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
   '/_authenticated/admin/contracts/$id': typeof AuthenticatedAdminContractsIdRoute
   '/_authenticated/admin/financing/$id': typeof AuthenticatedAdminFinancingIdRoute
+  '/_authenticated/admin/financing/ops': typeof AuthenticatedAdminFinancingOpsRoute
   '/_authenticated/admin/invoices/$id': typeof AuthenticatedAdminInvoicesIdRoute
   '/_authenticated/admin/payments/$id': typeof AuthenticatedAdminPaymentsIdRoute
   '/_authenticated/admin/project-requests/$id': typeof AuthenticatedAdminProjectRequestsIdRoute
@@ -950,6 +960,7 @@ export interface FileRouteTypes {
     | '/admin/clients/new'
     | '/admin/contracts/$id'
     | '/admin/financing/$id'
+    | '/admin/financing/ops'
     | '/admin/invoices/$id'
     | '/admin/payments/$id'
     | '/admin/project-requests/$id'
@@ -1035,6 +1046,7 @@ export interface FileRouteTypes {
     | '/admin/clients/new'
     | '/admin/contracts/$id'
     | '/admin/financing/$id'
+    | '/admin/financing/ops'
     | '/admin/invoices/$id'
     | '/admin/payments/$id'
     | '/admin/project-requests/$id'
@@ -1127,6 +1139,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/clients/new'
     | '/_authenticated/admin/contracts/$id'
     | '/_authenticated/admin/financing/$id'
+    | '/_authenticated/admin/financing/ops'
     | '/_authenticated/admin/invoices/$id'
     | '/_authenticated/admin/payments/$id'
     | '/_authenticated/admin/project-requests/$id'
@@ -1743,6 +1756,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminInvoicesIdRouteImport
       parentRoute: typeof AuthenticatedAdminInvoicesRoute
     }
+    '/_authenticated/admin/financing/ops': {
+      id: '/_authenticated/admin/financing/ops'
+      path: '/ops'
+      fullPath: '/admin/financing/ops'
+      preLoaderRoute: typeof AuthenticatedAdminFinancingOpsRouteImport
+      parentRoute: typeof AuthenticatedAdminFinancingRoute
+    }
     '/_authenticated/admin/financing/$id': {
       id: '/_authenticated/admin/financing/$id'
       path: '/$id'
@@ -1825,12 +1845,14 @@ const AuthenticatedAdminContractsRouteWithChildren =
 
 interface AuthenticatedAdminFinancingRouteChildren {
   AuthenticatedAdminFinancingIdRoute: typeof AuthenticatedAdminFinancingIdRoute
+  AuthenticatedAdminFinancingOpsRoute: typeof AuthenticatedAdminFinancingOpsRoute
   AuthenticatedAdminFinancingContractsIdRoute: typeof AuthenticatedAdminFinancingContractsIdRoute
 }
 
 const AuthenticatedAdminFinancingRouteChildren: AuthenticatedAdminFinancingRouteChildren =
   {
     AuthenticatedAdminFinancingIdRoute: AuthenticatedAdminFinancingIdRoute,
+    AuthenticatedAdminFinancingOpsRoute: AuthenticatedAdminFinancingOpsRoute,
     AuthenticatedAdminFinancingContractsIdRoute:
       AuthenticatedAdminFinancingContractsIdRoute,
   }
