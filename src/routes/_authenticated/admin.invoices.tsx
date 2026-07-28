@@ -27,6 +27,7 @@ type Item = { title: string; quantity: number; unitPrice: number };
 
 function InvoicesPage() {
   const qc = useQueryClient();
+  const nav = useNavigate();
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
