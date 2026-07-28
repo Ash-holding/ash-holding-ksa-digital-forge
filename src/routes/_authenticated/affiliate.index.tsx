@@ -68,10 +68,16 @@ function Dashboard() {
             </div>
           </div>
           <button
-            onClick={() => { navigator.clipboard.writeText(referralUrl); }}
-            className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:opacity-90"
+            onClick={async () => {
+              try { await navigator.clipboard.writeText(referralUrl); } catch { /* noop */ }
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1800);
+            }}
+            className={`rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-lg transition-all inline-flex items-center gap-2 ${
+              copied ? "bg-emerald-600" : "bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90"
+            }`}
           >
-            نسخ رابط الإحالة
+            {copied ? <><Check className="h-4 w-4" /> تم النسخ</> : <><Copy className="h-4 w-4" /> نسخ رابط الإحالة</>}
           </button>
         </div>
       </motion.section>
