@@ -1522,6 +1522,8 @@ model FinancingContract {
   disbursedTxId       String?
   cancelledAt         DateTime?
   cancelReasonAr      String?
+  autopayEnabled      Boolean                    @default(true)
+  autopayFailures     Int                        @default(0)
 
   createdAt           DateTime                   @default(now())
   updatedAt           DateTime                   @updatedAt
