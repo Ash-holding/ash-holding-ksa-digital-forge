@@ -83,7 +83,7 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
               </div>
 
               {step === "review" ? (
-                <div className="p-5 space-y-4">
+                <div className="flex-1 overflow-y-auto p-5 space-y-4">
                   <div className="rounded-2xl border border-border bg-background p-4">
                     <div className="text-[11px] text-foreground/60 mb-1">المشروع</div>
                     <div className="font-bold text-[15px] text-foreground mb-3">{title}</div>
