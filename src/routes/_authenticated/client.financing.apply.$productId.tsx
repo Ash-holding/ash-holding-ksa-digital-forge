@@ -80,7 +80,7 @@ function validateEmployment(app: Application, isBusiness: boolean): string[] {
   return m;
 }
 function validateDocuments(app: Application): string[] {
-  return app.documents.length === 0 ? ["مستند واحد على الأقل"] : [];
+  return (app.documents?.length ?? 0) === 0 ? ["مستند واحد على الأقل"] : [];
 }
 function validateReview(app: Application): string[] {
   const m: string[] = [];
@@ -477,7 +477,7 @@ function DocumentsStep({ app, product, onChanged }: { app: Application; product:
     catch (e) { toast.error(apiError(e) || "تعذر الحذف"); }
   };
 
-  const uploadedLabels = new Set(app.documents.map((d) => d.labelAr));
+  const uploadedLabels = new Set((app.documents ?? []).map((d) => d.labelAr));
   const remaining = required.filter((r) => !uploadedLabels.has(r));
 
   const onDrop = (e: React.DragEvent) => {
@@ -546,10 +546,10 @@ function DocumentsStep({ app, product, onChanged }: { app: Application; product:
 
       {/* Uploaded list */}
       <div className="space-y-2">
-        {app.documents.length === 0 ? (
+        {(app.documents ?? []).length === 0 ? (
           <div className="text-sm text-muted-foreground text-center py-4">لم يتم رفع أي مستند بعد.</div>
         ) : (
-          app.documents.map((d) => (
+          (app.documents ?? []).map((d) => (
             <motion.div
               key={d.id} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
               className="grid grid-cols-[auto_minmax(0,1fr)_auto_auto] items-center gap-3 rounded-xl bg-white/5 px-3 py-2.5 ring-1 ring-white/10"
@@ -591,7 +591,7 @@ function ReviewStep({ app, product, onSave }: { app: Application; product: Produ
           <SummaryRow label="المبلغ" value={`${fmt(Number(app.amount))} ر.س`} />
           <SummaryRow label="المدة" value={`${app.termMonths} شهر`} />
           <SummaryRow label="الدفعة المقدمة" value={`${fmt(Number(app.downPayment))} ر.س`} />
-          <SummaryRow label="المستندات المرفوعة" value={`${app.documents.length}`} />
+          <SummaryRow label="المستندات المرفوعة" value={`${(app.documents ?? []).length}`} />
         </div>
       </div>
 
