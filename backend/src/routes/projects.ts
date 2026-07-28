@@ -781,7 +781,7 @@ projectsRouter.post("/requests", async (req, res, next) => {
 });
 
 // GET single request
-async function ensureInvoiceForSignedRequest(requestId: string) {
+export async function ensureInvoiceForSignedRequest(requestId: string) {
   const r = await prisma.projectRequest.findUnique({ where: { id: requestId } });
   if (!r) return null;
   if (r.status !== "SIGNED" && r.status !== "IN_PROGRESS" && r.status !== "DELIVERED" && r.status !== "COMPLETED") return null;
