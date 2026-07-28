@@ -296,11 +296,36 @@ function TopupDialog({ open, onOpenChange, bank, onDone }: any) {
   const [amount, setAmount] = useState("");
   const [ref, setRef] = useState("");
   const [note, setNote] = useState("");
-  const m = useMutation({
-    mutationFn: async () => (await api.post("/wallet/topup", { amount: Number(amount), bankRef: ref || null, note: note || null })).data,
-    onSuccess: () => { toast.success("تم إرسال طلب الشحن — بانتظار مراجعة الإدارة"); onDone(); onOpenChange(false); setAmount(""); setRef(""); setNote(""); },
-    onError: (e: any) => toast.error(e?.response?.data?.error || "تعذّر إرسال الطلب"),
-  });
+  const [receipt, setReceipt] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const submit = async () => {
+    try {
+      setUploading(true);
+      let receiptUrl: string | null = null;
+      if (receipt) {
+        const fd = new FormData();
+        fd.append("file", receipt);
+        const up = await api.post("/files/upload", fd, { headers: { "Content-Type": "multipart/form-data" } });
+        receiptUrl = up.data?.file?.path ?? null;
+      }
+      await api.post("/wallet/topup", {
+        amount: Number(amount),
+        bankRef: ref || null,
+        note: note || null,
+        receiptUrl,
+      });
+      toast.success("تم إرسال طلب الشحن — بانتظار مراجعة الإدارة");
+      onDone();
+      onOpenChange(false);
+      setAmount(""); setRef(""); setNote(""); setReceipt(null);
+    } catch (e: any) {
+      toast.error(e?.response?.data?.error || "تعذّر إرسال الطلب");
+    } finally {
+      setUploading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent dir="rtl" className="max-w-md">
@@ -315,9 +340,40 @@ function TopupDialog({ open, onOpenChange, bank, onDone }: any) {
         <div className="space-y-3">
           <div><Label>المبلغ (ر.س)</Label><Input type="number" min="1" value={amount} onChange={e => setAmount(e.target.value)} placeholder="0.00" /></div>
           <div><Label>المرجع البنكي (اختياري)</Label><Input value={ref} onChange={e => setRef(e.target.value)} placeholder="رقم عملية التحويل" /></div>
+          <div>
+            <Label>إرفاق الإيصال (صورة أو PDF)</Label>
+            <label className="mt-1 flex items-center justify-between gap-2 rounded-lg border-2 border-dashed border-border hover:border-primary/60 hover:bg-muted/40 transition cursor-pointer p-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <div className="grid h-9 w-9 place-items-center rounded-lg bg-primary/10 text-primary shrink-0">
+                  <ArrowDownToLine className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-xs font-bold truncate">
+                    {receipt ? receipt.name : "اختر ملف الإيصال"}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">
+                    {receipt ? `${(receipt.size / 1024).toFixed(0)} KB` : "PNG · JPG · PDF"}
+                  </p>
+                </div>
+              </div>
+              {receipt && (
+                <button
+                  type="button"
+                  onClick={(e) => { e.preventDefault(); setReceipt(null); }}
+                  className="text-[10px] text-rose-600 hover:underline shrink-0"
+                >إزالة</button>
+              )}
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                className="hidden"
+                onChange={(e) => setReceipt(e.target.files?.[0] ?? null)}
+              />
+            </label>
+          </div>
           <div><Label>ملاحظة</Label><Textarea value={note} onChange={e => setNote(e.target.value)} rows={2} /></div>
-          <Button className="w-full" disabled={!amount || m.isPending} onClick={() => m.mutate()}>
-            {m.isPending ? "جارِ الإرسال..." : "إرسال طلب الشحن"}
+          <Button className="w-full" disabled={!amount || uploading} onClick={submit}>
+            {uploading ? "جارِ الإرسال..." : "إرسال طلب الشحن"}
           </Button>
         </div>
       </DialogContent>
