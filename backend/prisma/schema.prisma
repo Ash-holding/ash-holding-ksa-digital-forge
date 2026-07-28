@@ -657,3 +657,503 @@ model ProjectRequest {
   @@index([createdAt])
   @@index([linkedInvoiceId])
 }
+
+// ===================== AFFILIATE / REFERRAL SYSTEM =====================
+
+enum AffiliateStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+  CLOSED
+}
+
+enum AffiliateType {
+  INDIVIDUAL
+  COMPANY
+}
+
+enum AffiliateApplicationStatus {
+  NEW
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum CommissionStatus {
+  PENDING
+  AVAILABLE
+  WITHDRAWAL_REQUESTED
+  PAID
+  REVERSED
+  REJECTED
+}
+
+enum CommissionRuleScope {
+  GLOBAL
+  SERVICE_TYPE
+  SERVICE
+  AFFILIATE
+  AFFILIATE_CAMPAIGN
+}
+
+enum CommissionValueType {
+  PERCENTAGE
+  FIXED
+  TIERED
+}
+
+enum LedgerEntryType {
+  COMMISSION_PENDING
+  COMMISSION_AVAILABLE
+  COMMISSION_REVERSED
+  COMMISSION_REJECTED
+  WITHDRAWAL_HOLD
+  WITHDRAWAL_PAID
+  WITHDRAWAL_RELEASED
+  BONUS
+  ADJUSTMENT
+}
+
+enum LedgerBalanceBucket {
+  PENDING
+  AVAILABLE
+  RESERVED
+  PAID
+}
+
+enum PayoutMethodType {
+  BANK_SA
+  IBAN
+  DIGITAL_WALLET
+  ACCOUNT_CREDIT
+  MANUAL
+}
+
+enum WithdrawalStatus {
+  NEW
+  UNDER_REVIEW
+  APPROVED
+  PROCESSING
+  PAID
+  REJECTED
+  CANCELLED
+}
+
+enum AttributionModel {
+  LAST_CLICK
+  FIRST_CLICK
+}
+
+enum MarketingMaterialType {
+  TEXT
+  WHATSAPP
+  SOCIAL
+  EMAIL
+  LANDING_LINK
+  PROFILE
+  OFFER
+  LOGO
+  GUIDE
+}
+
+model Affiliate {
+  id              String          @id @default(cuid())
+  userId          String          @unique
+  code            String          @unique
+  type            AffiliateType   @default(INDIVIDUAL)
+  status          AffiliateStatus @default(PENDING)
+  displayName     String
+  legalName       String?
+  phone           String
+  email           String
+  city            String?
+  country         String          @default("SA")
+  idNumber        String?
+  commercialNo    String?
+  taxNumber       String?
+  bio             String?
+  website         String?
+  socialLinks     Json?
+  preferredPayout PayoutMethodType?
+  customRate      Decimal?         @db.Decimal(5, 2)
+  cookieDays      Int?
+  holdDays        Int?
+  approvedAt      DateTime?
+  approvedById    String?
+  suspendedAt     DateTime?
+  suspendReason   String?
+  meta            Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  user            User                       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  application     AffiliateApplication?
+  campaigns       AffiliateCampaign[]
+  links           AffiliateLink[]
+  clicks          AffiliateClick[]
+  attributions    AffiliateAttribution[]
+  referredCustomers AffiliateCustomer[]
+  commissions     Commission[]
+  ledgerEntries   AffiliateLedgerEntry[]
+  payoutAccounts  AffiliatePayoutAccount[]
+  withdrawals    WithdrawalRequest[]
+  notifications  AffiliateNotification[]
+  rules          CommissionRule[]           @relation("AffiliateRules")
+  auditLogs      AffiliateAuditLog[]
+
+  @@index([status])
+  @@index([code])
+}
+
+model AffiliateApplication {
+  id            String                    @id @default(cuid())
+  userId        String?
+  affiliateId   String?                   @unique
+  fullName      String
+  phone         String
+  email         String
+  city          String?
+  country       String                    @default("SA")
+  type          AffiliateType             @default(INDIVIDUAL)
+  idNumber      String?
+  commercialNo  String?
+  preferredPayout PayoutMethodType?
+  documents     Json?
+  agreementAccepted Boolean               @default(false)
+  agreementVersion  String?
+  notes         String?
+  status        AffiliateApplicationStatus @default(NEW)
+  reviewNote    String?
+  reviewedById  String?
+  reviewedAt    DateTime?
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  affiliate Affiliate? @relation(fields: [affiliateId], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([email])
+  @@index([phone])
+}
+
+model AffiliateCampaign {
+  id           String    @id @default(cuid())
+  affiliateId  String
+  name         String
+  slug         String
+  description  String?
+  landingPath  String    @default("/")
+  utmSource    String?
+  utmMedium    String?
+  utmCampaign  String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  affiliate Affiliate       @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  links     AffiliateLink[]
+  rules     CommissionRule[] @relation("CampaignRules")
+  clicks    AffiliateClick[]
+
+  @@unique([affiliateId, slug])
+  @@index([affiliateId])
+}
+
+model AffiliateLink {
+  id           String   @id @default(cuid())
+  affiliateId  String
+  campaignId   String?
+  slug         String   @unique
+  landingPath  String   @default("/")
+  serviceRef   String?
+  label        String?
+  totalClicks  Int      @default(0)
+  totalConversions Int  @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  affiliate Affiliate         @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  campaign  AffiliateCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+  clicks    AffiliateClick[]
+
+  @@index([affiliateId])
+  @@index([campaignId])
+}
+
+model AffiliateClick {
+  id            String   @id @default(cuid())
+  affiliateId   String
+  linkId        String?
+  campaignId    String?
+  sessionId     String
+  ipHash        String?
+  country       String?
+  city          String?
+  device        String?
+  browser       String?
+  os            String?
+  referrer      String?
+  landingPath   String?
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+  utmContent    String?
+  fingerprint   String?
+  isBot         Boolean  @default(false)
+  isUnique      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  affiliate Affiliate          @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  link      AffiliateLink?     @relation(fields: [linkId], references: [id], onDelete: SetNull)
+  campaign  AffiliateCampaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([affiliateId])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([fingerprint])
+}
+
+model AffiliateAttribution {
+  id           String   @id @default(cuid())
+  affiliateId  String
+  sessionId    String
+  clientId     String?
+  linkId       String?
+  campaignId   String?
+  model        AttributionModel @default(LAST_CLICK)
+  firstClickAt DateTime
+  lastClickAt  DateTime
+  convertedAt  DateTime?
+  expiresAt    DateTime
+  meta         Json?
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, affiliateId])
+  @@index([clientId])
+  @@index([expiresAt])
+}
+
+model AffiliateCustomer {
+  id            String   @id @default(cuid())
+  affiliateId   String
+  clientId      String   @unique
+  firstOrderAt  DateTime?
+  totalOrders   Int      @default(0)
+  totalRevenue  Decimal  @default(0) @db.Decimal(14, 2)
+  totalCommission Decimal @default(0) @db.Decimal(14, 2)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId])
+}
+
+model CommissionRule {
+  id            String              @id @default(cuid())
+  name          String
+  scope         CommissionRuleScope
+  valueType     CommissionValueType @default(PERCENTAGE)
+  percentage    Decimal?            @db.Decimal(5, 2)
+  fixedAmount   Decimal?            @db.Decimal(12, 2)
+  tiers         Json?
+  serviceType   ServiceType?
+  serviceRef    String?
+  affiliateId   String?
+  campaignId    String?
+  priority      Int                 @default(0)
+  maxCommission Decimal?            @db.Decimal(12, 2)
+  startsAt      DateTime?
+  endsAt        DateTime?
+  isActive      Boolean             @default(true)
+  notes         String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  affiliate Affiliate?         @relation("AffiliateRules", fields: [affiliateId], references: [id], onDelete: Cascade)
+  campaign  AffiliateCampaign? @relation("CampaignRules", fields: [campaignId], references: [id], onDelete: Cascade)
+
+  @@index([scope, isActive])
+  @@index([affiliateId])
+  @@index([campaignId])
+}
+
+model Commission {
+  id              String           @id @default(cuid())
+  affiliateId     String
+  invoiceId       String?
+  paymentId       String?
+  clientId        String?
+  orderRef        String?
+  ruleId          String?
+  ruleSnapshot    Json
+  baseAmount      Decimal          @db.Decimal(14, 2)
+  percentage      Decimal?         @db.Decimal(5, 2)
+  amount          Decimal          @db.Decimal(14, 2)
+  currency        String           @default("SAR")
+  status          CommissionStatus @default(PENDING)
+  holdUntil       DateTime?
+  availableAt     DateTime?
+  paidAt          DateTime?
+  reversedAt      DateTime?
+  reverseReason   String?
+  idempotencyKey  String           @unique
+  meta            Json?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId, status])
+  @@index([invoiceId])
+  @@index([availableAt])
+}
+
+model AffiliateLedgerEntry {
+  id             String              @id @default(cuid())
+  affiliateId    String
+  entryType      LedgerEntryType
+  bucket         LedgerBalanceBucket
+  amount         Decimal             @db.Decimal(14, 2)
+  currency       String              @default("SAR")
+  commissionId   String?
+  withdrawalId   String?
+  reference      String?
+  note           String?
+  balanceBefore  Decimal             @db.Decimal(14, 2)
+  balanceAfter   Decimal             @db.Decimal(14, 2)
+  createdById    String?
+  createdAt      DateTime            @default(now())
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId, bucket])
+  @@index([commissionId])
+  @@index([withdrawalId])
+  @@index([createdAt])
+}
+
+model PayoutMethod {
+  id          String            @id @default(cuid())
+  key         String            @unique
+  type        PayoutMethodType
+  name        String
+  description String?
+  isActive    Boolean           @default(true)
+  minAmount   Decimal?          @db.Decimal(12, 2)
+  fee         Decimal?          @db.Decimal(12, 2)
+  feePercent  Decimal?          @db.Decimal(5, 2)
+  meta        Json?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  accounts AffiliatePayoutAccount[]
+}
+
+model AffiliatePayoutAccount {
+  id             String   @id @default(cuid())
+  affiliateId    String
+  methodId       String
+  beneficiaryName String
+  bankName       String?
+  ibanEncrypted  String?
+  ibanMasked     String?
+  accountNumber  String?
+  proofFilePath  String?
+  isDefault      Boolean  @default(false)
+  isVerified     Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  affiliate Affiliate    @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  method    PayoutMethod @relation(fields: [methodId], references: [id])
+  withdrawals WithdrawalRequest[]
+
+  @@index([affiliateId])
+}
+
+model WithdrawalRequest {
+  id              String           @id @default(cuid())
+  affiliateId     String
+  accountId       String?
+  requestNumber   String           @unique
+  amount          Decimal          @db.Decimal(14, 2)
+  fee             Decimal          @default(0) @db.Decimal(12, 2)
+  netAmount       Decimal          @db.Decimal(14, 2)
+  currency        String           @default("SAR")
+  status          WithdrawalStatus @default(NEW)
+  note            String?
+  adminNote       String?
+  reviewedById    String?
+  reviewedAt      DateTime?
+  transferRef     String?
+  receiptPath     String?
+  paidAt          DateTime?
+  rejectionReason String?
+  otpVerified     Boolean          @default(false)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  affiliate Affiliate               @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  account   AffiliatePayoutAccount? @relation(fields: [accountId], references: [id])
+
+  @@index([affiliateId, status])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model MarketingMaterial {
+  id          String                @id @default(cuid())
+  title       String
+  type        MarketingMaterialType
+  category    String?
+  content     String
+  filePath    String?
+  tags        String[]              @default([])
+  isActive    Boolean               @default(true)
+  createdById String?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@index([type, isActive])
+  @@index([category])
+}
+
+model AffiliateNotification {
+  id          String   @id @default(cuid())
+  affiliateId String
+  title       String
+  body        String?
+  link        String?
+  category    String   @default("info")
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  affiliate Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+
+  @@index([affiliateId, isRead])
+}
+
+model AffiliateAuditLog {
+  id          String   @id @default(cuid())
+  affiliateId String?
+  actorId     String?
+  action      String
+  entityType  String?
+  entityId    String?
+  oldValue    Json?
+  newValue    Json?
+  reason      String?
+  ipHash      String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  affiliate Affiliate? @relation(fields: [affiliateId], references: [id], onDelete: SetNull)
+
+  @@index([affiliateId])
+  @@index([action])
+  @@index([createdAt])
+}
