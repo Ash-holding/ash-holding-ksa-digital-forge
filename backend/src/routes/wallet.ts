@@ -50,6 +50,12 @@ async function walletBankMsg(clientPhoneNum: string | null, subject: string, bod
 /** Award cashback for a paid invoice — called from invoice payment flow */
 export async function awardCashback(clientId: string, invoiceId: string, paidAmount: number) {
   if (!paidAmount || paidAmount <= 0) return;
+  // Idempotent — do not double-award for the same invoice
+  const already = await prisma.walletTransaction.findFirst({
+    where: { invoiceId, type: "CASHBACK" },
+    select: { id: true },
+  });
+  if (already) return;
   const wallet = await ensureWallet(clientId);
   const cashback = +(paidAmount * CASHBACK_RATE).toFixed(2);
   if (cashback <= 0) return;
