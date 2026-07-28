@@ -116,6 +116,27 @@ function ClientContractDetail() {
         </motion.div>
       )}
 
+      {/* Autopay toggle (only when contract is ACTIVE) */}
+      {data.status === "ACTIVE" && (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-bold">💳 السداد التلقائي من المحفظة</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              عند التفعيل، يتم خصم القسط تلقائياً في تاريخ الاستحقاق من رصيد محفظتك.
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant={data.autopayEnabled ? "default" : "outline"}
+            onClick={() => toggleAutopay.mutate(!data.autopayEnabled)}
+            disabled={toggleAutopay.isPending}
+          >
+            {data.autopayEnabled ? "مفعّل" : "متوقف"}
+          </Button>
+        </div>
+      )}
+
+
       {/* Key figures */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {[
