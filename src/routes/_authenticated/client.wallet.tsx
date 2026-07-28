@@ -73,7 +73,7 @@ function ClientWallet() {
     <div className="space-y-5">
       <PageHeader
         title="المحفظة الرقمية"
-        subtitle="محفظة بنكية متكاملة — شحن، سحب، سداد وكاش باك تلقائي 1.85% على كل فاتورة"
+        description="محفظة بنكية متكاملة — شحن، سحب، سداد وكاش باك تلقائي 1.85% على كل فاتورة"
         icon={Wallet}
       />
 
