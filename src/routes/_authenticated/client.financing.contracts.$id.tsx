@@ -104,7 +104,6 @@ function ClientContractDetail() {
   const promissory = data.termsSnapshot?.promissory;
   const canAcceptPromissory = data.status === "SIGNED" && !!promissory?.sentAt && !promissory?.acceptedAt;
   const promissoryPending = data.status === "SIGNED" && !promissory?.sentAt;
-  const [pAck, setPAck] = useState(false);
 
   return (
     <div className="space-y-6">
