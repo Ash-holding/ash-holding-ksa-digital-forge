@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -22,6 +22,7 @@ export const Route = createFileRoute("/_authenticated/client/contracts")({
 
 function ClientContractsPage() {
   const qc = useQueryClient();
+  const nav = useNavigate();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string | null>(null);
   const list = useQuery({
@@ -93,6 +94,7 @@ function ClientContractsPage() {
       <DataTable
         columns={columns} rows={filtered} loading={list.isLoading}
         total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
+        onRowClick={(r: any) => nav({ to: "/client/contracts/", params: { id: r.id } })}
         emptyTitle="لا توجد عقود"
       />
     </div>
