@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Link } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useRouterState } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Sparkles, Clock, CheckCircle2, XCircle, ArrowLeft } from "lucide-react";
@@ -12,6 +12,13 @@ export const Route = createFileRoute("/_authenticated/affiliate")({
 
 function AffiliateGate() {
   const { user } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Allow the apply page to render even without an active affiliate account
+  if (pathname.startsWith("/affiliate/apply")) {
+    return <Outlet />;
+  }
+
 
   const { data, isLoading } = useQuery({
     queryKey: ["affiliate-me"],
