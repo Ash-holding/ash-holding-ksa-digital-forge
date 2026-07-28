@@ -195,15 +195,15 @@ financingApplicationsAdminRouter.post(
         stage: d.stage, outcome: d.outcome, newStatus,
       });
 
-      // Notify applicant on meaningful transitions
+      // Notify applicant on meaningful transitions — bank-style templates
       const msg =
         d.outcome === "APPROVE" && d.stage === "FINAL"
-          ? `✅ تمت الموافقة النهائية على طلب التمويل ${app.code}. سيتم إشعارك بخطوات تفعيل الرصيد.`
+          ? bankMessage("APPROVED", { code: app.code, amount: Number(app.amount) })
           : d.outcome === "REJECT"
-            ? `❌ نأسف — تم رفض طلب التمويل ${app.code}. ${d.rejectionReasonAr || d.notesAr || ""}`.trim()
+            ? bankMessage("REJECTED", { code: app.code, reasonAr: d.rejectionReasonAr || d.notesAr || null })
             : d.outcome === "REQUEST_INFO"
-              ? `ℹ️ طلب التمويل ${app.code} بحاجة لمعلومات/مستندات إضافية. الرجاء مراجعة بوابتك.`
-              : `🔄 تحديث حالة طلب التمويل ${app.code}: ${STATUS_LABEL_AR[newStatus]}`;
+              ? bankMessage("MORE_INFO", { code: app.code, reasonAr: d.notesAr || null })
+              : bankMessage("IN_REVIEW", { code: app.code, statusAr: STATUS_LABEL_AR[newStatus] });
       await notifyApplicant(app.id, msg);
 
       res.json({ application: updated, decision });
