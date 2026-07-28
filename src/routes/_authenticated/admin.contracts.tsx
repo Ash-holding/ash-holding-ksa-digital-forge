@@ -91,7 +91,7 @@ function ContractsPage() {
 
       <DataTable<Row> columns={columns} rows={filtered} loading={list.isLoading}
         total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
-        onRowClick={(r) => nav({ to: "/admin/contracts/", params: { id: r.id } })}
+        onRowClick={(r) => nav({ to: "/admin/contracts/$id", params: { id: r.id } })}
         emptyTitle="لا توجد عقود بعد" />
 
       <FormSheet open={open} onOpenChange={setOpen} title="عقد جديد" submitText="حفظ"

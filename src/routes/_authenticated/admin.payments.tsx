@@ -91,7 +91,7 @@ function PaymentsPage() {
 
       <DataTable<Row> columns={columns} rows={filtered} loading={list.isLoading}
         total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
-        onRowClick={(r) => nav({ to: "/admin/payments/", params: { id: r.id } })}
+        onRowClick={(r) => nav({ to: "/admin/payments/$id", params: { id: r.id } })}
         emptyTitle="لا توجد دفعات بعد" />
 
       <FormSheet open={open} onOpenChange={setOpen} title="تسجيل دفعة" submitText="حفظ"
