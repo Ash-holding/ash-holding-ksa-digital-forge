@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import {
   MessageSquare, Send, Plus, Trash2, Layers, Calendar, Wallet,
   CheckCircle2, Clock, Ban, PlayCircle, Pencil, Lock, User as UserIcon,
@@ -21,6 +22,18 @@ import { FormSheet } from "@/components/dashboard/FormSheet";
 import { Money } from "@/components/ui/money";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+const springIn = { type: "spring" as const, stiffness: 260, damping: 26 };
+
+function AnimatedNumber({ value, className }: { value: number; className?: string }) {
+  const mv = useMotionValue(0);
+  const rounded = useTransform(mv, (v) => Math.round(v).toString());
+  useEffect(() => {
+    const controls = animate(mv, value, { duration: 0.9, ease: [0.22, 1, 0.36, 1] });
+    return controls.stop;
+  }, [value, mv]);
+  return <motion.span className={className}>{rounded}</motion.span>;
+}
 
 type Stage = {
   id: string; title: string; description?: string | null;
@@ -132,54 +145,88 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
       {project.isLoading ? (
         <Skeleton className="h-52 rounded-3xl" />
       ) : p ? (
-        <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={springIn}
+          className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
+        >
           {/* subtle decorative gradient */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_oklab,var(--electric)_10%,transparent),transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,color-mix(in_oklab,var(--cyan-accent)_8%,transparent),transparent_55%)]" />
+          <motion.div
+            className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_oklab,var(--electric)_14%,transparent),transparent_60%)]"
+            animate={{ opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,color-mix(in_oklab,var(--cyan-accent)_10%,transparent),transparent_55%)]"
+            animate={{ opacity: [1, 0.55, 1] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
 
           <div className="relative p-6 md:p-8">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap mb-3">
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+                  className="flex items-center gap-2 flex-wrap mb-3"
+                >
                   <Badge variant="outline" className="gap-1.5 bg-background/60 backdrop-blur">
                     <Layers className="h-3 w-3" />
                     <span className="font-mono text-[10px]">#{p.id.slice(0, 6).toUpperCase()}</span>
                   </Badge>
                   <StatusBadge value={p.status} />
-                </div>
+                </motion.div>
 
-                <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-foreground">
+                <motion.h1
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, ...springIn }}
+                  className="text-2xl md:text-4xl font-bold tracking-tight text-foreground"
+                >
                   {p.title}
-                </h1>
+                </motion.h1>
 
                 {p.description && (
-                  <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl leading-relaxed line-clamp-3">
+                  <motion.p
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+                    className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl leading-relaxed line-clamp-3"
+                  >
                     {p.description}
-                  </p>
+                  </motion.p>
                 )}
 
-                <div className="mt-5 flex flex-wrap gap-2">
+                <motion.div
+                  initial="hidden" animate="show"
+                  variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06, delayChildren: 0.25 } } }}
+                  className="mt-5 flex flex-wrap gap-2"
+                >
                   <MetaPill icon={UserIcon} label={p.client.user.name} />
                   {p.dueDate && <MetaPill icon={Calendar} label={`التسليم ${formatDate(p.dueDate)}`} />}
                   {p.budget && (
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/70 backdrop-blur px-3 py-1.5 text-xs font-medium">
+                    <motion.div
+                      variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/70 backdrop-blur px-3 py-1.5 text-xs font-medium"
+                    >
                       <Wallet className="h-3.5 w-3.5 text-electric" />
                       <Money value={p.budget} />
-                    </div>
+                    </motion.div>
                   )}
-                </div>
+                </motion.div>
               </div>
 
               {/* progress card */}
-              <div className="lg:w-72 shrink-0 rounded-2xl border border-border bg-background/80 backdrop-blur p-5">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: 0.15, ...springIn }}
+                className="lg:w-72 shrink-0 rounded-2xl border border-border bg-background/80 backdrop-blur p-5"
+              >
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-xs font-medium text-muted-foreground">التقدم الإجمالي</div>
                   <TrendingUp className="h-4 w-4 text-electric" />
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold tabular-nums bg-gradient-to-l from-electric to-cyan-accent bg-clip-text text-transparent">
-                    {p.progress}
-                  </span>
+                  <AnimatedNumber
+                    value={p.progress}
+                    className="text-4xl font-bold tabular-nums bg-gradient-to-l from-electric to-cyan-accent bg-clip-text text-transparent"
+                  />
                   <span className="text-lg font-semibold text-muted-foreground">%</span>
                 </div>
                 <Progress value={p.progress} className="h-2 mt-3" />
@@ -189,17 +236,20 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
                   <MiniStat label="نشطة" value={activeCount} tone="text-electric" />
                   <MiniStat label="مكتملة" value={doneCount} tone="text-emerald-600" />
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
       ) : null}
 
       {/* BENTO: Stages + Chat */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* STAGES */}
         <section className="lg:col-span-3 space-y-4">
-          <div className="flex items-center justify-between">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+            className="flex items-center justify-between"
+          >
             <div>
               <h2 className="text-lg font-bold flex items-center gap-2">
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-electric/10 text-electric">
@@ -211,42 +261,69 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
                 تتبّع كل مرحلة على حدة — التقدم يُحتسب تلقائياً وفق وزن كل مرحلة.
               </p>
             </div>
+
             {isAdmin && (
               <Button size="sm" onClick={() => { setEditStage(null); setStageOpen(true); }} className="gap-1.5 shrink-0">
                 <Plus className="h-4 w-4" /> مرحلة
               </Button>
             )}
-          </div>
+          </motion.div>
 
           {stages.isLoading ? (
             <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>
           ) : !stagesList.length ? (
             <EmptyStages isAdmin={isAdmin} onAdd={() => setStageOpen(true)} />
           ) : (
-            <ol className="space-y-3">
+            <motion.ol
+              className="space-y-3"
+              initial="hidden" animate="show"
+              variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } } }}
+            >
+              <AnimatePresence initial={false}>
               {stagesList.map((s, i) => {
                 const meta = STAGE_META[s.status];
                 const Icon = meta.icon;
                 const isLast = i === stagesList.length - 1;
                 return (
-                  <li key={s.id} className="relative">
+                  <motion.li
+                    key={s.id}
+                    layout
+                    variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}
+                    exit={{ opacity: 0, x: -20, transition: { duration: 0.18 } }}
+                    transition={springIn}
+                    className="relative"
+                  >
                     {/* connector line */}
                     {!isLast && (
-                      <span className="absolute top-11 right-[22px] h-[calc(100%-16px)] w-px bg-gradient-to-b from-border to-transparent" />
+                      <motion.span
+                        initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ delay: 0.1 + i * 0.06, duration: 0.4 }}
+                        className="absolute top-11 right-[22px] h-[calc(100%-16px)] w-px origin-top bg-gradient-to-b from-border to-transparent"
+                      />
                     )}
 
                     <div className="flex gap-3">
                       {/* step marker */}
-                      <div className={cn(
-                        "relative shrink-0 h-11 w-11 rounded-2xl border bg-card flex items-center justify-center ring-4 ring-offset-0",
-                        meta.ring
-                      )}>
+                      <motion.div
+                        whileHover={{ scale: 1.06 }}
+                        className={cn(
+                          "relative shrink-0 h-11 w-11 rounded-2xl border bg-card flex items-center justify-center ring-4 ring-offset-0",
+                          meta.ring
+                        )}
+                      >
                         <span className="text-sm font-bold tabular-nums text-foreground">{i + 1}</span>
-                        <span className={cn("absolute -bottom-1 -left-1 h-3 w-3 rounded-full border-2 border-card", meta.dot)} />
-                      </div>
+                        <motion.span
+                          className={cn("absolute -bottom-1 -left-1 h-3 w-3 rounded-full border-2 border-card", meta.dot)}
+                          animate={s.status === "IN_PROGRESS" ? { scale: [1, 1.25, 1], opacity: [1, 0.7, 1] } : {}}
+                          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                      </motion.div>
 
                       {/* card */}
-                      <div className="flex-1 min-w-0 rounded-2xl border border-border bg-card hover:border-electric/40 hover:shadow-sm transition-all p-4">
+                      <motion.div
+                        whileHover={{ y: -2 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                        className="flex-1 min-w-0 rounded-2xl border border-border bg-card hover:border-electric/40 hover:shadow-md transition-colors p-4"
+                      >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -304,13 +381,15 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
                             </div>
                           </div>
                         )}
-                      </div>
+                      </motion.div>
                     </div>
-                  </li>
+                  </motion.li>
                 );
               })}
-            </ol>
+              </AnimatePresence>
+            </motion.ol>
           )}
+
         </section>
 
         {/* CHAT */}
@@ -375,28 +454,45 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
 
 function MetaPill({ icon: Icon, label }: { icon: typeof Clock; label: string }) {
   return (
-    <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/70 backdrop-blur px-3 py-1.5 text-xs font-medium text-foreground">
+    <motion.div
+      variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+      whileHover={{ y: -1, scale: 1.02 }}
+      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/70 backdrop-blur px-3 py-1.5 text-xs font-medium text-foreground"
+    >
       <Icon className="h-3.5 w-3.5 text-muted-foreground" />
       {label}
-    </div>
+    </motion.div>
   );
 }
 
 function MiniStat({ label, value, tone }: { label: string; value: number; tone?: string }) {
   return (
-    <div className="rounded-lg bg-muted/50 px-2 py-1.5">
-      <div className={cn("text-base font-bold tabular-nums leading-none", tone ?? "text-foreground")}>{value}</div>
+    <motion.div
+      initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+      whileHover={{ y: -2 }}
+      className="rounded-lg bg-muted/60 hover:bg-muted transition-colors px-2 py-1.5"
+    >
+      <div className={cn("text-base font-bold tabular-nums leading-none", tone ?? "text-foreground")}>
+        <AnimatedNumber value={value} />
+      </div>
       <div className="text-[10px] text-muted-foreground mt-0.5">{label}</div>
-    </div>
+    </motion.div>
   );
 }
 
 function EmptyStages({ isAdmin, onAdd }: { isAdmin: boolean; onAdd: () => void }) {
   return (
-    <div className="rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center">
-      <div className="mx-auto h-12 w-12 rounded-2xl bg-electric/10 flex items-center justify-center mb-3">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={springIn}
+      className="rounded-2xl border border-dashed border-border bg-card/50 p-10 text-center"
+    >
+      <motion.div
+        animate={{ y: [0, -4, 0], rotate: [0, 4, -4, 0] }}
+        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+        className="mx-auto h-12 w-12 rounded-2xl bg-electric/10 flex items-center justify-center mb-3"
+      >
         <Sparkles className="h-6 w-6 text-electric" />
-      </div>
+      </motion.div>
       <div className="font-semibold">لا توجد مراحل بعد</div>
       <p className="text-sm text-muted-foreground mt-1 max-w-sm mx-auto">
         قسّم المشروع إلى مراحل واضحة ليتابع العميل التقدم أولاً بأول.
@@ -407,9 +503,10 @@ function EmptyStages({ isAdmin, onAdd }: { isAdmin: boolean; onAdd: () => void }
           <ChevronRight className="h-4 w-4 rotate-180" />
         </Button>
       )}
-    </div>
+    </motion.div>
   );
 }
+
 
 function ProjectChat({ projectId, isAdmin, currentUserId, messages, loading }: {
   projectId: string; isAdmin: boolean; currentUserId?: string; messages: Message[]; loading: boolean;
@@ -467,41 +564,54 @@ function ProjectChat({ projectId, isAdmin, currentUserId, messages, loading }: {
               </div>
             </div>
           </div>
-        ) : visible.map((m) => {
-          const mine = m.author.id === currentUserId;
-          const isStaff = ["SUPER_ADMIN","ADMIN","SUPPORT","ACCOUNTANT"].includes(m.author.role);
-          return (
-            <div key={m.id} className={cn("flex gap-2", mine ? "flex-row-reverse" : "flex-row")}>
-              <div className={cn(
-                "shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-bold",
-                mine ? "bg-electric text-primary-foreground" :
-                       isStaff ? "bg-cyan-accent/20 text-cyan-accent" : "bg-muted text-muted-foreground"
-              )}>
-                {m.author.name.charAt(0)}
-              </div>
-              <div className={cn("flex flex-col gap-1 min-w-0 max-w-[80%]", mine ? "items-end" : "items-start")}>
+        ) : (
+          <AnimatePresence initial={false}>
+          {visible.map((m) => {
+            const mine = m.author.id === currentUserId;
+            const isStaff = ["SUPER_ADMIN","ADMIN","SUPPORT","ACCOUNTANT"].includes(m.author.role);
+            return (
+              <motion.div
+                key={m.id}
+                layout
+                initial={{ opacity: 0, y: 10, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 320, damping: 26 }}
+                className={cn("flex gap-2", mine ? "flex-row-reverse" : "flex-row")}
+              >
                 <div className={cn(
-                  "rounded-2xl px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap break-words shadow-sm",
-                  mine ? "bg-electric text-primary-foreground rounded-tr-sm" :
-                         isStaff ? "bg-card border border-border rounded-tl-sm" :
-                                   "bg-muted rounded-tl-sm",
-                  m.isInternal && "ring-2 ring-orange-accent/50"
+                  "shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-bold",
+                  mine ? "bg-electric text-primary-foreground" :
+                         isStaff ? "bg-cyan-accent/20 text-cyan-accent" : "bg-muted text-muted-foreground"
                 )}>
-                  {m.isInternal && (
-                    <div className={cn("flex items-center gap-1 text-[10px] mb-1 font-semibold", mine ? "text-primary-foreground/80" : "text-orange-accent")}>
-                      <Lock className="h-3 w-3" /> ملاحظة داخلية
-                    </div>
-                  )}
-                  {m.content}
+                  {m.author.name.charAt(0)}
                 </div>
-                <div className="text-[10px] text-muted-foreground px-1">
-                  {isStaff && !mine && <span className="text-cyan-accent font-medium">فريق ASH • </span>}
-                  {m.author.name} • {new Date(m.createdAt).toLocaleString("ar-SA", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
+                <div className={cn("flex flex-col gap-1 min-w-0 max-w-[80%]", mine ? "items-end" : "items-start")}>
+                  <div className={cn(
+                    "rounded-2xl px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap break-words shadow-sm",
+                    mine ? "bg-electric text-primary-foreground rounded-tr-sm" :
+                           isStaff ? "bg-card border border-border rounded-tl-sm" :
+                                     "bg-muted rounded-tl-sm",
+                    m.isInternal && "ring-2 ring-orange-accent/50"
+                  )}>
+                    {m.isInternal && (
+                      <div className={cn("flex items-center gap-1 text-[10px] mb-1 font-semibold", mine ? "text-primary-foreground/80" : "text-orange-accent")}>
+                        <Lock className="h-3 w-3" /> ملاحظة داخلية
+                      </div>
+                    )}
+                    {m.content}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground px-1">
+                    {isStaff && !mine && <span className="text-cyan-accent font-medium">فريق ASH • </span>}
+                    {m.author.name} • {new Date(m.createdAt).toLocaleString("ar-SA", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
+                  </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
+              </motion.div>
+            );
+          })}
+          </AnimatePresence>
+        )}
+
       </div>
 
       <form
