@@ -21,6 +21,8 @@ import { formatDate } from "@/lib/format";
 import { Money } from "@/components/ui/money";
 import { cn } from "@/lib/utils";
 import { downloadInvoicePDF } from "@/lib/invoice-print";
+import { ConfirmDialog } from "@/components/dashboard/ConfirmDialog";
+import { Wallet as WalletIcon2 } from "lucide-react";
 
 export const Route = createFileRoute("/_authenticated/client/invoices")({
   component: ClientInvoicesPage,
