@@ -33,9 +33,23 @@ function ProjectRequestsPage() {
   const rows = (list.data?.rows ?? []) as any[];
   const stats = list.data?.stats ?? { total: 0, pending: 0, underReview: 0, approved: 0, rejected: 0, urgent: 0, last24h: 0 };
 
+  const COLUMNS: { key: string; label: string; statuses: string[] }[] = [
+    { key: "PENDING", label: "قيد الانتظار", statuses: ["PENDING"] },
+    { key: "UNDER_REVIEW", label: "قيد الدراسة", statuses: ["UNDER_REVIEW"] },
+    { key: "PROPOSAL", label: "قيد العرض/التعديل", statuses: ["PROPOSAL_SENT", "CLIENT_REVISION", "AWAITING_SIGNATURE"] },
+    { key: "SIGNED", label: "موقّع / قيد التنفيذ", statuses: ["SIGNED", "IN_PROGRESS", "DELIVERED"] },
+    { key: "APPROVED", label: "مقبولة", statuses: ["APPROVED"] },
+    { key: "CONVERTED", label: "محوّلة/مكتملة", statuses: ["CONVERTED", "COMPLETED"] },
+    { key: "REJECTED", label: "مرفوضة", statuses: ["REJECTED"] },
+  ];
+
   const grouped = useMemo(() => {
-    const g: Record<string, any[]> = { PENDING: [], UNDER_REVIEW: [], APPROVED: [], CONVERTED: [], REJECTED: [] };
-    rows.forEach((r) => { (g[r.status] ??= []).push(r); });
+    const g: Record<string, any[]> = {};
+    COLUMNS.forEach((c) => (g[c.key] = []));
+    rows.forEach((r) => {
+      const col = COLUMNS.find((c) => c.statuses.includes(r.status));
+      (g[col?.key ?? "PENDING"] ??= []).push(r);
+    });
     return g;
   }, [rows]);
 
@@ -66,8 +80,13 @@ function ProjectRequestsPage() {
           { key: "", label: "الكل", count: stats.total },
           { key: "PENDING", label: "قيد الانتظار", count: stats.pending },
           { key: "UNDER_REVIEW", label: "قيد الدراسة", count: stats.underReview },
+          { key: "PROPOSAL_SENT", label: "عرض مُرسَل" },
+          { key: "AWAITING_SIGNATURE", label: "بانتظار التوقيع" },
+          { key: "SIGNED", label: "موقّع" },
+          { key: "IN_PROGRESS", label: "قيد التنفيذ" },
           { key: "APPROVED", label: "مقبولة" },
           { key: "CONVERTED", label: "محوّلة" },
+          { key: "COMPLETED", label: "مكتملة" },
           { key: "REJECTED", label: "مرفوضة", count: stats.rejected },
         ]}
       />
@@ -87,15 +106,15 @@ function ProjectRequestsPage() {
 
 
       {/* Kanban */}
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-        {(["PENDING", "UNDER_REVIEW", "APPROVED", "CONVERTED", "REJECTED"] as const).map((col) => (
-          <div key={col} className="rounded-2xl border border-border bg-card/50 p-2.5 min-h-[200px]">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-7">
+        {COLUMNS.map((col) => (
+          <div key={col.key} className="rounded-2xl border border-border bg-card/50 p-2.5 min-h-[200px]">
             <div className="flex items-center justify-between mb-2 px-1">
-              <StatusBadge value={col} />
-              <span className="text-[10px] text-muted-foreground">{grouped[col]?.length ?? 0}</span>
+              <span className="text-[11px] font-bold">{col.label}</span>
+              <span className="text-[10px] text-muted-foreground">{grouped[col.key]?.length ?? 0}</span>
             </div>
             <div className="space-y-2">
-              {(grouped[col] ?? []).map((r) => (
+              {(grouped[col.key] ?? []).map((r) => (
                 <Link
                   key={r.id}
                   to="/admin/project-requests/$id"
@@ -106,9 +125,10 @@ function ProjectRequestsPage() {
                     <div className="font-bold text-[12px] truncate flex-1 group-hover:text-electric">{r.title}</div>
                     <StatusBadge value={r.priority} />
                   </div>
-                  <div className="text-[10px] text-muted-foreground truncate mb-1.5">
+                  <div className="text-[10px] text-muted-foreground truncate mb-1">
                     {r.client?.user?.name ?? "—"} · {r.category}
                   </div>
+                  <div className="mb-1.5"><StatusBadge value={r.status} /></div>
                   {(r.budgetMin || r.budgetMax) && (
                     <div className="text-[10px] font-bold">
                       {r.budgetMin ? Number(r.budgetMin).toLocaleString("ar-SA") : "—"} – {r.budgetMax ? Number(r.budgetMax).toLocaleString("ar-SA") : "—"} ر.س
@@ -117,13 +137,14 @@ function ProjectRequestsPage() {
                   <div className="text-[9px] text-muted-foreground mt-1">{formatDate(r.createdAt)}</div>
                 </Link>
               ))}
-              {(grouped[col] ?? []).length === 0 && (
+              {(grouped[col.key] ?? []).length === 0 && (
                 <div className="rounded-xl border border-dashed border-border py-6 text-center text-[10px] text-muted-foreground">لا يوجد</div>
               )}
             </div>
           </div>
         ))}
       </div>
+
     </>
   );
 }
