@@ -249,6 +249,263 @@ projectsRouter.post("/:id/notes", requireAuth, async (req, res, next) => {
 });
 
 // ============================================================
+// PROJECT STAGES  (admin defines phases, clients follow progress)
+// ============================================================
+const STAGE_STATUSES = ["PENDING", "IN_PROGRESS", "BLOCKED", "DONE", "SKIPPED"] as const;
+const STAGE_STATUS_LABEL: Record<string, string> = {
+  PENDING: "⏳ لم تبدأ",
+  IN_PROGRESS: "🚧 قيد التنفيذ",
+  BLOCKED: "🚫 متوقفة",
+  DONE: "✅ مكتملة",
+  SKIPPED: "⏭️ تم تجاوزها",
+};
+
+const stageSchema = z.object({
+  title: z.string().min(2).max(160),
+  description: z.string().max(2000).optional().nullable(),
+  status: z.enum(STAGE_STATUSES).optional(),
+  progress: z.number().min(0).max(100).optional(),
+  weight: z.number().min(1).max(100).optional(),
+  orderIndex: z.number().optional(),
+  dueDate: z.coerce.date().optional().nullable(),
+});
+
+async function assertProjectAccess(req: import("express").Request, projectId: string) {
+  const p = await prisma.project.findUnique({ where: { id: projectId }, select: { id: true, clientId: true, title: true } });
+  if (!p) return { ok: false as const, status: 404, error: "المشروع غير موجود" };
+  if (!isStaff(req)) {
+    const cid = await currentClientId(req);
+    if (p.clientId !== cid) return { ok: false as const, status: 403, error: "Forbidden" };
+  }
+  return { ok: true as const, project: p };
+}
+
+async function recomputeProjectProgress(projectId: string) {
+  const stages = await prisma.projectStage.findMany({ where: { projectId }, select: { progress: true, weight: true, status: true } });
+  if (!stages.length) return;
+  const active = stages.filter((s) => s.status !== "SKIPPED");
+  if (!active.length) return;
+  const totalW = active.reduce((a, s) => a + (s.weight || 1), 0);
+  const done = active.reduce((a, s) => a + (s.progress || 0) * (s.weight || 1), 0);
+  const overall = Math.round(done / totalW);
+  await prisma.project.update({ where: { id: projectId }, data: { progress: overall } });
+}
+
+// LIST stages
+projectsRouter.get("/:id/stages", async (req, res, next) => {
+  try {
+    const acc = await assertProjectAccess(req, req.params.id);
+    if (!acc.ok) return res.status(acc.status).json({ error: acc.error });
+    const rows = await prisma.projectStage.findMany({
+      where: { projectId: req.params.id },
+      orderBy: [{ orderIndex: "asc" }, { createdAt: "asc" }],
+    });
+    res.json({ rows });
+  } catch (e) { next(e); }
+});
+
+// CREATE stage — staff only
+projectsRouter.post("/:id/stages", requireStaff, async (req, res, next) => {
+  try {
+    const data = stageSchema.parse(req.body);
+    const count = await prisma.projectStage.count({ where: { projectId: req.params.id } });
+    const created = await prisma.projectStage.create({
+      data: {
+        projectId: req.params.id,
+        title: data.title,
+        description: data.description ?? null,
+        status: data.status ?? "PENDING",
+        progress: data.progress ?? 0,
+        weight: data.weight ?? 1,
+        orderIndex: data.orderIndex ?? count,
+        dueDate: data.dueDate ?? null,
+      },
+    });
+    await logAudit(req, "project_stage.create", "ProjectStage", created.id);
+    await recomputeProjectProgress(req.params.id);
+    res.status(201).json({ stage: created });
+  } catch (e) { next(e); }
+});
+
+// UPDATE stage — staff only
+projectsRouter.patch("/:id/stages/:stageId", requireStaff, async (req, res, next) => {
+  try {
+    const data = stageSchema.partial().parse(req.body);
+    const before = await prisma.projectStage.findUnique({ where: { id: req.params.stageId } });
+    if (!before || before.projectId !== req.params.id) return res.status(404).json({ error: "غير موجود" });
+
+    const patch: Record<string, unknown> = { ...data };
+    if (data.status === "IN_PROGRESS" && !before.startedAt) patch.startedAt = new Date();
+    if (data.status === "DONE") {
+      patch.completedAt = new Date();
+      if (data.progress === undefined) patch.progress = 100;
+    }
+
+    const updated = await prisma.projectStage.update({ where: { id: req.params.stageId }, data: patch as never });
+    await logAudit(req, "project_stage.update", "ProjectStage", updated.id);
+    await recomputeProjectProgress(req.params.id);
+
+    // Notify client on status change
+    if (before.status !== updated.status) {
+      const project = await prisma.project.findUnique({ where: { id: req.params.id }, select: { clientId: true, title: true } });
+      if (project) {
+        const phone = await clientPhone(project.clientId);
+        WA.notify(
+          phone,
+          [
+            `📌 *تحديث مرحلة مشروع*`,
+            DIVIDER,
+            `📁 *المشروع:* ${project.title}`,
+            `🧩 *المرحلة:* ${updated.title}`,
+            `📊 *الحالة الجديدة:* ${STAGE_STATUS_LABEL[updated.status] || updated.status}`,
+            `📈 *نسبة إنجاز المرحلة:* ${updated.progress}%`,
+            DIVIDER,
+            `تابع التفاصيل من بوابة العميل.${SIGNATURE}`,
+          ].join("\n"),
+          { kind: "project_stage.update", entityId: updated.id },
+        );
+      }
+    }
+    res.json({ stage: updated });
+  } catch (e) { next(e); }
+});
+
+// DELETE stage — staff only
+projectsRouter.delete("/:id/stages/:stageId", requireStaff, async (req, res, next) => {
+  try {
+    const s = await prisma.projectStage.findUnique({ where: { id: req.params.stageId } });
+    if (!s || s.projectId !== req.params.id) return res.status(404).json({ error: "غير موجود" });
+    await prisma.projectStage.delete({ where: { id: req.params.stageId } });
+    await logAudit(req, "project_stage.delete", "ProjectStage", req.params.stageId);
+    await recomputeProjectProgress(req.params.id);
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+// REORDER stages — staff only
+projectsRouter.post("/:id/stages/reorder", requireStaff, async (req, res, next) => {
+  try {
+    const body = z.object({ order: z.array(z.string()).min(1) }).parse(req.body);
+    await Promise.all(body.order.map((sid, idx) =>
+      prisma.projectStage.updateMany({ where: { id: sid, projectId: req.params.id }, data: { orderIndex: idx } })
+    ));
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+// ============================================================
+// PROJECT MESSAGES (in-project chat between client and admin)
+// ============================================================
+projectsRouter.get("/:id/messages", async (req, res, next) => {
+  try {
+    const acc = await assertProjectAccess(req, req.params.id);
+    if (!acc.ok) return res.status(acc.status).json({ error: acc.error });
+
+    const where: import("@prisma/client").Prisma.ProjectMessageWhereInput = { projectId: req.params.id };
+    if (!isStaff(req)) where.isInternal = false;
+
+    const rows = await prisma.projectMessage.findMany({
+      where,
+      include: { author: { select: { id: true, name: true, role: true, avatarUrl: true } } },
+      orderBy: { createdAt: "asc" },
+      take: 500,
+    });
+
+    // Mark as read
+    if (isStaff(req)) {
+      await prisma.projectMessage.updateMany({
+        where: { projectId: req.params.id, readByStaff: false, isInternal: false },
+        data: { readByStaff: true },
+      }).catch(() => null);
+    } else {
+      await prisma.projectMessage.updateMany({
+        where: { projectId: req.params.id, readByClient: false, isInternal: false },
+        data: { readByClient: true },
+      }).catch(() => null);
+    }
+    res.json({ rows });
+  } catch (e) { next(e); }
+});
+
+projectsRouter.post("/:id/messages", async (req, res, next) => {
+  try {
+    const acc = await assertProjectAccess(req, req.params.id);
+    if (!acc.ok) return res.status(acc.status).json({ error: acc.error });
+
+    const body = z.object({
+      content: z.string().min(1).max(4000),
+      isInternal: z.boolean().optional(),
+      attachments: z.array(z.object({ name: z.string(), url: z.string() })).optional().nullable(),
+    }).parse(req.body);
+
+    if (body.isInternal && !isStaff(req)) return res.status(403).json({ error: "Forbidden" });
+
+    const staff = isStaff(req);
+    const created = await prisma.projectMessage.create({
+      data: {
+        projectId: req.params.id,
+        authorId: req.user!.sub,
+        content: body.content,
+        attachments: (body.attachments as never) ?? undefined,
+        isInternal: body.isInternal ?? false,
+        readByStaff: staff,
+        readByClient: !staff,
+      },
+      include: { author: { select: { id: true, name: true, role: true, avatarUrl: true } } },
+    });
+    await logAudit(req, "project_message.create", "ProjectMessage", created.id);
+
+    // WhatsApp notify counterparty (skip internal notes)
+    if (!created.isInternal) {
+      const project = await prisma.project.findUnique({ where: { id: req.params.id }, select: { clientId: true, title: true } });
+      if (project) {
+        const preview = created.content.length > 200 ? created.content.slice(0, 200) + "…" : created.content;
+        if (staff) {
+          const phone = await clientPhone(project.clientId);
+          WA.notify(
+            phone,
+            [
+              `💬 *رسالة جديدة من فريق ASH HOLDING*`,
+              DIVIDER,
+              `📁 *المشروع:* ${project.title}`,
+              `👤 *المرسل:* ${created.author.name}`,
+              DIVIDER,
+              preview,
+              DIVIDER,
+              `📌 للرد، افتح بوابة العميل → المشروع.${SIGNATURE}`,
+            ].join("\n"),
+            { kind: "project_message.staff", entityId: created.id },
+          );
+        } else {
+          notifyAdmins(
+            [
+              `💬 *رسالة جديدة من العميل داخل المشروع*`,
+              DIVIDER,
+              `📁 *المشروع:* ${project.title}`,
+              `👤 *العميل:* ${created.author.name}`,
+              DIVIDER,
+              preview,
+              DIVIDER,
+              `📌 افتح لوحة الإدارة للرد.${SIGNATURE}`,
+            ].join("\n"),
+            { kind: "project_message.client", entityId: created.id },
+          );
+        }
+      }
+    }
+    res.status(201).json({ message: created });
+  } catch (e) { next(e); }
+});
+
+projectsRouter.delete("/:id/messages/:messageId", requireStaff, async (req, res, next) => {
+  try {
+    await prisma.projectMessage.delete({ where: { id: req.params.messageId } });
+    await logAudit(req, "project_message.delete", "ProjectMessage", req.params.messageId);
+    res.json({ ok: true });
+  } catch (e) { next(e); }
+});
+
+// ============================================================
 // PROJECT REQUESTS  (client submits → admin reviews/approves)
 // ============================================================
 
