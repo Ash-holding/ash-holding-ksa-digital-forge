@@ -97,7 +97,7 @@ function OverviewPane({ onGoApplications }: { onGoApplications?: () => void }) {
     <div className="space-y-4">
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard icon={Users} label="مسوّقون نشطون" value={data.affiliates.active} sub={`إجمالي ${data.affiliates.total}`}/>
-        <KpiCard icon={Clock} label="طلبات قيد المراجعة" value={data.applications.pending}/>
+        <button type="button" onClick={onGoApplications} className="text-right"><KpiCard icon={Clock} label="طلبات قيد المراجعة" value={data.applications.pending} sub={data.applications.pending ? "اضغط للمراجعة" : undefined}/></button>
         <KpiCard icon={Percent} label="إجمالي العمولات" value={money(data.commissions.total)} sub={`${data.commissions.count} قيد`}/>
         <KpiCard icon={Banknote} label="مدفوعات السحب" value={money(data.withdrawals.paidTotal)} sub={`${data.withdrawals.pending} قيد الانتظار`}/>
       </div>
