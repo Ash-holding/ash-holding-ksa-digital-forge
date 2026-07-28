@@ -102,7 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     try { await api.post("/auth/logout", {}); } catch { /* ignore */ }
-    if (typeof window !== "undefined") localStorage.removeItem("ash_demo_user");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("ash_demo_user");
+      localStorage.removeItem(USER_CACHE_KEY);
+    }
     setTokens(null, null);
     setUser(null);
   }, []);
