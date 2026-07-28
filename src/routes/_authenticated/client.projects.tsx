@@ -15,7 +15,7 @@ import { FilterChips } from "@/components/admin/FilterChips";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { ConfirmDialog } from "@/components/dashboard/ConfirmDialog";
-import { ProjectRequestSheet } from "@/components/client/ProjectRequestSheet";
+
 import { Progress } from "@/components/ui/progress";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
