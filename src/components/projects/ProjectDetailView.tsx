@@ -564,41 +564,54 @@ function ProjectChat({ projectId, isAdmin, currentUserId, messages, loading }: {
               </div>
             </div>
           </div>
-        ) : visible.map((m) => {
-          const mine = m.author.id === currentUserId;
-          const isStaff = ["SUPER_ADMIN","ADMIN","SUPPORT","ACCOUNTANT"].includes(m.author.role);
-          return (
-            <div key={m.id} className={cn("flex gap-2", mine ? "flex-row-reverse" : "flex-row")}>
-              <div className={cn(
-                "shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-bold",
-                mine ? "bg-electric text-primary-foreground" :
-                       isStaff ? "bg-cyan-accent/20 text-cyan-accent" : "bg-muted text-muted-foreground"
-              )}>
-                {m.author.name.charAt(0)}
-              </div>
-              <div className={cn("flex flex-col gap-1 min-w-0 max-w-[80%]", mine ? "items-end" : "items-start")}>
+        ) : (
+          <AnimatePresence initial={false}>
+          {visible.map((m) => {
+            const mine = m.author.id === currentUserId;
+            const isStaff = ["SUPER_ADMIN","ADMIN","SUPPORT","ACCOUNTANT"].includes(m.author.role);
+            return (
+              <motion.div
+                key={m.id}
+                layout
+                initial={{ opacity: 0, y: 10, scale: 0.96 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: "spring", stiffness: 320, damping: 26 }}
+                className={cn("flex gap-2", mine ? "flex-row-reverse" : "flex-row")}
+              >
                 <div className={cn(
-                  "rounded-2xl px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap break-words shadow-sm",
-                  mine ? "bg-electric text-primary-foreground rounded-tr-sm" :
-                         isStaff ? "bg-card border border-border rounded-tl-sm" :
-                                   "bg-muted rounded-tl-sm",
-                  m.isInternal && "ring-2 ring-orange-accent/50"
+                  "shrink-0 h-8 w-8 rounded-full flex items-center justify-center text-[11px] font-bold",
+                  mine ? "bg-electric text-primary-foreground" :
+                         isStaff ? "bg-cyan-accent/20 text-cyan-accent" : "bg-muted text-muted-foreground"
                 )}>
-                  {m.isInternal && (
-                    <div className={cn("flex items-center gap-1 text-[10px] mb-1 font-semibold", mine ? "text-primary-foreground/80" : "text-orange-accent")}>
-                      <Lock className="h-3 w-3" /> ملاحظة داخلية
-                    </div>
-                  )}
-                  {m.content}
+                  {m.author.name.charAt(0)}
                 </div>
-                <div className="text-[10px] text-muted-foreground px-1">
-                  {isStaff && !mine && <span className="text-cyan-accent font-medium">فريق ASH • </span>}
-                  {m.author.name} • {new Date(m.createdAt).toLocaleString("ar-SA", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
+                <div className={cn("flex flex-col gap-1 min-w-0 max-w-[80%]", mine ? "items-end" : "items-start")}>
+                  <div className={cn(
+                    "rounded-2xl px-3.5 py-2 text-sm leading-relaxed whitespace-pre-wrap break-words shadow-sm",
+                    mine ? "bg-electric text-primary-foreground rounded-tr-sm" :
+                           isStaff ? "bg-card border border-border rounded-tl-sm" :
+                                     "bg-muted rounded-tl-sm",
+                    m.isInternal && "ring-2 ring-orange-accent/50"
+                  )}>
+                    {m.isInternal && (
+                      <div className={cn("flex items-center gap-1 text-[10px] mb-1 font-semibold", mine ? "text-primary-foreground/80" : "text-orange-accent")}>
+                        <Lock className="h-3 w-3" /> ملاحظة داخلية
+                      </div>
+                    )}
+                    {m.content}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground px-1">
+                    {isStaff && !mine && <span className="text-cyan-accent font-medium">فريق ASH • </span>}
+                    {m.author.name} • {new Date(m.createdAt).toLocaleString("ar-SA", { hour: "2-digit", minute: "2-digit", day: "2-digit", month: "2-digit" })}
+                  </div>
                 </div>
-              </div>
-            </div>
-          );
-        })}
+              </motion.div>
+            );
+          })}
+          </AnimatePresence>
+        )}
+
       </div>
 
       <form
