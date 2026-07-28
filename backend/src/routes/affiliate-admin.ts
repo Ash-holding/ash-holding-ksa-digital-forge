@@ -269,6 +269,108 @@ affiliateAdminRouter.get("/applications", async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+// Approve an application → creates User (if needed) + active Affiliate, then links & marks APPROVED.
+affiliateAdminRouter.post("/applications/:id/approve", async (req, res, next) => {
+  try {
+    const user = (req as any).user;
+    const app = await prisma.affiliateApplication.findUnique({ where: { id: req.params.id } });
+    if (!app) return res.status(404).json({ error: "الطلب غير موجود" });
+    if (app.affiliateId) return res.status(400).json({ error: "الطلب مرتبط بحساب مسوّق بالفعل" });
+    if (app.status === "APPROVED") return res.status(400).json({ error: "الطلب معتمد مسبقاً" });
+
+    // Resolve or create the underlying user
+    let userId = app.userId;
+    if (!userId) {
+      const byEmail = await prisma.user.findUnique({ where: { email: app.email }, select: { id: true } });
+      const byPhone = byEmail ? null : await prisma.user.findFirst({ where: { phone: app.phone }, select: { id: true } });
+      if (byEmail?.id) userId = byEmail.id;
+      else if (byPhone?.id) userId = byPhone.id;
+      else {
+        const created = await prisma.user.create({
+          data: { email: app.email, phone: app.phone, name: app.fullName, role: "CLIENT" },
+          select: { id: true },
+        });
+        userId = created.id;
+      }
+    }
+
+    // Ensure the user doesn't already have an affiliate profile
+    const existingAff = await prisma.affiliate.findUnique({ where: { userId }, select: { id: true } });
+    if (existingAff) {
+      await prisma.affiliateApplication.update({
+        where: { id: app.id },
+        data: { status: "APPROVED", affiliateId: existingAff.id, reviewedAt: new Date(), reviewedById: user.id },
+      });
+      return res.json({ ok: true, affiliateId: existingAff.id });
+    }
+
+    // Generate a unique short code
+    let code = "";
+    for (let i = 0; i < 5; i++) {
+      code = "ASH" + randomBytes(3).toString("hex").toUpperCase();
+      const clash = await prisma.affiliate.findUnique({ where: { code }, select: { id: true } });
+      if (!clash) break;
+    }
+
+    const affiliate = await prisma.affiliate.create({
+      data: {
+        userId,
+        code,
+        type: app.type,
+        status: "ACTIVE",
+        displayName: app.fullName,
+        phone: app.phone,
+        email: app.email,
+        city: app.city,
+        country: app.country,
+        idNumber: app.idNumber,
+        commercialNo: app.commercialNo,
+        preferredPayout: app.preferredPayout,
+        approvedAt: new Date(),
+        approvedById: user.id,
+      },
+      select: { id: true, code: true },
+    });
+
+    await prisma.affiliateApplication.update({
+      where: { id: app.id },
+      data: { status: "APPROVED", affiliateId: affiliate.id, reviewedAt: new Date(), reviewedById: user.id },
+    });
+
+    await logAudit(req, "affiliate_application.approve", "AffiliateApplication", app.id, { affiliateId: affiliate.id, code: affiliate.code });
+
+    WA.send(
+      app.phone,
+      `تهانينا ${app.fullName} 🎉\nتم اعتماد انضمامك لبرنامج شركاء ASH HOLDING.\nكود المسوّق: ${affiliate.code}\nيمكنك الآن الدخول إلى بوابة المسوّق وبدء الترويج.`
+    ).catch(() => {});
+
+    res.json({ ok: true, affiliate });
+  } catch (e) { next(e); }
+});
+
+affiliateAdminRouter.post("/applications/:id/reject", async (req, res, next) => {
+  try {
+    const user = (req as any).user;
+    const reason = typeof req.body?.reason === "string" ? req.body.reason.slice(0, 500) : undefined;
+    const app = await prisma.affiliateApplication.findUnique({ where: { id: req.params.id } });
+    if (!app) return res.status(404).json({ error: "الطلب غير موجود" });
+    if (app.status === "REJECTED") return res.status(400).json({ error: "الطلب مرفوض مسبقاً" });
+
+    const updated = await prisma.affiliateApplication.update({
+      where: { id: app.id },
+      data: { status: "REJECTED", reviewNote: reason, reviewedAt: new Date(), reviewedById: user.id },
+    });
+    await logAudit(req, "affiliate_application.reject", "AffiliateApplication", app.id, { reason });
+
+    WA.send(
+      app.phone,
+      `مرحباً ${app.fullName}\nنعتذر، لم يتم اعتماد طلب انضمامك لبرنامج شركاء ASH HOLDING حالياً.${reason ? `\nالسبب: ${reason}` : ""}\nيسعدنا تواصلك معنا لأي استفسار.`
+    ).catch(() => {});
+
+    res.json({ ok: true, application: updated });
+  } catch (e) { next(e); }
+});
+
 // ============================================================
 // 4) COMMISSION RULES
 // ============================================================
