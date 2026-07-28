@@ -140,6 +140,58 @@ function ClientInvoiceDetail() {
               </div>
             </DetailSection>
 
+            {/* INSTANT RECEIPT — shown right after wallet payment */}
+            {receipt && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 260, damping: 22 }}
+                className="relative overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-500/10 via-card to-card p-5"
+              >
+                <div className="absolute -top-10 -left-10 h-32 w-32 rounded-full bg-emerald-500/10 blur-2xl" />
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 border border-emerald-500/30">
+                    <BadgeCheck className="h-6 w-6 text-emerald-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-black text-base text-emerald-700 dark:text-emerald-400">تم سداد الفاتورة بنجاح</h3>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">وصلك إشعار بنكي عبر واتساب · إيصالك الرسمي جاهز</p>
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      <div className="rounded-lg bg-background/70 border border-border p-2 text-center">
+                        <div className="text-[10px] text-muted-foreground">المبلغ المسدد</div>
+                        <div className="font-black text-sm tabular-nums" dir="ltr">{Number(receipt.amount ?? 0).toLocaleString("ar-SA", { minimumFractionDigits: 2 })}</div>
+                        <div className="text-[9px] text-muted-foreground">ر.س</div>
+                      </div>
+                      <div className="rounded-lg bg-background/70 border border-border p-2 text-center">
+                        <div className="text-[10px] text-muted-foreground">كاش باك مضاف</div>
+                        <div className="font-black text-sm text-amber-600 tabular-nums" dir="ltr">+{Number(receipt.cashback ?? 0).toLocaleString("ar-SA", { minimumFractionDigits: 2 })}</div>
+                        <div className="text-[9px] text-muted-foreground">ر.س</div>
+                      </div>
+                      <div className="rounded-lg bg-background/70 border border-border p-2 text-center">
+                        <div className="text-[10px] text-muted-foreground">رصيدك المتبقي</div>
+                        <div className="font-black text-sm text-emerald-600 tabular-nums" dir="ltr">{receipt.balanceAfter != null ? Number(receipt.balanceAfter).toLocaleString("ar-SA", { minimumFractionDigits: 2 }) : "—"}</div>
+                        <div className="text-[9px] text-muted-foreground">ر.س</div>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button
+                        className="gap-1.5 bg-emerald-600 hover:bg-emerald-700"
+                        onClick={async () => {
+                          const t = toast.loading("جاري تجهيز الإيصال…");
+                          try { await downloadReceiptPDF(receipt); toast.success("تم تحميل الإيصال", { id: t }); }
+                          catch { toast.error("تعذّر إنشاء الإيصال", { id: t }); }
+                        }}
+                      >
+                        <Download className="h-4 w-4" />
+                        تحميل إيصال السداد PDF
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setReceipt(null)}>إخفاء</Button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {/* PAYMENT METHODS */}
             {unpaid && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
