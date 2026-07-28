@@ -18,6 +18,14 @@ function resolveBase(): string {
 }
 const BASE = resolveBase();
 
+/** Resolve /uploads/... to a full URL served by the API host. */
+export function fileUrl(path?: string | null): string {
+  if (!path) return "";
+  if (/^https?:\/\//i.test(path)) return path;
+  const host = BASE.replace(/\/api\/?$/, "");
+  return `${host}${path.startsWith("/") ? "" : "/"}${path}`;
+}
+
 export const ACCESS_KEY = "ash_access";
 export const REFRESH_KEY = "ash_refresh";
 
