@@ -116,30 +116,30 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
               ) : (
                 <div className="p-5 space-y-4">
                   <div className="text-center">
-                    <div className="text-[12px] text-muted-foreground mb-3">أدخل الرمز المرسل إلى واتساب</div>
+                    <div className="text-[13px] text-foreground/80 mb-3 font-medium">أدخل الرمز المرسل إلى واتساب</div>
                     <Input
                       value={otp}
                       onChange={(e) => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))}
                       inputMode="numeric" maxLength={6}
-                      className="text-center text-3xl tracking-[0.8em] font-black h-16"
+                      className="text-center text-3xl tracking-[0.8em] font-black h-16 text-foreground"
                       dir="ltr" placeholder="••••••"
                     />
                     <button onClick={requestOtp} disabled={sending}
-                      className="mt-2 text-[11px] text-electric hover:underline">
+                      className="mt-2 text-[12px] text-electric hover:underline font-semibold">
                       إعادة إرسال الرمز
                     </button>
                   </div>
 
-                  <label className="flex items-start gap-2 rounded-xl border border-border bg-background/60 p-3 cursor-pointer">
+                  <label className="flex items-start gap-2 rounded-xl border border-border bg-background p-3 cursor-pointer">
                     <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)}
                       className="mt-0.5 accent-electric h-4 w-4" />
-                    <span className="text-[11px] leading-relaxed text-muted-foreground">
+                    <span className="text-[12px] leading-relaxed text-foreground/85">
                       أوافق على شروط العرض المذكورة وأؤكد أنّ هذا التوقيع الرقمي ملزم قانونياً بموجب نظام التعاملات الإلكترونية بالمملكة العربية السعودية.
                     </span>
                   </label>
 
                   <Button onClick={sign} disabled={signing || otp.length !== 6 || !agreed}
-                    className="w-full gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 h-11">
+                    className="w-full gap-2 bg-gradient-to-r from-emerald-500 to-emerald-600 h-11 text-white font-bold">
                     {signing ? <Loader2 className="h-4 w-4 animate-spin" /> : <ShieldCheck className="h-4 w-4" />}
                     {signing ? "جارٍ التوثيق…" : "توقيع وإصدار الفاتورة"}
                   </Button>
