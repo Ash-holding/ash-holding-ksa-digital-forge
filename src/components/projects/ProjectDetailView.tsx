@@ -55,22 +55,44 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
   const [stageOpen, setStageOpen] = useState(false);
   const [editStage, setEditStage] = useState<Stage | null>(null);
 
+  // Seed hero instantly from any cached project list to avoid full skeleton wait.
+  const seededProject = useMemo<ProjectData | undefined>(() => {
+    const caches = qc.getQueriesData<{ rows?: ProjectData[] } | ProjectData[] | { projects?: ProjectData[] }>({});
+    for (const [, val] of caches) {
+      if (!val) continue;
+      const rows = Array.isArray(val)
+        ? val
+        : (val as { rows?: ProjectData[] }).rows ?? (val as { projects?: ProjectData[] }).projects;
+      if (Array.isArray(rows)) {
+        const hit = rows.find((r) => r && (r as ProjectData).id === projectId);
+        if (hit) return hit as ProjectData;
+      }
+    }
+    return undefined;
+  }, [qc, projectId]);
+
   const project = useQuery({
     queryKey: ["project", projectId],
     queryFn: async () => (await api.get(`/projects/${projectId}`)).data.project as ProjectData,
-    refetchInterval: 20000,
+    refetchInterval: 30000,
+    staleTime: 15000,
+    placeholderData: seededProject,
   });
 
   const stages = useQuery({
     queryKey: ["project", projectId, "stages"],
     queryFn: async () => (await api.get(`/projects/${projectId}/stages`)).data.rows as Stage[],
-    refetchInterval: 15000,
+    refetchInterval: 20000,
+    staleTime: 10000,
+    placeholderData: (prev) => prev,
   });
 
   const messages = useQuery({
     queryKey: ["project", projectId, "messages"],
     queryFn: async () => (await api.get(`/projects/${projectId}/messages`)).data.rows as Message[],
-    refetchInterval: 8000,
+    refetchInterval: 10000,
+    staleTime: 5000,
+    placeholderData: (prev) => prev,
   });
 
   const saveStage = useMutation({
