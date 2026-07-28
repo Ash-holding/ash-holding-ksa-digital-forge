@@ -87,6 +87,20 @@ function ProjectRequestsPage() {
         ]}
       />
 
+      {list.isError && (
+        <div className="rounded-2xl border border-rose-400/40 bg-rose-500/10 p-3 text-[12px] text-rose-200">
+          تعذّر تحميل طلبات المشاريع: {apiError(list.error)}
+          <Button size="sm" variant="outline" className="ms-2 h-7" onClick={() => list.refetch()}>إعادة المحاولة</Button>
+        </div>
+      )}
+      {!list.isLoading && !list.isError && rows.length === 0 && (
+        <div className="rounded-2xl border border-dashed border-border bg-card/40 p-6 text-center text-[12px] text-muted-foreground">
+          لا توجد طلبات مطابقة. إن كان العميل قد أرسل طلبًا للتو، اضغط تحديث.
+          <Button size="sm" variant="outline" className="ms-2 h-7" onClick={() => list.refetch()}>تحديث الآن</Button>
+        </div>
+      )}
+
+
       {/* Kanban */}
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
         {(["PENDING", "UNDER_REVIEW", "APPROVED", "CONVERTED", "REJECTED"] as const).map((col) => (
