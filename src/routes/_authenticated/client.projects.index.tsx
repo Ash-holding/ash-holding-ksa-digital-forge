@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   FolderKanban, Layers, Activity, CheckCircle2, AlertTriangle,
   Search, LayoutGrid, List, TrendingUp, Clock, Plus, Inbox, Sparkles,
-  Trash2, MessageSquare, Zap, Rocket,
+  Trash2, MessageSquare, Zap, Rocket, ExternalLink, ShieldCheck,
 } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { ClientPageHeader } from "@/components/client/ClientPageHeader";
@@ -324,9 +324,10 @@ function RequestsView() {
           { icon: Inbox, label: "إجمالي الطلبات", value: stats.total, accent: "electric" },
           { icon: Clock, label: "قيد الانتظار", value: stats.pending, accent: "amber" },
           { icon: Sparkles, label: "قيد الدراسة", value: stats.underReview, accent: "cyan" },
+          { icon: ShieldCheck, label: "تحتاج موافقة", value: (stats.proposal ?? 0), accent: "purple" },
           { icon: CheckCircle2, label: "مقبولة / محوّلة", value: stats.approved, accent: "emerald" },
           { icon: AlertTriangle, label: "مرفوضة", value: stats.rejected, accent: "rose" },
-          { icon: Zap, label: "طلبات عاجلة", value: stats.urgent, accent: "purple", hint: `آخر 24س: ${stats.last24h}` },
+          { icon: Zap, label: "طلبات عاجلة", value: stats.urgent, accent: "amber", hint: `آخر 24س: ${stats.last24h}` },
         ]}
       />
 
@@ -336,6 +337,8 @@ function RequestsView() {
           { key: "", label: "الكل", count: stats.total },
           { key: "PENDING", label: "قيد الانتظار", count: stats.pending },
           { key: "UNDER_REVIEW", label: "قيد الدراسة", count: stats.underReview },
+          { key: "PROPOSAL_SENT", label: "عرض بانتظارك", count: stats.proposal },
+          { key: "AWAITING_SIGNATURE", label: "بانتظار التوثيق" },
           { key: "APPROVED", label: "مقبولة" },
           { key: "CONVERTED", label: "محوّلة" },
           { key: "REJECTED", label: "مرفوضة", count: stats.rejected },
@@ -356,7 +359,12 @@ function RequestsView() {
       ) : (
         <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
           {rows.map((r) => (
-            <div key={r.id} className="group rounded-2xl border border-border bg-card p-3.5 hover:border-electric/40 transition">
+            <Link
+              key={r.id}
+              to="/client/projects/requests/$id"
+              params={{ id: r.id }}
+              className="group block rounded-2xl border border-border bg-card p-3.5 transition hover:border-electric/40 hover:shadow-glow focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-electric/40"
+            >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="min-w-0">
                   <div className="font-black text-sm truncate group-hover:text-electric transition">{r.title}</div>
@@ -397,7 +405,11 @@ function RequestsView() {
                 </div>
               )}
 
-            </div>
+              <div className="mt-3 flex items-center justify-between border-t border-border/60 pt-2 text-[11px] font-bold text-electric">
+                <span>{r.status === "PROPOSAL_SENT" ? "راجع عرض الإدارة ووافق عليه" : r.status === "AWAITING_SIGNATURE" ? "أكمل التوثيق النهائي" : "فتح تفاصيل الطلب"}</span>
+                <ExternalLink className="h-3.5 w-3.5 transition group-hover:-translate-x-0.5" />
+              </div>
+            </Link>
           ))}
         </div>
       )}
