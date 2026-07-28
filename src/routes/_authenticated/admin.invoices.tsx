@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -103,6 +103,7 @@ function InvoicesPage() {
 
       <DataTable<Row> columns={columns} rows={filtered} loading={list.isLoading}
         total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
+        onRowClick={(r) => nav({ to: "/admin/invoices/$id", params: { id: r.id } })}
         emptyTitle="لا توجد فواتير بعد" />
 
       <FormSheet open={open} onOpenChange={setOpen} title="فاتورة جديدة" submitText="إصدار الفاتورة"
