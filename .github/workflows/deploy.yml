@@ -30,6 +30,9 @@ jobs:
           VITE_API_URL: ${{ secrets.VITE_API_URL }}
         run: bun run build
 
+      - name: List build output
+        run: ls -la .output || true; ls -la dist || true
+
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
@@ -37,7 +40,8 @@ jobs:
           path: |
             .output
             dist
-          if-no-files-found: warn
+          include-hidden-files: true
+          if-no-files-found: error
           retention-days: 7
 
   deploy:
