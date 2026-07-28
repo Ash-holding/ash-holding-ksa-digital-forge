@@ -79,10 +79,12 @@ api.interceptors.response.use(
         return api.request(original);
       }
     }
-    // Demo-mode fallback: backend unreachable → serve mock data so preview UI works
+    // Demo-mode fallback is explicitly opt-in only; never fake admin data.
     const isNetwork = !error.response;
     const isMissing = status === 404 || status === 502 || status === 503 || status === 504;
-    if (original && (isNetwork || isMissing) && isDemoMode() && !original.url?.includes("/auth/")) {
+    const path = (original?.url ?? "").toString().replace(/^https?:\/\/[^/]+/, "").replace(/^\/api/, "");
+    const isAdminEndpoint = path.startsWith("/admin") || path.startsWith("admin");
+    if (original && (isNetwork || isMissing) && isDemoMode() && !isAdminEndpoint && !original.url?.includes("/auth/")) {
       return demoResponse(original);
     }
     return Promise.reject(error);
