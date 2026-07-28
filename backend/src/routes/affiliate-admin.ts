@@ -217,6 +217,7 @@ affiliateAdminRouter.post("/affiliates/:id/approve", async (req, res, next) => {
     await prisma.affiliateNotification.create({
       data: { affiliateId: a.id, title: "تم اعتماد حسابك", body: "أصبح حسابك مفعّلاً — يمكنك البدء بمشاركة روابطك.", category: "success" },
     });
+    await logAudit(req, "affiliate.approve", "Affiliate", a.id, { code: a.code });
     res.json({ affiliate: a });
   } catch (e) { next(e); }
 });
@@ -230,6 +231,7 @@ affiliateAdminRouter.post("/affiliates/:id/suspend", async (req, res, next) => {
     });
     WA.notify(a.phone, `ASH HOLDING — تم إيقاف حسابك مؤقتاً${reason ? `\nالسبب: ${reason}` : ""}`,
       { kind: "affiliate.suspended", entityId: a.id });
+    await logAudit(req, "affiliate.suspend", "Affiliate", a.id, { reason });
     res.json({ affiliate: a });
   } catch (e) { next(e); }
 });
@@ -246,6 +248,7 @@ affiliateAdminRouter.post("/affiliates/:id/reject", async (req, res, next) => {
     });
     WA.notify(a.phone, `ASH HOLDING — نعتذر، لم يتم اعتماد طلبك${reason ? `\nالسبب: ${reason}` : ""}`,
       { kind: "affiliate.rejected", entityId: a.id });
+    await logAudit(req, "affiliate.reject", "Affiliate", a.id, { reason });
     res.json({ affiliate: a });
   } catch (e) { next(e); }
 });
