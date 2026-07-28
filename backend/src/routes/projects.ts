@@ -1178,10 +1178,10 @@ projectsRouter.post("/requests/:id/sign", async (req, res, next) => {
     const year = now.getFullYear();
     const count = await prisma.invoice.count({ where: { invoiceNumber: { startsWith: `INV-${year}-` } } });
     const invoiceNumber = `INV-${year}-${String(count + 1).padStart(4, "0")}`;
-    const subtotal = Number(acc.request.proposalAmount);
     const taxRate = 15;
-    const taxAmount = +(subtotal * (taxRate / 100)).toFixed(2);
-    const total = +(subtotal + taxAmount).toFixed(2);
+    const total = +Number(acc.request.proposalAmount).toFixed(2);
+    const subtotal = +(total / (1 + taxRate / 100)).toFixed(2);
+    const taxAmount = +(total - subtotal).toFixed(2);
     const ref = shortRef("REQ", acc.request.id);
 
     const invoice = await prisma.invoice.create({
