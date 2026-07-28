@@ -23,7 +23,7 @@ import { formatDate } from "@/lib/format";
 import { Money } from "@/components/ui/money";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/_authenticated/client/projects")({
+export const Route = createFileRoute("/_authenticated/client/projects/")({
   component: ClientProjectsPage,
 });
 
