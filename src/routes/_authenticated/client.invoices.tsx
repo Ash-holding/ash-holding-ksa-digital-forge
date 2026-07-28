@@ -294,15 +294,43 @@ function InvoiceCard({ inv, index, onOpen, walletBal, onPayWallet, paying }: { i
             </span>
           )}
         </div>
-        <Button
-          size="sm"
-          variant={isPaid || isCancelled ? "outline" : "default"}
-          className="h-8 gap-1.5 text-[11px]"
-          onClick={onOpen}
-        >
-          {isPaid || isCancelled ? "التفاصيل" : (<><CreditCard className="h-3.5 w-3.5" /> ادفع الآن</>)}
-          <ArrowLeft className="h-3 w-3" />
-        </Button>
+        {(() => {
+          const total = Number(inv.total ?? 0);
+          const canPayWallet = !isPaid && !isCancelled && walletBal >= total && total > 0;
+          if (isPaid || isCancelled) {
+            return (
+              <Button size="sm" variant="outline" className="h-8 gap-1.5 text-[11px]" onClick={onOpen}>
+                التفاصيل
+                <ArrowLeft className="h-3 w-3" />
+              </Button>
+            );
+          }
+          if (canPayWallet) {
+            const after = walletBal - total;
+            return (
+              <ConfirmDialog
+                variant="default"
+                title="السداد من المحفظة الرقمية"
+                description={`سيتم خصم ${total.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س من رصيد محفظتك الحالي (${walletBal.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س). الرصيد بعد الخصم: ${after.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س. هل تريد المتابعة؟`}
+                confirmText={paying ? "جارٍ السداد..." : `تأكيد الخصم`}
+                cancelText="إلغاء"
+                onConfirm={async () => { await onPayWallet(); }}
+                trigger={
+                  <Button size="sm" variant="default" className="h-8 gap-1.5 text-[11px]" disabled={paying}>
+                    <Wallet className="h-3.5 w-3.5" />
+                    ادفع من المحفظة
+                  </Button>
+                }
+              />
+            );
+          }
+          return (
+            <Button size="sm" variant="default" className="h-8 gap-1.5 text-[11px]" onClick={onOpen}>
+              <CreditCard className="h-3.5 w-3.5" /> ادفع الآن
+              <ArrowLeft className="h-3 w-3" />
+            </Button>
+          );
+        })()}
       </div>
     </motion.article>
   );
