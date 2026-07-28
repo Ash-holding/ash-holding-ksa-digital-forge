@@ -608,7 +608,11 @@ projectsRouter.delete("/:id/messages/:messageId", requireStaff, async (req, res,
 // PROJECT REQUESTS  (client submits → admin reviews/approves)
 // ============================================================
 
-const REQUEST_STATUSES = ["PENDING", "UNDER_REVIEW", "APPROVED", "REJECTED", "CONVERTED"] as const;
+const REQUEST_STATUSES = [
+  "PENDING","UNDER_REVIEW","PROPOSAL_SENT","CLIENT_REVISION",
+  "AWAITING_SIGNATURE","SIGNED","IN_PROGRESS","DELIVERED",
+  "APPROVED","REJECTED","CONVERTED","COMPLETED",
+] as const;
 const REQUEST_PRIORITIES = ["LOW", "NORMAL", "HIGH", "URGENT"] as const;
 const REQUEST_CATEGORIES = [
   "WEBSITE","MOBILE_APP","ADMIN_SYSTEM","HOSTING","VPS","DEDICATED_SERVER",
