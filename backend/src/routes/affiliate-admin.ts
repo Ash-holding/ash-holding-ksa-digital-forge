@@ -554,10 +554,40 @@ affiliateAdminRouter.delete("/marketing/:id", async (req, res, next) => {
 // ============================================================
 // 8) RELEASE (matured commissions — manual trigger from admin UI)
 // ============================================================
-affiliateAdminRouter.post("/release", async (_req, res, next) => {
+affiliateAdminRouter.post("/release", async (req, res, next) => {
   try {
     const result = await releaseMaturedCommissions(500);
+    await logAudit(req, "affiliate.release", "Commission", null as unknown as string, result as unknown as Record<string, unknown>);
     res.json({ ok: true, ...result });
+  } catch (e) { next(e); }
+});
+
+// ============================================================
+// 9) FRAUD & ANOMALY DETECTION (read-only signals)
+// GET /api/admin/affiliate/fraud?days=30
+// ============================================================
+affiliateAdminRouter.get("/fraud", async (req, res, next) => {
+  try {
+    const windowDays = Math.min(90, Math.max(1, Number(req.query.days) || 30));
+    const alerts = await runFraudScan({ windowDays });
+    const affiliateIds = Array.from(new Set(alerts.flatMap((a) => a.affiliateIds)));
+    const affiliates = affiliateIds.length
+      ? await prisma.affiliate.findMany({
+          where: { id: { in: affiliateIds } },
+          select: { id: true, code: true, displayName: true, phone: true, status: true },
+        })
+      : [];
+    const byId = new Map(affiliates.map((a) => [a.id, a] as const));
+    res.json({
+      windowDays,
+      summary: {
+        high: alerts.filter((a) => a.severity === "HIGH").length,
+        medium: alerts.filter((a) => a.severity === "MEDIUM").length,
+        low: alerts.filter((a) => a.severity === "LOW").length,
+        total: alerts.length,
+      },
+      alerts: alerts.map((a) => ({ ...a, affiliates: a.affiliateIds.map((id) => byId.get(id) || { id }) })),
+    });
   } catch (e) { next(e); }
 });
 
