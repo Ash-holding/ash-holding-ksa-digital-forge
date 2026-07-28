@@ -114,3 +114,39 @@ financingRouter.post("/products/:id/quote", async (req, res) => {
 
   res.json({ product: { id: product.id, code: product.code, nameAr: product.nameAr }, quote });
 });
+
+// POST /api/financing/credit-preview — instant internal credit assessment.
+// Public / no auth: educational estimate only, not a final decision.
+const previewSchema = z.object({
+  amount: z.number().min(1000).max(2_000_000),
+  termMonths: z.number().int().min(1).max(120),
+  monthlyIncome: z.number().min(0).max(1_000_000),
+  monthlyObligations: z.number().min(0).max(1_000_000).default(0),
+  yearsOfService: z.number().min(0).max(50).default(0),
+  employmentType: z.enum(["GOVERNMENT", "MILITARY", "PRIVATE", "SELF_EMPLOYED", "FREELANCE", "OTHER"]).optional(),
+  businessName: z.string().optional(),
+  annualRevenue: z.number().min(0).optional(),
+  nationalId: z.string().optional(),
+});
+
+financingRouter.post("/credit-preview", (req, res) => {
+  const parsed = previewSchema.safeParse(req.body);
+  if (!parsed.success) {
+    return res.status(400).json({ error: "invalid_input", details: parsed.error.flatten() });
+  }
+  const d = parsed.data;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const report = computeInternalCreditReport({
+    amount: d.amount as unknown as never,
+    termMonths: d.termMonths,
+    monthlyIncome: d.monthlyIncome as unknown as never,
+    monthlyObligations: d.monthlyObligations as unknown as never,
+    yearsOfService: d.yearsOfService,
+    employmentType: d.employmentType ?? null,
+    employer: null,
+    annualRevenue: (d.annualRevenue ?? 0) as unknown as never,
+    businessName: d.businessName ?? null,
+    nationalId: d.nationalId ?? null,
+  } as never);
+  res.json({ report, preview: true });
+});
