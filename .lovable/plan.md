@@ -1,98 +1,116 @@
-# نظام التسويق بالعمولة (Affiliate System)
 
-نظام إنتاجي كامل داخل ash-holding.sa، مرتبط بقاعدة PostgreSQL الحالية وBackend الحالي وطبقة api-client، بدون Supabase وبدون مشروع منفصل.
+## نطاق العمل
 
-الحجم كبير جداً، لذا سأنفّذه على **6 مراحل مستقلة قابلة للتسليم**. كل مرحلة تنتهي بميزة قابلة للاستخدام فعلياً. أنتظر موافقتك ثم أبدأ بالمرحلة 1.
+بناء نظام **«تمويل خدمات ASH»** داخل الموقع الحالي (لا مشروع مستقل، لا Supabase) يمنح العميل — بعد دراسة ائتمانية داخلية — **رصيد شراء خدمي مقيّد** (Closed-Loop Service Credit) داخل محفظته لشراء خدمات شركة آش فقط. الرصيد:
+- ليس نقدًا، لا يُصرف، لا يُسحب، لا يُحوّل، لا يُستخدم خارج خدمات الشركة.
+- ينشأ عبر قرار داخلي موثق، ويُخصم آليًا عند شراء خدمة مرتبطة بالعقد.
+- يبقى النظام في وضع **«بيئة تجريبية — الاعتماد النهائي معطّل»** افتراضيًا حتى يرفع المستشار القانوني والاعتمادات المطلوبة من بوابة الامتثال.
 
----
+## ما نستخدمه من الموقع الحالي (لا إعادة بناء)
 
-## المرحلة 1 — الأساس والبيانات (Foundation)
+- `User` / `Client` / RBAC الحالي + إضافة أدوار جديدة.
+- `Invoice` / `InvoiceItem` كفواتير أقساط وخدمات ممولة.
+- `Contract` (توسعة للربط بعقد التمويل).
+- `Wallet` / `WalletTransaction` الحالية تبقى للمحفظة النقدية العادية؛ **نضيف محفظة منفصلة** `ServiceCreditWallet` مع دفتر Ledger منفصل لا يختلط بالمحفظة النقدية.
+- `PaymentIntent` / بوابة الدفع الحالية لسداد الأقساط.
+- WhatsApp/SMS/Email عبر طبقة `WA` الموجودة.
+- `AuditLog` الحالي + جدول تدقيق مالي مستقل غير قابل للتعديل.
 
-- تحديث `prisma/schema.prisma` بالجداول التالية مع فهارس وقيود:
-  `Affiliate`, `AffiliateApplication`, `AffiliateCampaign`, `AffiliateLink`,
-  `AffiliateClick`, `AffiliateAttribution`, `AffiliateCustomer`,
-  `CommissionRule`, `Commission`, `AffiliateLedgerEntry`,
-  `PayoutMethod`, `AffiliatePayoutAccount`, `WithdrawalRequest`,
-  `MarketingMaterial`, `AffiliateNotification`, `AffiliateAuditLog`.
-- إضافة أدوار جديدة في نظام RBAC الحالي:
-  `AFFILIATE_MANAGER`, `AFFILIATE`, `FINANCE_REVIEWER` (بجانب SUPER_ADMIN).
-- إضافة `AffiliateSettings` (مفاتيح: cookie_days=30, hold_days=14,
-  min_withdrawal, attribution_model=last_click, system_enabled).
-- ledger مالي غير قابل للتلاعب: `INSERT-only`، حساب الأرصدة عبر SUM
-  مع Snapshot أداء.
-- Migration + prisma db push.
+## هيكل التنفيذ التدريجي (Phases)
 
-## المرحلة 2 — التتبع والإسناد (Tracking)
+نبني على 6 مراحل قابلة للنشر، كل مرحلة قابلة للاختبار وحدها. **هذا الطلب يغطي المرحلة 1 و2**، والباقي على دفعات لاحقة (بموافقتك) لأن الحجم كبير جدًا.
 
-- Middleware يلتقط `?ref=CODE` + UTM ويحفظ Cookie موقّع 30 يوم.
-- Endpoint `POST /api/affiliate/track/click` يسجّل زيارة server-side
-  (device/browser/geo/referrer/session_id).
-- Hash للـ IP (لا يُخزّن الكامل، للحماية فقط).
-- ربط الجلسة بالعميل عند التسجيل → `AffiliateAttribution`.
-- Last-Valid-Click افتراضاً، قابل للتغيير من الإعدادات.
-- منع self-referral.
+### Phase 1 — الأساس (Schema + RBAC + Compliance Gate + Products)
+- Prisma migration بإضافة الجداول أدناه فقط، مع Grants و Indexes.
+- إضافة أدوار: `CREDIT_ANALYST` `CREDIT_MANAGER` `RISK_OFFICER` `COMPLIANCE_OFFICER` `LEGAL_OFFICER` `COLLECTIONS_OFFICER` `CFO` `CREDIT_COMMITTEE` `FINAL_APPROVER` `INTERNAL_AUDITOR`.
+- **بوابة الامتثال** `financing_settings` تحمل علم `productionEnabled=false` وقائمة الاعتمادات المطلوبة؛ أي endpoint حاسم يفحص العلم ويرفض بـ 423 Locked قبل التفعيل.
+- إدارة `FinancingProduct` + خدمات مشمولة (CRUD في لوحة الإدارة، لا نشر قبل الاعتماد القانوني).
 
-## المرحلة 3 — تسجيل ولوحة المسوق
+### Phase 2 — الواجهة العامة + الحاسبة + قسم «التمويل»
+- Public routes: `financing/`, `financing/how`, `financing/calculator`, `financing/eligibility`, `financing/services`, `financing/faq`, `financing/apply`, `financing/track`, `financing/complaints`.
+- الحاسبة تعتمد على `GET /api/financing/products/:id/quote?amount&term&down` من الخادم — **لا حساب في المتصفح**.
+- كل صفحة تعرض التنبيه: "النتيجة تقديرية ولا تمثل موافقة أو عرضًا نهائيًا" ولا تستخدم أي عبارة ادعاء ترخيص.
 
-- صفحة عامة `/affiliate/join` — نموذج طلب انضمام + رفع مستندات.
-- Route `_authenticated/affiliate/` محمي بدور AFFILIATE:
-  - `dashboard` — KPIs + رسوم (recharts) + فترات زمنية.
-  - `links` — إنشاء روابط/حملات + QR + نسخ + مشاركة.
-  - `customers` — جدول العملاء المحالين (بيانات مخفية للخصوصية).
-  - `commissions` — pending/available/paid/reversed.
-  - `wallet` — Ledger + طلب سحب.
-  - `payout-accounts` — إدارة IBAN مع تحقق سعودي + تشفير.
-  - `marketing-center` — أدلة ومكتبة محتوى + زر نسخ.
-  - `profile` — بياناته وحالة الحساب.
+### Phase 3 — الطلبات (فرد/منشأة) + الموافقات + المستندات + التحقق
+- Wizard متعدد الخطوات مع حفظ Draft تلقائي وشريط نسبة اكتمال.
+- Consent متعدد (لكل غرض سجل مستقل بـ Hash/IP/UA/إصدار).
+- رفع مستندات (Malware/mime/hash/versions).
+- Integrations Registry: بطاقات مزودين (نفاذ/سمة/يقين/IBAN…) بحالة "غير متصل" افتراضيًا؛ لا نتائج وهمية.
 
-## المرحلة 4 — محرك العمولة و Webhook الدفع
+### Phase 4 — التقييم الائتماني + الاحتيال + المراجعة + الاعتماد
+- محرك تقييم داخلي بإصدارات مسجّلة و Snapshot لكل قرار.
+- محرك احتيال بقواعد يُدار من الإدارة (لا رفض تلقائي بمؤشر واحد).
+- Approval Matrix متعدد المستويات مع مبدأ الفصل بين المهام (منشئ ≠ معتمد).
 
-- `commission-engine.ts` مع ترتيب أولويات القواعد المطلوب.
-- Snapshot للنسبة/القاعدة داخل سجل Commission.
-- Webhook `POST /api/public/affiliate/payment-webhook`:
-  - التحقق من HMAC signature.
-  - Idempotency key (منع تكرار).
-  - Database transaction: إنشاء Commission + LedgerEntry `pending`.
-  - إشعار فوري + WhatsApp عبر SmartWats.
-- Cron job (يومي): نقل `pending → available` بعد hold_days.
-- Endpoint استرجاع/إلغاء → عكس تلقائي مع سبب.
+### Phase 5 — العرض + العقد + القبول الإلكتروني + تفعيل الرصيد
+- `financing_offers` مع snapshot مجمّد بعد قبول العميل.
+- قوالب عقود بإصدارات + توليد PDF نهائي بـ SHA-256 و Verification ID و QR (نستفيد من `contract-print.ts` القائم).
+- OTP عبر WhatsApp + SMS، مع Evidence Bundle كامل. عبارة "قبول إلكتروني موثق بالأدلة".
+- تفعيل الرصيد يتطلب موافقة شخص ثانٍ + OTP للمفوّض النهائي + `productionEnabled=true`.
 
-## المرحلة 5 — لوحة الإدارة الكاملة
+### Phase 6 — Ledger + شراء الخدمات + الأقساط + التحصيل + لوحات + تقارير
+- Ledger append-only مع Idempotency Keys و Row Locking عبر `SELECT … FOR UPDATE`.
+- شراء الخدمة: `BEGIN TRANSACTION → HOLD → CREATE ORDER → CREATE INVOICE → CAPTURE → RELEASE_HOLD_ON_FAIL`.
+- جدولة الأقساط + Webhook الدفع (Signature verify + idempotent).
+- لوحة الإدارة الفرعية «التمويل» + KPIs + تقارير CSV/Excel/PDF.
+- شكاوى/اعتراضات مع اعتراض مستقل على القرار الائتماني.
 
-Route `_authenticated/admin/affiliates/` مع 17 قسم فرعي مطلوب
-(نظرة عامة، طلبات الانضمام، المسوقون، الحملات، الروابط، الأكواد،
-قواعد العمولات، الزيارات، العملاء، المبيعات، العمولات، السحوبات،
-وسائل السحب، المكافآت، المحتوى، الإعدادات، التقارير، سجل التدقيق).
-- اعتماد/رفض المسوقين + تعديل نسب + مكافآت يدوية (تتطلب سبب + Audit).
-- مراجعة السحوبات مع رفع إيصال تحويل.
-- تصدير CSV/Excel/PDF.
+## قاعدة البيانات (المرحلة 1 فقط الآن)
 
-## المرحلة 6 — السحوبات + الإشعارات + الحماية النهائية
+سنضيف في المهاجرة الأولى — الباقي في مهاجرات لاحقة لتقليل المخاطر:
 
-- تدفق السحب الكامل مع حجز الرصيد + OTP للتغييرات الحساسة.
-- إشعارات نظام + بريد + WhatsApp لكل الأحداث المطلوبة.
-- Rate limiting على endpoints العمولة.
-- Anti-fraud: كشف تكرار الأجهزة/الحسابات (fingerprint hash).
-- اختبار end-to-end للسيناريو الكامل:
-  زيارة → تسجيل → شراء → عمولة معلقة → متاحة → سحب → تحويل → استرجاع → عكس.
+```text
+financing_products
+financing_product_services
+financing_settings           -- بوابة الامتثال + Feature flags
+compliance_approvals         -- الرأي القانوني + السياسات
+financing_audit_logs         -- تدقيق مستقل غير قابل للتعديل
+```
 
----
+كل الجداول:
+- `id uuid`, `createdAt`, `updatedAt`, `createdById`, Foreign Keys, Indexes.
+- Grants لـ `authenticated`/`service_role`.
+- Constraints: `amount_min >= 5000`, `amount_max <= 500000`, `amount_min <= amount_max`.
 
-## ملاحظات تقنية
+## نقاط الربط مع الكود الحالي
 
-- **Backend**: أضيف المسارات داخل `backend/src/routes/affiliate/*` وأسجّلها في
-  الـ router الحالي. Zod validation على كل endpoint.
-- **Frontend**: TanStack Router + Query (نفس النمط الحالي). ملفات routes
-  تحت `src/routes/_authenticated/affiliate/*` و`src/routes/_authenticated/admin/affiliates/*`.
-- **api-client**: أضيف قسم `affiliate` بنفس النمط الحالي.
-- **UI**: IBM Plex Sans Arabic، RTL، Framer Motion، Lucide، بدون صور مولّدة.
-- **PDF/Excel**: أستخدم `jspdf` و`xlsx` الموجودَين مسبقاً.
-- **QR**: مكتبة `qrcode` الموجودة.
+- `backend/src/routes/financing.ts` (عام + عميل) و`backend/src/routes/financing-admin.ts` (إدارة).
+- تسجيل الراوترات في `backend/src/server.ts` تحت `/api/financing` و`/api/admin/financing`.
+- Middleware جديد `requireFinancingRole` يقرأ من الأدوار الجديدة.
+- Middleware `requireProductionEnabled` يمنع القرارات النهائية في بيئة تجريبية.
+- استفادة من `contract-print.ts` و`invoice-print.ts` القائمين لتوليد PDF.
+- لا تعديل على مسارات `/api/wallet` الحالية — نفصل تحت `/api/financing/wallet`.
 
----
+## الملفات المتوقع إنشاؤها في المرحلتين 1+2
 
-## سؤال قبل البدء
+Backend:
+- `backend/prisma/migrations/<ts>_financing_phase1/migration.sql`
+- تعديل `backend/prisma/schema.prisma` بالجداول الخمسة.
+- `backend/src/routes/financing.ts` (calculator + products list + apply-draft).
+- `backend/src/routes/financing-admin.ts` (products CRUD + compliance).
+- `backend/src/lib/financing/calculator.ts` (خدمة الحساب على الخادم).
+- `backend/src/middleware/financing.ts` (RBAC + production gate).
 
-هل تريدني أبدأ بـ **المرحلة 1 (قاعدة البيانات + الأدوار + الإعدادات)** الآن،
-أم تفضّل أن أبدأ بمرحلة أخرى أولاً (مثلاً لوحة الإدارة بواجهة فارغة أولاً
-ثم نبني الخلفية)؟
+Frontend:
+- `src/routes/financing.tsx` (Layout قسم التمويل).
+- `src/routes/financing.index.tsx` (الصفحة التعريفية).
+- `src/routes/financing.how.tsx`, `financing.calculator.tsx`, `financing.eligibility.tsx`, `financing.services.tsx`, `financing.faq.tsx`, `financing.complaints.tsx`, `financing.apply.tsx`, `financing.track.tsx`.
+- `src/components/financing/*` (Calculator, EligibilityRing, JourneyStepper, DisclaimerBar).
+- `src/routes/_authenticated/admin.financing.tsx` + subroutes (products, compliance).
+- إضافة رابط "التمويل" في Header + Footer + Admin Sidebar.
+
+## قواعد صارمة أثناء التنفيذ
+
+- TypeScript strict، عربي RTL، `IBM Plex Sans Arabic` (يُحمَّل عبر `<link>` في `__root.tsx`).
+- Mobile-first، Framer Motion مع دعم `prefers-reduced-motion`، لا Emoji، لا صور مولّدة، لا أنيميشن داخل PDF.
+- بدون بيانات وهمية إطلاقًا في الإنتاج — كل رقم يأتي من API.
+- بدون قرارات مالية في الفرونت، بدون مفاتيح تكامل في المتصفح.
+- `AuditLog` لكل تغيير حالة/قرار مع IP وUA والموظف والسبب.
+- Idempotency-Key + Database Transactions + Row Locks لكل عملية مالية.
+- بوابة الامتثال ترفض القرارات النهائية بـ HTTP 423 حتى يفعّل المفوض الإنتاج.
+
+## ما نحتاج قرارك فيه قبل البدء
+
+1. هل نبدأ فعليًا بـ **Phase 1 + Phase 2** الآن (Schema + بوابة الامتثال + منتجات التمويل + قسم «التمويل» العام + الحاسبة)، ونؤجل بقية المراحل لدفعات لاحقة بموافقتك؟
+2. هل تريد أن يكون الرابط الجديد في هيدر الموقع **«التمويل»** أم **«تمويل خدمات ASH»**؟
+3. هل تفضّل ظهور بطاقة «التمويل» في لوحة العميل الحالية فور المرحلة 2 (بصفة "قريبًا")، أم نؤجلها للمرحلة 5؟
