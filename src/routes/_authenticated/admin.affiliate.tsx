@@ -790,3 +790,113 @@ function MiniStat({ label, value, tone }: { label: string; value: number; tone: 
     </div>
   );
 }
+
+// ─────────────────────────── APPLICATIONS ───────────────────────────
+function ApplicationsPane() {
+  const qc = useQueryClient();
+  const [status, setStatus] = useState<string>("NEW");
+  const [rejectFor, setRejectFor] = useState<{ id: string; name: string } | null>(null);
+  const [reason, setReason] = useState("");
+
+  const { data, isLoading } = useQuery({
+    queryKey: ["admin", "affiliate", "applications", status],
+    queryFn: async () => (await api.get("/admin/affiliate/applications", { params: { status } })).data,
+    refetchInterval: 15_000,
+  });
+
+  const approve = useMutation({
+    mutationFn: async (id: string) => (await api.post(`/admin/affiliate/applications/${id}/approve`)).data,
+    onSuccess: () => {
+      toast.success("تم اعتماد الطلب وإنشاء حساب المسوّق");
+      qc.invalidateQueries({ queryKey: ["admin", "affiliate"] });
+    },
+    onError: (e: any) => toast.error(e.response?.data?.error || "تعذّر الاعتماد"),
+  });
+
+  const reject = useMutation({
+    mutationFn: async ({ id, reason }: { id: string; reason?: string }) =>
+      (await api.post(`/admin/affiliate/applications/${id}/reject`, { reason })).data,
+    onSuccess: () => {
+      toast.success("تم رفض الطلب");
+      setRejectFor(null); setReason("");
+      qc.invalidateQueries({ queryKey: ["admin", "affiliate"] });
+    },
+    onError: (e: any) => toast.error(e.response?.data?.error || "تعذّر الرفض"),
+  });
+
+  const statuses = [
+    { v: "NEW", label: "جديدة" },
+    { v: "UNDER_REVIEW", label: "قيد المراجعة" },
+    { v: "APPROVED", label: "معتمدة" },
+    { v: "REJECTED", label: "مرفوضة" },
+    { v: "ALL", label: "الكل" },
+  ];
+
+  return (
+    <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Select value={status} onValueChange={setStatus}>
+          <SelectTrigger className="w-48"><SelectValue/></SelectTrigger>
+          <SelectContent>{statuses.map((s) => <SelectItem key={s.v} value={s.v}>{s.label}</SelectItem>)}</SelectContent>
+        </Select>
+        <div className="text-sm text-muted-foreground mr-auto">الإجمالي: {data?.items?.length ?? 0}</div>
+      </div>
+
+      {isLoading ? (
+        <div className="grid gap-2">{Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-24"/>)}</div>
+      ) : (
+        <div className="grid gap-2">
+          {(data?.items ?? []).map((a: any) => (
+            <Card key={a.id} className="hover:border-primary/40 transition">
+              <CardContent className="p-4 flex flex-wrap items-center gap-3">
+                <div className="flex-1 min-w-[240px]">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-semibold">{a.fullName}</span>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{a.type === "COMPANY" ? "شركة" : "فرد"}</span>
+                    <StatusChip status={a.status}/>
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5 flex flex-wrap gap-x-3 gap-y-1">
+                    <span>{a.email}</span>
+                    <span>{a.phone}</span>
+                    <span>{a.city || "—"} / {a.country}</span>
+                    <span>{formatDate(a.createdAt)}</span>
+                  </div>
+                  {a.notes && <div className="text-xs mt-1 text-foreground/80">ملاحظة: {a.notes}</div>}
+                  {a.reviewNote && <div className="text-xs mt-1 text-destructive/80">سبب الرفض: {a.reviewNote}</div>}
+                  {a.affiliate?.code && <div className="text-xs mt-1 text-primary">كود المسوّق: {a.affiliate.code}</div>}
+                </div>
+                <div className="flex items-center gap-1">
+                  {(a.status === "NEW" || a.status === "UNDER_REVIEW") && (
+                    <>
+                      <Button size="sm" onClick={() => approve.mutate(a.id)} disabled={approve.isPending} className="gap-1">
+                        <CheckCircle2 className="w-4 h-4"/>اعتماد
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setRejectFor({ id: a.id, name: a.fullName })} className="gap-1">
+                        <XCircle className="w-4 h-4"/>رفض
+                      </Button>
+                    </>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+          {!data?.items?.length && <p className="text-center text-muted-foreground py-8">لا توجد طلبات</p>}
+        </div>
+      )}
+
+      <Dialog open={!!rejectFor} onOpenChange={(o) => { if (!o) { setRejectFor(null); setReason(""); } }}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>رفض طلب {rejectFor?.name}</DialogTitle></DialogHeader>
+          <Label>سبب الرفض (اختياري — يُرسل عبر واتساب)</Label>
+          <Textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={4} placeholder="اذكر السبب باختصار…"/>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setRejectFor(null); setReason(""); }}>إلغاء</Button>
+            <Button variant="destructive" disabled={reject.isPending} onClick={() => rejectFor && reject.mutate({ id: rejectFor.id, reason: reason.trim() || undefined })}>
+              تأكيد الرفض
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
