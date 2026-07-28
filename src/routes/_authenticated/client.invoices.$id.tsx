@@ -283,7 +283,7 @@ function MethodCard({ active, onClick, icon: Icon, title, subtitle, badge, badge
   );
 }
 
-function BankLine({ k, v, mono, onCopy, copied }: any) {
+function BankLine({ k, v, mono, onCopy, copied }: { k: string; v: string; mono?: boolean; onCopy: (v: string) => void; copied: boolean }) {
   return (
     <div className="flex items-center justify-between gap-2 py-1 border-b border-border/40 last:border-0">
       <span className="text-[11px] text-muted-foreground shrink-0">{k}</span>
