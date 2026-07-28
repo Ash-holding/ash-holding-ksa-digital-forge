@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { InternalCreditReportPanel, type CreditReport } from "@/components/financing/InternalCreditReport";
 
 export const Route = createFileRoute("/_authenticated/admin/financing/$id")({
   component: AdminFinancingDetail,
