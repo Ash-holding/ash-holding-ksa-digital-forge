@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Users, FolderKanban, Boxes, FileText, ScrollText,
   LifeBuoy, CreditCard, Files, UserCog, Settings, ClipboardList,
-  Menu, X, LogOut, Bell, Search, ChevronsLeft, BarChart3, Inbox,
+  Menu, X, LogOut, Bell, Search, ChevronsLeft, BarChart3, Inbox, Wallet,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -25,6 +25,7 @@ const ITEMS: NavItem[] = [
   { to: "/admin/projects", label: "المشاريع", icon: FolderKanban },
   { to: "/admin/services", label: "الخدمات", icon: Boxes },
   { to: "/admin/invoices", label: "الفواتير", icon: FileText },
+  { to: "/admin/wallet", label: "المحافظ الرقمية", icon: Wallet },
   { to: "/admin/contracts", label: "العقود", icon: ScrollText },
   { to: "/admin/support", label: "الدعم", icon: LifeBuoy },
   { to: "/admin/payments", label: "المدفوعات", icon: CreditCard },

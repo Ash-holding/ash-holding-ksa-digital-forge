@@ -6,6 +6,7 @@ import { currentClientId, isStaff, paging } from "../lib/scope.js";
 import { logAudit } from "../lib/audit.js";
 import { WA } from "../lib/whatsapp.js";
 import { activateRequestIfInvoicePaid } from "./projects.js";
+import { awardCashback, ensureWallet } from "./wallet.js";
 
 async function clientPhone(clientId: string): Promise<string | null> {
   const c = await prisma.client.findUnique({
@@ -151,8 +152,121 @@ invoicesRouter.post("/:id/mark-paid", requireStaff, async (req, res, next) => {
       `ASH HOLDING — تم استلام الدفع ✅\nفاتورة: ${inv.invoiceNumber}\nالمبلغ: ${inv.total} ${inv.currency}\nشكراً لتعاملكم معنا.`,
       { kind: "invoice.paid", entityId: inv.id },
     );
+    awardCashback(inv.clientId, inv.id, Number(inv.total)).catch((e) => console.error("[cashback]", e));
     activateRequestIfInvoicePaid(inv.id).catch((e) => console.error("[activate-request]", e));
     res.json({ invoice: inv });
+  } catch (e) { next(e); }
+});
+
+/** Pay invoice using wallet balance (client) */
+invoicesRouter.post("/:id/pay-wallet", async (req, res, next) => {
+  try {
+    const inv = await prisma.invoice.findUnique({ where: { id: req.params.id } });
+    if (!inv) return res.status(404).json({ error: "غير موجود" });
+    if (!isStaff(req)) {
+      const cid = await currentClientId(req);
+      if (inv.clientId !== cid) return res.status(403).json({ error: "Forbidden" });
+    }
+    if (inv.status === "PAID") return res.status(400).json({ error: "الفاتورة مسددة" });
+
+    const wallet = await ensureWallet(inv.clientId);
+    const amount = Number(inv.total);
+    if (Number(wallet.balance) < amount) return res.status(400).json({ error: "الرصيد غير كافٍ" });
+
+    const result = await prisma.$transaction(async (db) => {
+      const w = await db.wallet.update({
+        where: { id: wallet.id },
+        data: { balance: { decrement: amount } },
+      });
+      const payment = await db.payment.create({
+        data: {
+          clientId: inv.clientId,
+          invoiceId: inv.id,
+          amount,
+          currency: inv.currency,
+          method: "WALLET",
+          status: "SUCCESS",
+          paidAt: new Date(),
+          notes: `سُدد من المحفظة الرقمية`,
+        },
+      });
+      await db.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          type: "PAYMENT",
+          status: "APPROVED",
+          amount: -amount,
+          balanceAfter: w.balance,
+          invoiceId: inv.id,
+          paymentId: payment.id,
+          approvedAt: new Date(),
+          note: `سداد الفاتورة ${inv.invoiceNumber}`,
+        },
+      });
+      const invoiceUpdated = await db.invoice.update({
+        where: { id: inv.id },
+        data: { status: "PAID", paidAt: new Date() },
+      });
+      return { w, payment, invoiceUpdated };
+    });
+
+    await logAudit(req, "invoice.pay_wallet", "Invoice", inv.id);
+    const phone = await clientPhone(inv.clientId);
+    WA.notify(phone,
+      [
+        `🏦 *سداد فاتورة من المحفظة*`,
+        `━━━━━━━━━━━━━━`,
+        `فاتورة: ${inv.invoiceNumber}`,
+        `المبلغ: ${amount.toLocaleString("ar-SA")} ر.س`,
+        `الرصيد المتبقي: ${Number(result.w.balance).toLocaleString("ar-SA")} ر.س`,
+      ].join("\n"),
+      { kind: "invoice.pay_wallet", entityId: inv.id },
+    );
+    awardCashback(inv.clientId, inv.id, amount).catch((e) => console.error("[cashback]", e));
+    activateRequestIfInvoicePaid(inv.id).catch((e) => console.error("[activate-request]", e));
+    res.json({ invoice: result.invoiceUpdated, payment: result.payment, wallet: result.w });
+  } catch (e) { next(e); }
+});
+
+/** Client submits bank-transfer notification (creates PENDING payment) */
+invoicesRouter.post("/:id/submit-bank-transfer", async (req, res, next) => {
+  try {
+    const body = z.object({
+      bankRef: z.string().optional().nullable(),
+      note: z.string().optional().nullable(),
+    }).parse(req.body ?? {});
+    const inv = await prisma.invoice.findUnique({ where: { id: req.params.id } });
+    if (!inv) return res.status(404).json({ error: "غير موجود" });
+    if (!isStaff(req)) {
+      const cid = await currentClientId(req);
+      if (inv.clientId !== cid) return res.status(403).json({ error: "Forbidden" });
+    }
+    const payment = await prisma.payment.create({
+      data: {
+        clientId: inv.clientId,
+        invoiceId: inv.id,
+        amount: Number(inv.total),
+        currency: inv.currency,
+        method: "BANK_TRANSFER",
+        status: "PENDING",
+        transactionRef: body.bankRef || null,
+        notes: body.note || "إشعار تحويل بنكي من العميل قيد التحقق",
+      },
+    });
+    await logAudit(req, "invoice.bank_transfer.submit", "Invoice", inv.id);
+    const phone = await clientPhone(inv.clientId);
+    WA.notify(phone,
+      [
+        `🏦 *إشعار تحويل بنكي قيد المراجعة*`,
+        `━━━━━━━━━━━━━━`,
+        `فاتورة: ${inv.invoiceNumber}`,
+        `المبلغ: ${Number(inv.total).toLocaleString("ar-SA")} ر.س`,
+        body.bankRef ? `المرجع: ${body.bankRef}` : "",
+        `سيتم تأكيد السداد فور التحقق من الحوالة.`,
+      ].filter(Boolean).join("\n"),
+      { kind: "invoice.bank_transfer", entityId: inv.id },
+    );
+    res.status(201).json({ payment });
   } catch (e) { next(e); }
 });
 
