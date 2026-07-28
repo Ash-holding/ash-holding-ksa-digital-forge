@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { FileText, Download, ShieldCheck, ArrowRight, CheckCircle2 } from "lucide-react";
+import { FileText, Download, ShieldCheck, ArrowRight, CheckCircle2, ScrollText } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { ClientPageHeader } from "@/components/client/ClientPageHeader";
 import { Button } from "@/components/ui/button";
