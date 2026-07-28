@@ -1272,6 +1272,11 @@ model FinancingSetting {
   lastReviewedAt       DateTime?
   publicContactEmail   String?
   complaintsEmail      String?
+  reminderDaysBefore   Int      @default(3)
+  gracePeriodDays      Int      @default(3)
+  latePenaltyPct       Decimal  @default(1.0) @db.Decimal(6,3)
+  latePenaltyCapPct    Decimal  @default(5.0) @db.Decimal(6,3)
+  autopayDefaultOn     Boolean  @default(true)
   createdAt            DateTime @default(now())
   updatedAt            DateTime @updatedAt
 }
@@ -1517,6 +1522,8 @@ model FinancingContract {
   disbursedTxId       String?
   cancelledAt         DateTime?
   cancelReasonAr      String?
+  autopayEnabled      Boolean                    @default(true)
+  autopayFailures     Int                        @default(0)
 
   createdAt           DateTime                   @default(now())
   updatedAt           DateTime                   @updatedAt
@@ -1545,6 +1552,9 @@ model FinancingInstallment {
   paidAmount   Decimal?                   @db.Decimal(14, 2)
   paidTxId     String?
   note         String?
+  penaltyAmount Decimal                   @default(0) @db.Decimal(14, 2)
+  remindersSent Int                       @default(0)
+  lastReminderAt DateTime?
   createdAt    DateTime                   @default(now())
 
   contract     FinancingContract          @relation(fields: [contractId], references: [id], onDelete: Cascade)

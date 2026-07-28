@@ -31,6 +31,7 @@ import { financingAdminRouter } from "./routes/financing-admin.js";
 import { financingApplicationsRouter } from "./routes/financing-applications.js";
 import { financingApplicationsAdminRouter } from "./routes/financing-applications-admin.js";
 import { financingContractsRouter } from "./routes/financing-contracts.js";
+import { financingOpsRouter, financingOpsPublicRouter } from "./routes/financing-ops.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rate-limit.js";
 
@@ -59,6 +60,7 @@ app.use("/api/whatsapp", whatsappRouter);
 app.use("/api/verify", verifyRouter); // public — receipt/invoice verification
 app.use("/api/track", trackRouter);   // public — affiliate click/attribution tracking
 app.use("/api/financing", financingRouter); // public read-only financing info (products, quote)
+app.use("/api/public/financing", financingOpsPublicRouter); // cron endpoints (secured by CRON_SECRET)
 
 // General API rate limit for everything below
 app.use("/api", apiLimiter);
@@ -82,6 +84,7 @@ app.use("/api/financing/applications", financingApplicationsRouter);
 app.use("/api/admin/financing/applications", financingApplicationsAdminRouter);
 app.use("/api/admin/financing", financingAdminRouter);
 app.use("/api/financing", financingContractsRouter);
+app.use("/api/financing", financingOpsRouter);
 
 app.use("/api", notFoundHandler);
 app.use(errorHandler);

@@ -26,6 +26,7 @@ type Contract = {
   firstDueDate?: string | null; lastDueDate?: string | null;
   clientSignedAt?: string | null; clientSignatureName?: string | null; clientSignatureHash?: string | null;
   activatedAt?: string | null;
+  autopayEnabled?: boolean;
   application?: { code?: string; fullNameAr?: string | null; nationalId?: string | null; businessName?: string | null };
   product?: { nameAr?: string; code?: string };
   installments: Array<{
@@ -68,7 +69,17 @@ function ClientContractDetail() {
     onError: (e) => toast.error(apiError(e) || "تعذر توقيع العقد"),
   });
 
+  const toggleAutopay = useMutation({
+    mutationFn: (enabled: boolean) => api.patch(`/financing/contracts/${id}/autopay`, { enabled }),
+    onSuccess: (_r, enabled) => {
+      toast.success(enabled ? "✅ تم تفعيل السداد التلقائي" : "تم إيقاف السداد التلقائي");
+      qc.invalidateQueries({ queryKey: ["client-fin-contract", id] });
+    },
+    onError: (e) => toast.error(apiError(e) || "تعذر تحديث السداد التلقائي"),
+  });
+
   if (isLoading || !data) return <div className="p-8 text-sm text-muted-foreground">جاري التحميل…</div>;
+
 
   const canSign = data.status === "AWAITING_CLIENT_SIGNATURE";
   const canDownload = ["SIGNED", "ACTIVE", "COMPLETED"].includes(data.status);
@@ -104,6 +115,27 @@ function ClientContractDetail() {
           </Link>
         </motion.div>
       )}
+
+      {/* Autopay toggle (only when contract is ACTIVE) */}
+      {data.status === "ACTIVE" && (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-3">
+          <div>
+            <div className="text-sm font-bold">💳 السداد التلقائي من المحفظة</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              عند التفعيل، يتم خصم القسط تلقائياً في تاريخ الاستحقاق من رصيد محفظتك.
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant={data.autopayEnabled ? "default" : "outline"}
+            onClick={() => toggleAutopay.mutate(!data.autopayEnabled)}
+            disabled={toggleAutopay.isPending}
+          >
+            {data.autopayEnabled ? "مفعّل" : "متوقف"}
+          </Button>
+        </div>
+      )}
+
 
       {/* Key figures */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
