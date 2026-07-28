@@ -134,6 +134,7 @@ invoicesRouter.patch("/:id", requireStaff, async (req, res, next) => {
     await logAudit(req, "invoice.update", "Invoice", updated.id, body as never);
     if (body.status === "PAID") {
       activateRequestIfInvoicePaid(updated.id).catch((e) => console.error("[activate-request]", e));
+      awardCashback(updated.clientId, updated.id, Number(updated.total)).catch((e) => console.error("[cashback]", e));
     }
     res.json({ invoice: updated });
   } catch (e) { next(e); }
