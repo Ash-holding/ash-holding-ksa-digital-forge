@@ -84,13 +84,16 @@ function ClientContractDetail() {
                 </Button>
               </div>
             ) : (
-              <div className="rounded-2xl border border-amber-400/30 bg-amber-500/5 p-4 flex items-center gap-3">
-                <div className="h-10 w-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
-                  <Lock className="h-5 w-5 text-amber-400" />
+              <div className="rounded-2xl border border-amber-400/40 bg-amber-500/10 p-4 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                  <Lock className="h-5 w-5 text-amber-600 dark:text-amber-300" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-bold text-foreground">العقد الرسمي مُقفَل</div>
-                  <div className="text-xs text-muted-foreground">سيُتاح تحميل العقد بعد التوقيع الرقمي وسداد الفاتورة.</div>
+                  <div className="text-sm font-bold text-foreground">العقد الرسمي قيد الإنشاء</div>
+                  <div className="text-xs text-foreground/70 leading-relaxed mt-0.5">
+                    يُنشأ العقد ويصبح متاحاً للقراءة والتحميل بصيغة PDF فور اكتمال: <strong>التوقيع الرقمي</strong> ثم <strong>سداد الفاتورة</strong>.
+                    {paidInvoice?.status && paidInvoice.status !== "PAID" && <> — الفاتورة {paidInvoice.invoiceNumber} بانتظار السداد.</>}
+                  </div>
                 </div>
               </div>
             )}
