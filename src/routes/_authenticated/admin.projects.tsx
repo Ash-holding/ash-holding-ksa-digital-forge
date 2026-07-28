@@ -66,7 +66,7 @@ function ProjectsPage() {
 
   const columns: Column<Row>[] = [
     { key: "title", header: "المشروع", render: (r) => (
-      <Link to="/admin/clients/$id" params={{ id: r.client.id }} className="min-w-0 block hover:text-electric">
+      <Link to="/admin/projects/$id" params={{ id: r.id }} className="min-w-0 block hover:text-electric">
         <div className="font-semibold truncate">{r.title}</div>
         <div className="text-[11px] text-muted-foreground truncate">{r.client.user.name}</div>
       </Link>
@@ -81,7 +81,10 @@ function ProjectsPage() {
     { key: "budget", header: "الميزانية", render: (r) => r.budget ? <Money value={r.budget} /> : "—", hideOnMobile: true },
     { key: "due", header: "الاستحقاق", render: (r) => formatDate(r.dueDate), hideOnMobile: true },
     { key: "actions", header: "", render: (r) => (
-      <div onClick={(e) => e.stopPropagation()}>
+      <div onClick={(e) => e.stopPropagation()} className="flex items-center gap-1 justify-end">
+        <Button asChild size="sm" variant="ghost" className="h-8 px-2 text-xs">
+          <Link to="/admin/projects/$id" params={{ id: r.id }}>فتح</Link>
+        </Button>
         <ConfirmDialog title="حذف المشروع" description="سيتم حذف المشروع نهائياً."
           onConfirm={async () => { await del.mutateAsync(r.id); }}
           trigger={<Button size="sm" variant="ghost" className="text-rose-400 h-8 w-8 p-0"><Trash2 className="h-4 w-4" /></Button>}
