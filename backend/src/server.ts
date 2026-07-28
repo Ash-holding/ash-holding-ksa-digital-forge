@@ -62,6 +62,7 @@ app.use("/api/verify", verifyRouter); // public — receipt/invoice verification
 app.use("/api/track", trackRouter);   // public — affiliate click/attribution tracking
 app.use("/api/financing", financingRouter); // public read-only financing info (products, quote)
 app.use("/api/public/financing", financingOpsPublicRouter); // cron endpoints (secured by CRON_SECRET)
+app.use("/api/financing", financingDisclosuresPublicRouter); // public disclosures
 
 // General API rate limit for everything below
 app.use("/api", apiLimiter);
