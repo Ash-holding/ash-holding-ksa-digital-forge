@@ -4,9 +4,48 @@ import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireStaff } from "../middleware/auth.js";
 import { currentClientId, isStaff, paging } from "../lib/scope.js";
 import { logAudit } from "../lib/audit.js";
+import { WA } from "../lib/whatsapp.js";
+
+// ---------- WhatsApp helpers ----------
+async function clientPhone(clientId: string): Promise<string | null> {
+  const c = await prisma.client.findUnique({
+    where: { id: clientId },
+    include: { user: { select: { phone: true, name: true } } },
+  });
+  return c?.phone || c?.user?.phone || null;
+}
+
+function adminPhones(): string[] {
+  const raw = process.env.ADMIN_WHATSAPP || process.env.ADMIN_PHONE || "";
+  return raw.split(/[,;\s]+/).map((s) => s.trim()).filter(Boolean);
+}
+
+function notifyAdmins(message: string, meta?: { kind?: string; entityId?: string }): void {
+  for (const p of adminPhones()) WA.notify(p, message, meta);
+}
+
+const REQUEST_STATUS_LABEL: Record<string, string> = {
+  PENDING: "قيد الانتظار",
+  UNDER_REVIEW: "قيد المراجعة",
+  APPROVED: "تمت الموافقة ✅",
+  REJECTED: "مرفوض ❌",
+  CONVERTED: "تم تحويله لمشروع 🚀",
+};
+
+const PROJECT_STATUS_LABEL: Record<string, string> = {
+  NEW: "جديد",
+  PLANNING: "تخطيط",
+  DESIGN: "تصميم",
+  DEVELOPMENT: "تطوير",
+  WAITING_CLIENT: "بانتظار العميل",
+  TESTING: "اختبار",
+  COMPLETED: "مكتمل ✅",
+  ON_HOLD: "متوقف مؤقتاً",
+};
 
 export const projectsRouter = Router();
 projectsRouter.use(requireAuth);
+
 
 const PROJECT_STATUSES = ["NEW", "PLANNING", "DESIGN", "DEVELOPMENT", "WAITING_CLIENT", "TESTING", "COMPLETED", "ON_HOLD"] as const;
 
