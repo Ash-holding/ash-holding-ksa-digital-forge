@@ -58,7 +58,7 @@ jobs:
             echo ">> reload web"
             if ! pm2 describe ashholding-web >/dev/null 2>&1 || ! pm2 reload ashholding-web >/dev/null 2>&1; then
               pm2 delete ashholding-web >/dev/null 2>&1 || true
-              PORT=3000 HOST=127.0.0.1 pm2 start .output/server/index.mjs --name ashholding-web
+              PORT=3000 HOST=127.0.0.1 pm2 start "$SERVER_ENTRY" --name ashholding-web
             fi
             pm2 save || true
             sudo systemctl reload nginx || true
