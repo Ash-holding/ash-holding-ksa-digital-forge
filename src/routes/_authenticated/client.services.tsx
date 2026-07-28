@@ -95,65 +95,82 @@ function ClientServicesPage() {
   ];
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-6">
       <ClientPageHeader
         icon={Boxes}
         title="خدماتي"
         description="جميع الخدمات النشطة والاشتراكات مع تنبيهات التجديد."
         actions={<LiveBadge interval={20} />}
       />
-      <AdminStatsRow
-        loading={list.isLoading}
-        stats={[
-          { icon: Layers, label: "إجمالي الخدمات", value: stats.total, accent: "electric" },
-          { icon: Activity, label: "نشطة", value: stats.active, accent: "emerald" },
-          { icon: PauseCircle, label: "متوقفة", value: stats.paused, accent: "amber" },
-          { icon: RefreshCw, label: "تجديد خلال 30 يوم", value: stats.renewingSoon, accent: "cyan" },
-          { icon: AlertTriangle, label: "تجديد متأخر", value: stats.overdueRenewal, accent: "rose" },
-          { icon: Wallet, label: "إجمالي القيمة", value: <Money value={stats.monthly} />, accent: "purple" },
-        ]}
-      />
 
-      {/* Search + type-tone quick filters */}
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-2">
-        <div className="relative flex-1 min-w-[180px]">
-          <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث في الخدمات…" className="h-9 pr-8 text-sm" />
+      {/* Catalog showcase */}
+      <ServiceCatalog />
+
+      {/* Active subscriptions */}
+      <motion.section
+        initial={{ opacity: 0, y: 10 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        className="space-y-3"
+      >
+        <div className="flex items-center gap-2 text-sm font-bold text-foreground">
+          <Clock className="h-4 w-4 text-electric" />
+          اشتراكاتي الحالية
         </div>
-        {stats.topTypes.length > 0 && (
-          <div className="flex items-center gap-1 flex-wrap">
-            <button onClick={() => setType(null)} className={`h-8 rounded-lg px-2.5 text-[11px] font-bold transition ${!type ? "bg-electric/15 text-electric" : "text-muted-foreground hover:text-foreground"}`}>الكل</button>
-            {stats.topTypes.map(([t, count]) => {
-              const Icon = TYPE_ICON[t] || Package;
-              const active = type === t;
-              return (
-                <button key={t} onClick={() => setType(active ? null : t)} className={`inline-flex items-center gap-1 h-8 rounded-lg px-2.5 text-[11px] font-bold transition ${active ? TYPE_TONE[t] : "text-muted-foreground hover:text-foreground"}`}>
-                  <Icon className="h-3 w-3" />
-                  {TYPE_AR[t] || t}
-                  <span className="text-[9px] opacity-70">({count})</span>
-                </button>
-              );
-            })}
+
+        <AdminStatsRow
+          loading={list.isLoading}
+          stats={[
+            { icon: Layers, label: "إجمالي الخدمات", value: stats.total, accent: "electric" },
+            { icon: Activity, label: "نشطة", value: stats.active, accent: "emerald" },
+            { icon: PauseCircle, label: "متوقفة", value: stats.paused, accent: "amber" },
+            { icon: RefreshCw, label: "تجديد خلال 30 يوم", value: stats.renewingSoon, accent: "cyan" },
+            { icon: AlertTriangle, label: "تجديد متأخر", value: stats.overdueRenewal, accent: "rose" },
+            { icon: Wallet, label: "إجمالي القيمة", value: <Money value={stats.monthly} />, accent: "purple" },
+          ]}
+        />
+
+        {/* Search + type-tone quick filters */}
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-card p-2">
+          <div className="relative flex-1 min-w-[180px]">
+            <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="ابحث في الخدمات…" className="h-9 pr-8 text-sm" />
           </div>
-        )}
-      </div>
+          {stats.topTypes.length > 0 && (
+            <div className="flex items-center gap-1 flex-wrap">
+              <button onClick={() => setType(null)} className={`h-8 rounded-lg px-2.5 text-[11px] font-bold transition ${!type ? "bg-electric/15 text-electric" : "text-muted-foreground hover:text-foreground"}`}>الكل</button>
+              {stats.topTypes.map(([t, count]) => {
+                const Icon = TYPE_ICON[t] || Package;
+                const active = type === t;
+                return (
+                  <button key={t} onClick={() => setType(active ? null : t)} className={`inline-flex items-center gap-1 h-8 rounded-lg px-2.5 text-[11px] font-bold transition ${active ? TYPE_TONE[t] : "text-muted-foreground hover:text-foreground"}`}>
+                    <Icon className="h-3 w-3" />
+                    {TYPE_AR[t] || t}
+                    <span className="text-[9px] opacity-70">({count})</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
-      <FilterChips
-        value={status} onChange={setStatus}
-        chips={[
-          { key: "", label: "الكل", count: stats.total },
-          { key: "ACTIVE", label: "نشطة", count: stats.active },
-          { key: "PAUSED", label: "متوقفة", count: stats.paused },
-          { key: "CANCELLED", label: "ملغاة" },
-        ]}
-      />
+        <FilterChips
+          value={status} onChange={setStatus}
+          chips={[
+            { key: "", label: "الكل", count: stats.total },
+            { key: "ACTIVE", label: "نشطة", count: stats.active },
+            { key: "PAUSED", label: "متوقفة", count: stats.paused },
+            { key: "CANCELLED", label: "ملغاة" },
+          ]}
+        />
 
-      <DataTable
-        columns={columns} rows={filtered} loading={list.isLoading}
-        total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
-        onRowClick={(r: any) => nav({ to: "/client/services/$id", params: { id: r.id } })}
-        emptyTitle="لا توجد خدمات مطابقة"
-      />
+        <DataTable
+          columns={columns} rows={filtered} loading={list.isLoading}
+          total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
+          onRowClick={(r: any) => nav({ to: "/client/services/$id", params: { id: r.id } })}
+          emptyTitle="لا توجد خدمات مطابقة — تصفح الكتالوج أعلاه لطلب خدمة جديدة"
+        />
+      </motion.section>
     </div>
   );
 }
