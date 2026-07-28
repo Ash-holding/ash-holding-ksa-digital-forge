@@ -86,11 +86,24 @@ function ClientContractDetail() {
     onError: (e) => toast.error(apiError(e) || "تعذر تحديث السداد التلقائي"),
   });
 
+  const acceptPromissory = useMutation({
+    mutationFn: () => api.post(`/financing/contracts/${id}/promissory/accept`),
+    onSuccess: () => {
+      toast.success("✅ تم قبول السند التنفيذي — جارٍ صرف الرصيد إلى محفظتك");
+      qc.invalidateQueries({ queryKey: ["client-fin-contract", id] });
+    },
+    onError: (e) => toast.error(apiError(e) || "تعذر تسجيل الموافقة"),
+  });
+
   if (isLoading || !data) return <div className="p-8 text-sm text-muted-foreground">جاري التحميل…</div>;
 
 
   const canSign = data.status === "AWAITING_CLIENT_SIGNATURE";
   const canDownload = ["SIGNED", "ACTIVE", "COMPLETED"].includes(data.status);
+  const promissory = data.termsSnapshot?.promissory;
+  const canAcceptPromissory = data.status === "SIGNED" && !!promissory?.sentAt && !promissory?.acceptedAt;
+  const promissoryPending = data.status === "SIGNED" && !promissory?.sentAt;
+  const [pAck, setPAck] = useState(false);
 
   return (
     <div className="space-y-6">
