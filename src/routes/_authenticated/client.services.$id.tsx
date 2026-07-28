@@ -1,12 +1,12 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { toast } from "sonner";
-import { Sparkles, Send, CheckCircle2, Info } from "lucide-react";
-import { api, apiError } from "@/lib/api";
+import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { Boxes, Calendar, Info, Package, LifeBuoy } from "lucide-react";
+import { api } from "@/lib/api";
 import { DetailShell, DetailSection, KV } from "@/components/shared/DetailShell";
-import { Button } from "@/components/ui/button";
+import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Money } from "@/components/ui/money";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatDate } from "@/lib/format";
 
 export const Route = createFileRoute("/_authenticated/client/services/$id")({
   component: ClientServiceDetail,
@@ -14,73 +14,59 @@ export const Route = createFileRoute("/_authenticated/client/services/$id")({
 
 function ClientServiceDetail() {
   const { id } = Route.useParams();
-  const nav = useNavigate();
   const q = useQuery({
     queryKey: ["client-service", id],
     queryFn: async () => (await api.get(`/services/${id}`)).data.service,
-    refetchInterval: 15000, refetchOnWindowFocus: true,
+    refetchInterval: 10000, refetchOnWindowFocus: true,
   });
   const s = q.data;
-
-  const request = useMutation({
-    mutationFn: () => api.post(`/services/${id}/request`, {}),
-    onSuccess: () => { toast.success("تم إرسال الطلب"); nav({ to: "/client/projects" }); },
-    onError: (e) => toast.error(apiError(e)),
-  });
 
   return (
     <DetailShell
       backTo="/client/services"
-      icon={Sparkles}
+      icon={Boxes}
       loading={q.isLoading}
-      title={s?.title ?? "—"}
-      subtitle={s?.category}
+      title={s?.name ?? "—"}
+      subtitle={s?.type}
+      status={s && <StatusBadge value={s.status} />}
       live
       onRefresh={() => q.refetch()}
       refreshing={q.isFetching}
-      actions={s && s.isActive && (
-        <Button size="sm" className="gap-1.5" onClick={() => request.mutate()}>
-          <Send className="h-4 w-4" />طلب الخدمة
-        </Button>
-      )}
     >
       {q.isLoading || !s ? (
         <Skeleton className="h-64" />
       ) : (
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4">
-            <DetailSection title="نظرة عامة" icon={Info}>
+            <DetailSection title="بيانات الخدمة" icon={Package}>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                <KV k="السعر" v={s.basePrice ? <Money value={s.basePrice} className="text-electric font-black text-base" /> : "حسب الطلب"} />
-                <KV k="التصنيف" v={s.category} />
-                <KV k="المدة المتوقعة" v={s.durationDays ? `${s.durationDays} يوم` : "—"} />
+                <KV k="السعر" v={s.price ? <Money value={s.price} className="text-electric font-black text-base" /> : "—"} />
+                <KV k="النوع" v={s.type} />
+                <KV k="العملة" v={s.currency} />
+                <KV k="تاريخ البدء" v={formatDate(s.startedAt)} />
+                <KV k="التجديد القادم" v={formatDate(s.renewalDate)} />
+                <KV k="تاريخ الانتهاء" v={formatDate(s.endedAt)} />
+                <KV k="المشروع" v={s.project?.title} />
               </div>
-              <p className="mt-4 text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                {s.description || "لا يوجد وصف تفصيلي"}
-              </p>
             </DetailSection>
 
-            {s.features && Array.isArray(s.features) && s.features.length > 0 && (
-              <DetailSection title="المميزات" icon={CheckCircle2}>
-                <ul className="space-y-2">
-                  {s.features.map((f: string, i: number) => (
-                    <li key={i} className="flex items-start gap-2 text-sm">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-400 mt-0.5 shrink-0" />
-                      <span>{f}</span>
-                    </li>
-                  ))}
-                </ul>
-              </DetailSection>
-            )}
+            <DetailSection title="ملاحظات" icon={Info}>
+              <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                {s.notes || "لا توجد ملاحظات"}
+              </p>
+            </DetailSection>
           </div>
 
           <div className="space-y-4">
-            <DetailSection title="كيف تطلب؟">
-              <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-                <li>اضغط "طلب الخدمة"</li>
-                <li>سيتواصل معك فريقنا خلال ساعات</li>
-                <li>يتم إنشاء مشروع ومتابعة التقدم</li>
-              </ol>
+            <DetailSection title="الحالة" icon={Calendar}>
+              <KV k="حالة الاشتراك" v={<StatusBadge value={s.status} />} />
+              <KV k="أُنشئت" v={formatDate(s.createdAt)} />
+              <KV k="آخر تحديث" v={formatDate(s.updatedAt)} />
+            </DetailSection>
+            <DetailSection title="بحاجة لدعم؟" icon={LifeBuoy}>
+              <p className="text-xs text-muted-foreground">
+                افتح تذكرة دعم من قسم الدعم وسنساعدك خلال ساعات عمل.
+              </p>
             </DetailSection>
           </div>
         </div>
