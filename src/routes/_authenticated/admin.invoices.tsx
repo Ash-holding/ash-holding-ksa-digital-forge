@@ -1,8 +1,8 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { FileText, Plus, Trash2, CheckCircle, Clock, AlertTriangle, TrendingUp, FileWarning } from "lucide-react";
+import { FileText, Plus, Trash2, CheckCircle, Clock, AlertTriangle, TrendingUp, FileWarning, Briefcase, Handshake, Sparkles, ExternalLink } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
