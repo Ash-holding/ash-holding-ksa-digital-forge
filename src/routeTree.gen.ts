@@ -59,6 +59,7 @@ import { Route as AuthenticatedClientProjectsNewRouteImport } from './routes/_au
 import { Route as AuthenticatedClientProjectsIdRouteImport } from './routes/_authenticated/client.projects.$id'
 import { Route as AuthenticatedAdminProjectsIdRouteImport } from './routes/_authenticated/admin.projects.$id'
 import { Route as AuthenticatedAdminProjectRequestsIdRouteImport } from './routes/_authenticated/admin.project-requests.$id'
+import { Route as AuthenticatedAdminInvoicesIdRouteImport } from './routes/_authenticated/admin.invoices.$id'
 import { Route as AuthenticatedAdminClientsNewRouteImport } from './routes/_authenticated/admin.clients.new'
 import { Route as AuthenticatedAdminClientsIdRouteImport } from './routes/_authenticated/admin.clients.$id'
 import { Route as AuthenticatedAdminClientsIdEditRouteImport } from './routes/_authenticated/admin.clients.$id.edit'
@@ -338,6 +339,12 @@ const AuthenticatedAdminProjectRequestsIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedAdminProjectRequestsRoute,
   } as any)
+const AuthenticatedAdminInvoicesIdRoute =
+  AuthenticatedAdminInvoicesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminInvoicesRoute,
+  } as any)
 const AuthenticatedAdminClientsNewRoute =
   AuthenticatedAdminClientsNewRouteImport.update({
     id: '/clients/new',
@@ -381,7 +388,7 @@ export interface FileRoutesByFullPath {
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/contracts': typeof AuthenticatedAdminContractsRoute
   '/admin/files': typeof AuthenticatedAdminFilesRoute
-  '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
+  '/admin/invoices': typeof AuthenticatedAdminInvoicesRouteWithChildren
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/project-requests': typeof AuthenticatedAdminProjectRequestsRouteWithChildren
   '/admin/projects': typeof AuthenticatedAdminProjectsRouteWithChildren
@@ -403,6 +410,7 @@ export interface FileRoutesByFullPath {
   '/client/': typeof AuthenticatedClientIndexRoute
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
   '/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
+  '/admin/invoices/$id': typeof AuthenticatedAdminInvoicesIdRoute
   '/admin/project-requests/$id': typeof AuthenticatedAdminProjectRequestsIdRoute
   '/admin/projects/$id': typeof AuthenticatedAdminProjectsIdRoute
   '/client/projects/$id': typeof AuthenticatedClientProjectsIdRoute
@@ -433,7 +441,7 @@ export interface FileRoutesByTo {
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/contracts': typeof AuthenticatedAdminContractsRoute
   '/admin/files': typeof AuthenticatedAdminFilesRoute
-  '/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
+  '/admin/invoices': typeof AuthenticatedAdminInvoicesRouteWithChildren
   '/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/admin/project-requests': typeof AuthenticatedAdminProjectRequestsRouteWithChildren
   '/admin/projects': typeof AuthenticatedAdminProjectsRouteWithChildren
@@ -454,6 +462,7 @@ export interface FileRoutesByTo {
   '/client': typeof AuthenticatedClientIndexRoute
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
   '/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
+  '/admin/invoices/$id': typeof AuthenticatedAdminInvoicesIdRoute
   '/admin/project-requests/$id': typeof AuthenticatedAdminProjectRequestsIdRoute
   '/admin/projects/$id': typeof AuthenticatedAdminProjectsIdRoute
   '/client/projects/$id': typeof AuthenticatedClientProjectsIdRoute
@@ -488,7 +497,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/_authenticated/admin/contracts': typeof AuthenticatedAdminContractsRoute
   '/_authenticated/admin/files': typeof AuthenticatedAdminFilesRoute
-  '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRoute
+  '/_authenticated/admin/invoices': typeof AuthenticatedAdminInvoicesRouteWithChildren
   '/_authenticated/admin/payments': typeof AuthenticatedAdminPaymentsRoute
   '/_authenticated/admin/project-requests': typeof AuthenticatedAdminProjectRequestsRouteWithChildren
   '/_authenticated/admin/projects': typeof AuthenticatedAdminProjectsRouteWithChildren
@@ -510,6 +519,7 @@ export interface FileRoutesById {
   '/_authenticated/client/': typeof AuthenticatedClientIndexRoute
   '/_authenticated/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
   '/_authenticated/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
+  '/_authenticated/admin/invoices/$id': typeof AuthenticatedAdminInvoicesIdRoute
   '/_authenticated/admin/project-requests/$id': typeof AuthenticatedAdminProjectRequestsIdRoute
   '/_authenticated/admin/projects/$id': typeof AuthenticatedAdminProjectsIdRoute
   '/_authenticated/client/projects/$id': typeof AuthenticatedClientProjectsIdRoute
@@ -566,6 +576,7 @@ export interface FileRouteTypes {
     | '/client/'
     | '/admin/clients/$id'
     | '/admin/clients/new'
+    | '/admin/invoices/$id'
     | '/admin/project-requests/$id'
     | '/admin/projects/$id'
     | '/client/projects/$id'
@@ -617,6 +628,7 @@ export interface FileRouteTypes {
     | '/client'
     | '/admin/clients/$id'
     | '/admin/clients/new'
+    | '/admin/invoices/$id'
     | '/admin/project-requests/$id'
     | '/admin/projects/$id'
     | '/client/projects/$id'
@@ -672,6 +684,7 @@ export interface FileRouteTypes {
     | '/_authenticated/client/'
     | '/_authenticated/admin/clients/$id'
     | '/_authenticated/admin/clients/new'
+    | '/_authenticated/admin/invoices/$id'
     | '/_authenticated/admin/project-requests/$id'
     | '/_authenticated/admin/projects/$id'
     | '/_authenticated/client/projects/$id'
@@ -1054,6 +1067,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminProjectRequestsIdRouteImport
       parentRoute: typeof AuthenticatedAdminProjectRequestsRoute
     }
+    '/_authenticated/admin/invoices/$id': {
+      id: '/_authenticated/admin/invoices/$id'
+      path: '/$id'
+      fullPath: '/admin/invoices/$id'
+      preLoaderRoute: typeof AuthenticatedAdminInvoicesIdRouteImport
+      parentRoute: typeof AuthenticatedAdminInvoicesRoute
+    }
     '/_authenticated/admin/clients/new': {
       id: '/_authenticated/admin/clients/new'
       path: '/clients/new'
@@ -1077,6 +1097,20 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AuthenticatedAdminInvoicesRouteChildren {
+  AuthenticatedAdminInvoicesIdRoute: typeof AuthenticatedAdminInvoicesIdRoute
+}
+
+const AuthenticatedAdminInvoicesRouteChildren: AuthenticatedAdminInvoicesRouteChildren =
+  {
+    AuthenticatedAdminInvoicesIdRoute: AuthenticatedAdminInvoicesIdRoute,
+  }
+
+const AuthenticatedAdminInvoicesRouteWithChildren =
+  AuthenticatedAdminInvoicesRoute._addFileChildren(
+    AuthenticatedAdminInvoicesRouteChildren,
+  )
 
 interface AuthenticatedAdminProjectRequestsRouteChildren {
   AuthenticatedAdminProjectRequestsIdRoute: typeof AuthenticatedAdminProjectRequestsIdRoute
@@ -1125,7 +1159,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAuditLogRoute: typeof AuthenticatedAdminAuditLogRoute
   AuthenticatedAdminContractsRoute: typeof AuthenticatedAdminContractsRoute
   AuthenticatedAdminFilesRoute: typeof AuthenticatedAdminFilesRoute
-  AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRoute
+  AuthenticatedAdminInvoicesRoute: typeof AuthenticatedAdminInvoicesRouteWithChildren
   AuthenticatedAdminPaymentsRoute: typeof AuthenticatedAdminPaymentsRoute
   AuthenticatedAdminProjectRequestsRoute: typeof AuthenticatedAdminProjectRequestsRouteWithChildren
   AuthenticatedAdminProjectsRoute: typeof AuthenticatedAdminProjectsRouteWithChildren
@@ -1144,7 +1178,7 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAuditLogRoute: AuthenticatedAdminAuditLogRoute,
   AuthenticatedAdminContractsRoute: AuthenticatedAdminContractsRoute,
   AuthenticatedAdminFilesRoute: AuthenticatedAdminFilesRoute,
-  AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRoute,
+  AuthenticatedAdminInvoicesRoute: AuthenticatedAdminInvoicesRouteWithChildren,
   AuthenticatedAdminPaymentsRoute: AuthenticatedAdminPaymentsRoute,
   AuthenticatedAdminProjectRequestsRoute:
     AuthenticatedAdminProjectRequestsRouteWithChildren,
