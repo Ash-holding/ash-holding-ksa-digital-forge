@@ -1552,6 +1552,9 @@ model FinancingInstallment {
   paidAmount   Decimal?                   @db.Decimal(14, 2)
   paidTxId     String?
   note         String?
+  penaltyAmount Decimal                   @default(0) @db.Decimal(14, 2)
+  remindersSent Int                       @default(0)
+  lastReminderAt DateTime?
   createdAt    DateTime                   @default(now())
 
   contract     FinancingContract          @relation(fields: [contractId], references: [id], onDelete: Cascade)
