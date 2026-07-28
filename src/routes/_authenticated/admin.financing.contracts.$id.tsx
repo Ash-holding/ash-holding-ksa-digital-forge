@@ -15,6 +15,8 @@ export const Route = createFileRoute("/_authenticated/admin/financing/contracts/
   head: () => ({ meta: [{ title: "عقد تمويل — إدارة ASH" }] }),
 });
 
+type PromissoryMeta = { sentAt?: string; sentById?: string; acceptedAt?: string; acceptedIp?: string | null };
+
 type Contract = {
   id: string; code: string; status: string;
   amount: number | string; downPayment: number | string; financedAmount: number | string;
@@ -23,6 +25,7 @@ type Contract = {
   firstDueDate?: string | null; lastDueDate?: string | null;
   clientSignedAt?: string | null; clientSignatureName?: string | null; clientSignatureHash?: string | null;
   activatedAt?: string | null; disbursedTxId?: string | null;
+  termsSnapshot?: { promissory?: PromissoryMeta } | null;
   application?: { id: string; code?: string; fullNameAr?: string | null; nationalId?: string | null; businessName?: string | null };
   product?: { nameAr?: string; code?: string };
   installments: Array<{
@@ -32,9 +35,13 @@ type Contract = {
 };
 
 const STATUS_AR: Record<string, string> = {
-  DRAFT: "مسودة", AWAITING_CLIENT_SIGNATURE: "بانتظار توقيع العميل",
-  SIGNED: "موقع — جاهز للتفعيل", ACTIVE: "نشط",
-  COMPLETED: "منتهي", CANCELLED: "ملغى", DEFAULTED: "متعثر",
+  DRAFT: "مسودة",
+  AWAITING_CLIENT_SIGNATURE: "بانتظار توقيع العميل",
+  SIGNED: "موقّع — مرحلة السند التنفيذي",
+  ACTIVE: "نشط — تم صرف الرصيد",
+  COMPLETED: "منتهي بالكامل",
+  CANCELLED: "ملغى",
+  DEFAULTED: "متعثر",
 };
 
 const money = (v: unknown) =>
