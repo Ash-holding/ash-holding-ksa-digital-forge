@@ -1063,11 +1063,15 @@ async function verifySignatureOtp(requestId: string, otp: string) {
   return ok;
 }
 
-projectsRouter.post("/requests/:id/request-signature", requireStaff, async (req, res, next) => {
+projectsRouter.post("/requests/:id/request-signature", async (req, res, next) => {
   try {
     const acc = await assertRequestAccess(req, req.params.id);
     if (!acc.ok) return res.status(acc.status).json({ error: acc.error });
     if (!acc.request.proposalAmount) return res.status(400).json({ error: "لا يوجد عرض مُرسَل" });
+    if (!["PROPOSAL_SENT", "AWAITING_SIGNATURE", "CLIENT_REVISION"].includes(acc.request.status)) {
+      return res.status(400).json({ error: "لا يمكن طلب التوقيع في هذه المرحلة" });
+    }
+
 
     const otp = generateOtp(6);
     await saveSignatureOtp(acc.request.id, otp);
