@@ -5,7 +5,7 @@ import { requireAuth, requireStaff } from "../middleware/auth.js";
 import { currentClientId, isStaff, paging } from "../lib/scope.js";
 import { logAudit } from "../lib/audit.js";
 import { WA } from "../lib/whatsapp.js";
-import { activateRequestIfInvoicePaid } from "./projects.js";
+import { activateRequestIfInvoicePaid, ensureInvoiceForSignedRequest } from "./projects.js";
 import { awardCashback, ensureWallet } from "./wallet.js";
 
 async function clientPhone(clientId: string): Promise<string | null> {
