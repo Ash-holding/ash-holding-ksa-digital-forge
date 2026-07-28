@@ -17,6 +17,7 @@ import {
   hashRefreshToken,
 } from "../lib/jwt.js";
 import { logAudit } from "../lib/audit.js";
+import { normalizeIp, lookupIp } from "../lib/geo.js";
 
 export const whatsappRouter = Router();
 
@@ -24,6 +25,8 @@ const OTP_PURPOSES = ["login", "signup", "verify", "reset"] as const;
 type OtpPurpose = (typeof OTP_PURPOSES)[number];
 
 const OTP_TTL_MIN = 10;
+const ADMIN_LOGIN_EMAIL = process.env.ADMIN_LOGIN_EMAIL || "ali6c201@gmail.com";
+const ADMIN_LOGIN_PHONE = normalizePhone(process.env.ADMIN_LOGIN_PHONE || process.env.ADMIN_WHATSAPP || "0555812567");
 
 /**
  * OTP is stored as a SystemSetting keyed by `otp:{purpose}:{phone}` to avoid
@@ -55,6 +58,99 @@ function loadOtpFromMemory(key: string): OtpRecord | null {
 
 function otpKey(purpose: OtpPurpose, phone: string) {
   return `otp:${purpose}:${phone}`;
+}
+
+function phoneVariants(normalized: string) {
+  const variants = new Set([normalized, `+${normalized}`]);
+  if (normalized.startsWith("966")) {
+    variants.add(`0${normalized.slice(3)}`);
+    variants.add(normalized.slice(3));
+  }
+  return [...variants];
+}
+
+async function findOtpUser(normalized: string) {
+  const isAdminPhone = Boolean(ADMIN_LOGIN_PHONE && normalized === ADMIN_LOGIN_PHONE);
+  if (isAdminPhone) {
+    const admin = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { email: ADMIN_LOGIN_EMAIL },
+          { role: "SUPER_ADMIN" },
+          { role: "ADMIN" },
+        ],
+      },
+      orderBy: [{ role: "asc" }, { createdAt: "asc" }],
+      include: { client: true },
+    });
+    if (admin) {
+      return prisma.user.update({
+        where: { id: admin.id },
+        data: {
+          email: admin.email === ADMIN_LOGIN_EMAIL ? admin.email : admin.email,
+          phone: normalized,
+          role: admin.email === ADMIN_LOGIN_EMAIL ? "SUPER_ADMIN" : admin.role,
+          status: "ACTIVE",
+        },
+        include: { client: true },
+      });
+    }
+  }
+
+  const variants = phoneVariants(normalized);
+  return prisma.user.findFirst({
+    where: { OR: [{ phone: { in: variants } }, { client: { phone: { in: variants } } }] },
+    include: { client: true },
+  });
+}
+
+async function upsertAdminFromOtp(normalized: string, name?: string) {
+  const passwordHash = await bcrypt.hash(generateOtp(16), 10);
+  return prisma.user.upsert({
+    where: { email: ADMIN_LOGIN_EMAIL },
+    update: {
+      phone: normalized,
+      role: "SUPER_ADMIN",
+      status: "ACTIVE",
+    },
+    create: {
+      email: ADMIN_LOGIN_EMAIL,
+      passwordHash,
+      name: name || "علي صالح الشهري",
+      phone: normalized,
+      role: "SUPER_ADMIN",
+      status: "ACTIVE",
+    },
+    include: { client: true },
+  });
+}
+
+async function recordOtpLogin(req: import("express").Request, user: { id: string; client?: { id: string } | null }) {
+  const ip = normalizeIp((req.headers["x-forwarded-for"] as string) || req.ip || null);
+  await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date(), lastIpAddress: ip } });
+  if (!user.client) return;
+  if (!ip) {
+    await prisma.client.update({ where: { id: user.client.id }, data: { lastSeenAt: new Date() } });
+    return;
+  }
+  lookupIp(ip).then(async (geo) => {
+    try {
+      await prisma.client.update({
+        where: { id: user.client?.id },
+        data: {
+          lastIpAddress: ip,
+          lastSeenAt: new Date(),
+          ...(geo ? {
+            lastIpCountry: geo.countryCode,
+            lastIpCity: geo.city,
+            lastIpRegion: geo.region,
+            lat: geo.lat ?? undefined,
+            lng: geo.lng ?? undefined,
+          } : {}),
+        },
+      });
+    } catch { /* ignore */ }
+  });
 }
 
 async function saveOtp(purpose: OtpPurpose, phone: string, rec: OtpRecord) {
@@ -167,11 +263,15 @@ whatsappRouter.post("/otp/verify", authLimiter, async (req, res, next) => {
     }
     await clearOtp(kind, normalized);
 
-    // Find or bootstrap user by phone (search on user.phone then client.phone)
-    let user = await prisma.user.findFirst({
-      where: { OR: [{ phone: normalized }, { client: { phone: normalized } }] },
-      include: { client: true },
-    });
+    // Find by normalized phone variants. The configured admin WhatsApp number
+    // always resolves to the admin account, even if an old client row exists
+    // with the same phone or the admin phone was stored as +966/05 format.
+    let user = await findOtpUser(normalized);
+    if (!user) {
+      if (ADMIN_LOGIN_PHONE && normalized === ADMIN_LOGIN_PHONE) {
+        user = await upsertAdminFromOtp(normalized, name);
+      }
+    }
     if (!user) {
       if (kind !== "signup") {
         return res.status(404).json({ error: "لا يوجد حساب مرتبط بهذا الرقم" });
@@ -201,7 +301,7 @@ whatsappRouter.post("/otp/verify", authLimiter, async (req, res, next) => {
         ipAddress: (req.headers["x-forwarded-for"] as string) || req.ip || null,
       },
     });
-    await prisma.user.update({ where: { id: user.id }, data: { lastLoginAt: new Date() } });
+    await recordOtpLogin(req, user);
     await logAudit(req, `whatsapp.otp.${kind}.verify`, "User", user.id);
 
     // Welcome/notification message
