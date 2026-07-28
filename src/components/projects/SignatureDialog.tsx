@@ -114,7 +114,7 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
                   </Button>
                 </div>
               ) : (
-                <div className="p-5 space-y-4">
+                <div className="flex-1 overflow-y-auto p-5 space-y-4">
                   <div className="text-center">
                     <div className="text-[13px] text-foreground/80 mb-3 font-medium">أدخل الرمز المرسل إلى واتساب</div>
                     <Input
