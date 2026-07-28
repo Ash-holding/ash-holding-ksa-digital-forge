@@ -122,6 +122,13 @@ projectsRouter.post("/", requireStaff, async (req, res, next) => {
     if (!data.clientId) return res.status(400).json({ error: "clientId مطلوب" });
     const created = await prisma.project.create({ data: data as never });
     await logAudit(req, "project.create", "Project", created.id);
+    // notify client
+    const phone = await clientPhone(created.clientId);
+    WA.notify(
+      phone,
+      `ASH HOLDING — تم إنشاء مشروع جديد 🎉\nالمشروع: ${created.title}\nالحالة: ${PROJECT_STATUS_LABEL[created.status] || created.status}\nتابع التفاصيل من بوابة العميل.`,
+      { kind: "project.create", entityId: created.id },
+    );
     res.status(201).json({ project: created });
   } catch (e) { next(e); }
 });
@@ -129,11 +136,32 @@ projectsRouter.post("/", requireStaff, async (req, res, next) => {
 projectsRouter.patch("/:id", requireStaff, async (req, res, next) => {
   try {
     const data = projectSchema.partial().parse(req.body);
+    const before = await prisma.project.findUnique({ where: { id: req.params.id } });
     const updated = await prisma.project.update({ where: { id: req.params.id }, data: data as never });
     await logAudit(req, "project.update", "Project", updated.id);
+    // notify client on meaningful changes
+    const changes: string[] = [];
+    if (before && before.status !== updated.status) {
+      changes.push(`• الحالة: ${PROJECT_STATUS_LABEL[updated.status] || updated.status}`);
+    }
+    if (before && before.progress !== updated.progress) {
+      changes.push(`• نسبة الإنجاز: ${updated.progress}%`);
+    }
+    if (before && (before.dueDate?.getTime() ?? 0) !== (updated.dueDate?.getTime() ?? 0) && updated.dueDate) {
+      changes.push(`• تاريخ التسليم: ${new Date(updated.dueDate).toLocaleDateString("ar-SA")}`);
+    }
+    if (changes.length) {
+      const phone = await clientPhone(updated.clientId);
+      WA.notify(
+        phone,
+        `ASH HOLDING — تحديث على مشروعك 🛠️\nالمشروع: ${updated.title}\n${changes.join("\n")}\nراجع بوابة العميل للتفاصيل.`,
+        { kind: "project.update", entityId: updated.id },
+      );
+    }
     res.json({ project: updated });
   } catch (e) { next(e); }
 });
+
 
 projectsRouter.delete("/:id", requireStaff, async (req, res, next) => {
   try {
