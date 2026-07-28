@@ -142,6 +142,28 @@ function ClientInvoiceDetail() {
   const remaining = Math.max(0, total - paidSum);
   const isPaid = inv?.status === "PAID";
 
+  // Digital signature — SHA-256 derived from real invoice data (changes if data changes)
+  const [sig, setSig] = useState<{ hash: string; id: string; qr: string } | null>(null);
+  useEffect(() => {
+    if (!inv) return;
+    let cancelled = false;
+    (async () => {
+      const hash = await computeInvoiceHash(inv);
+      const id = signatureIdFromHash(hash, inv.invoiceNumber);
+      const qr = await QRCode.toDataURL(`https://ash-holding.sa/verify?ref=${encodeURIComponent(inv.invoiceNumber ?? "")}&sig=${id}`, { margin: 0, width: 128, errorCorrectionLevel: "M" });
+      if (!cancelled) setSig({ hash, id, qr });
+    })();
+    return () => { cancelled = true; };
+  }, [inv?.invoiceNumber, inv?.total, inv?.status]);
+
+  // Animated total counter
+  const totalMV = useMotionValue(0);
+  const totalRounded = useTransform(totalMV, (v) => v.toLocaleString("ar-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+  useEffect(() => {
+    const c = animateMV(totalMV, total, { duration: 0.9, ease: [0.22, 1, 0.36, 1] });
+    return () => c.stop();
+  }, [total]);
+
   return (
     <DetailShell
       backTo="/client/invoices"
