@@ -80,7 +80,7 @@ function AdminContractDetail() {
     <div className="space-y-6">
       <PageHeader
         title={`عقد ${data.code}`}
-        subtitle={`${data.product?.nameAr || ""} • ${data.application?.fullNameAr || data.application?.businessName || "—"} • الحالة: ${STATUS_AR[data.status] || data.status}`}
+        description={`${data.product?.nameAr || ""} • ${data.application?.fullNameAr || data.application?.businessName || "—"} • الحالة: ${STATUS_AR[data.status] || data.status}`}
         icon={FileText}
         actions={
           <div className="flex gap-2">

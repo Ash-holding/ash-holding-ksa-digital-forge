@@ -2,7 +2,7 @@
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 
-type Row = { n: number; dueDate: string; principal: number; interest: number; total: number; balance: number };
+type Row = { n: number; dueDate: string; principal: number | string; interest: number | string; total: number | string; balance?: number | string };
 type ContractLike = {
   code: string;
   status: string;
