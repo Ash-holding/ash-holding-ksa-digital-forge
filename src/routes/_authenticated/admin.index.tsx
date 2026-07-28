@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
-import { api } from "@/lib/api";
+import { api, apiError } from "@/lib/api";
 import { MetricChip } from "@/components/dashboard/MetricChip";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Progress } from "@/components/ui/progress";
@@ -99,9 +99,12 @@ function ActivitySkeleton() {
 }
 
 function OverviewPage() {
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error } = useQuery({
     queryKey: ["admin", "stats"],
     queryFn: async () => (await api.get("/admin/stats")).data,
+    retry: 1,
+    refetchInterval: 8000,
+    refetchOnWindowFocus: true,
   });
 
   const c = data?.cards;
@@ -109,6 +112,19 @@ function OverviewPage() {
   const sp = data?.sparks ?? {};
   const k = data?.kpis;
   const now = new Date();
+
+  if (isError) {
+    return (
+      <div className="space-y-4">
+        <Panel title="تعذر تحميل بيانات النظرة العامة" icon={AlertTriangle} iconColor="text-rose-400">
+          <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-100">
+            <div className="font-bold">لم يتم عرض أي بيانات تجريبية.</div>
+            <div className="mt-1 text-rose-100/80">اللوحة تنتظر اتصال API الحقيقي بقاعدة البيانات: {apiError(error)}</div>
+          </div>
+        </Panel>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
