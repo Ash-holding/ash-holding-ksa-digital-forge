@@ -159,6 +159,26 @@ function ClientRequestDetailPage() {
 
       {executing && <CountdownTimer startAt={r.executionStartAt} dueAt={r.executionDueAt} />}
 
+      {!rejected && r.adminNote && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500/10 via-card to-amber-500/5 p-4"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="grid h-8 w-8 place-items-center rounded-xl bg-amber-500/20 text-amber-500">
+              <StickyNote className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="text-[10px] text-muted-foreground">ملاحظة رسمية من الفريق</div>
+              <div className="font-black text-[13px] text-amber-500">تحديث من الإدارة</div>
+            </div>
+          </div>
+          <div className="text-[13px] whitespace-pre-wrap leading-relaxed text-foreground/90">
+            {r.adminNote}
+          </div>
+        </motion.div>
+      )}
+
       {rejected && (
         <div className="rounded-2xl border border-rose-400/40 bg-rose-500/10 p-4 text-center text-rose-200">
           <XCircle className="mx-auto h-8 w-8 text-rose-400 mb-2" />
