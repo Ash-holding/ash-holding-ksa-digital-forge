@@ -11,7 +11,10 @@ import {
 } from "../lib/attribution.js";
 import { normalizeIp, lookupIp } from "../lib/geo.js";
 
+import { trackLimiter } from "../middleware/rate-limit.js";
+
 export const trackRouter = Router();
+trackRouter.use(trackLimiter);
 
 const DEFAULT_COOKIE_DAYS = 30;
 const DEFAULT_ATTRIBUTION: "LAST_CLICK" | "FIRST_CLICK" = "LAST_CLICK";

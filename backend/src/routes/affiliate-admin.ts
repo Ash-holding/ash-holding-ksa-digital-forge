@@ -10,6 +10,8 @@ import {
   releaseMaturedCommissions,
   reverseCommissionsForPayment,
 } from "../lib/commission.js";
+import { runFraudScan } from "../lib/fraud.js";
+import { logAudit } from "../lib/audit.js";
 import { randomBytes } from "crypto";
 
 export const affiliateAdminRouter = Router();
@@ -215,6 +217,7 @@ affiliateAdminRouter.post("/affiliates/:id/approve", async (req, res, next) => {
     await prisma.affiliateNotification.create({
       data: { affiliateId: a.id, title: "تم اعتماد حسابك", body: "أصبح حسابك مفعّلاً — يمكنك البدء بمشاركة روابطك.", category: "success" },
     });
+    await logAudit(req, "affiliate.approve", "Affiliate", a.id, { code: a.code });
     res.json({ affiliate: a });
   } catch (e) { next(e); }
 });
@@ -228,6 +231,7 @@ affiliateAdminRouter.post("/affiliates/:id/suspend", async (req, res, next) => {
     });
     WA.notify(a.phone, `ASH HOLDING — تم إيقاف حسابك مؤقتاً${reason ? `\nالسبب: ${reason}` : ""}`,
       { kind: "affiliate.suspended", entityId: a.id });
+    await logAudit(req, "affiliate.suspend", "Affiliate", a.id, { reason });
     res.json({ affiliate: a });
   } catch (e) { next(e); }
 });
@@ -244,6 +248,7 @@ affiliateAdminRouter.post("/affiliates/:id/reject", async (req, res, next) => {
     });
     WA.notify(a.phone, `ASH HOLDING — نعتذر، لم يتم اعتماد طلبك${reason ? `\nالسبب: ${reason}` : ""}`,
       { kind: "affiliate.rejected", entityId: a.id });
+    await logAudit(req, "affiliate.reject", "Affiliate", a.id, { reason });
     res.json({ affiliate: a });
   } catch (e) { next(e); }
 });
@@ -302,6 +307,7 @@ affiliateAdminRouter.post("/rules", async (req, res, next) => {
   try {
     const body = ruleSchema.parse(req.body);
     const rule = await prisma.commissionRule.create({ data: body as Prisma.CommissionRuleCreateInput });
+    await logAudit(req, "commission_rule.create", "CommissionRule", rule.id, { scope: rule.scope, valueType: rule.valueType });
     res.status(201).json({ rule });
   } catch (e) { next(e); }
 });
@@ -312,6 +318,7 @@ affiliateAdminRouter.patch("/rules/:id", async (req, res, next) => {
     const rule = await prisma.commissionRule.update({
       where: { id: req.params.id }, data: body as Prisma.CommissionRuleUpdateInput,
     });
+    await logAudit(req, "commission_rule.update", "CommissionRule", rule.id, body as Record<string, unknown>);
     res.json({ rule });
   } catch (e) { next(e); }
 });
@@ -319,6 +326,7 @@ affiliateAdminRouter.patch("/rules/:id", async (req, res, next) => {
 affiliateAdminRouter.delete("/rules/:id", async (req, res, next) => {
   try {
     await prisma.commissionRule.delete({ where: { id: req.params.id } });
+    await logAudit(req, "commission_rule.delete", "CommissionRule", req.params.id);
     res.json({ ok: true });
   } catch (e) { next(e); }
 });
@@ -503,6 +511,14 @@ affiliateAdminRouter.patch("/withdrawals/:id", async (req, res, next) => {
       },
     });
 
+    await logAudit(req, `withdrawal.${body.status.toLowerCase()}`, "WithdrawalRequest", updated.id, {
+      requestNumber: current.requestNumber,
+      amount: Number(current.amount),
+      previousStatus: current.status,
+      newStatus: body.status,
+      transferRef: body.transferRef ?? null,
+      rejectionReason: body.rejectionReason ?? null,
+    });
     res.json({ withdrawal: updated });
   } catch (e) { next(e); }
 });
@@ -552,10 +568,40 @@ affiliateAdminRouter.delete("/marketing/:id", async (req, res, next) => {
 // ============================================================
 // 8) RELEASE (matured commissions — manual trigger from admin UI)
 // ============================================================
-affiliateAdminRouter.post("/release", async (_req, res, next) => {
+affiliateAdminRouter.post("/release", async (req, res, next) => {
   try {
     const result = await releaseMaturedCommissions(500);
+    await logAudit(req, "affiliate.release", "Commission", null as unknown as string, result as unknown as Record<string, unknown>);
     res.json({ ok: true, ...result });
+  } catch (e) { next(e); }
+});
+
+// ============================================================
+// 9) FRAUD & ANOMALY DETECTION (read-only signals)
+// GET /api/admin/affiliate/fraud?days=30
+// ============================================================
+affiliateAdminRouter.get("/fraud", async (req, res, next) => {
+  try {
+    const windowDays = Math.min(90, Math.max(1, Number(req.query.days) || 30));
+    const alerts = await runFraudScan({ windowDays });
+    const affiliateIds = Array.from(new Set(alerts.flatMap((a) => a.affiliateIds)));
+    const affiliates = affiliateIds.length
+      ? await prisma.affiliate.findMany({
+          where: { id: { in: affiliateIds } },
+          select: { id: true, code: true, displayName: true, phone: true, status: true },
+        })
+      : [];
+    const byId = new Map(affiliates.map((a) => [a.id, a] as const));
+    res.json({
+      windowDays,
+      summary: {
+        high: alerts.filter((a) => a.severity === "HIGH").length,
+        medium: alerts.filter((a) => a.severity === "MEDIUM").length,
+        low: alerts.filter((a) => a.severity === "LOW").length,
+        total: alerts.length,
+      },
+      alerts: alerts.map((a) => ({ ...a, affiliates: a.affiliateIds.map((id) => byId.get(id) || { id }) })),
+    });
   } catch (e) { next(e); }
 });
 

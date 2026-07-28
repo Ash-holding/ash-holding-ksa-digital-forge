@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Handshake, Users, Percent, Banknote, Megaphone, Clock, RefreshCw, CheckCircle2, XCircle, PauseCircle, Play, TrendingUp, ExternalLink } from "lucide-react";
+import { Handshake, Users, Percent, Banknote, Megaphone, Clock, RefreshCw, CheckCircle2, XCircle, PauseCircle, Play, TrendingUp, ExternalLink, ShieldAlert } from "lucide-react";
 import { api } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,7 +32,7 @@ const money = (n: number | string) =>
   new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 2 }).format(Number(n || 0)) + " ر.س";
 
 function AdminAffiliateHub() {
-  const [tab, setTab] = useState<"overview" | "affiliates" | "commissions" | "withdrawals" | "rules" | "marketing">("overview");
+  const [tab, setTab] = useState<"overview" | "affiliates" | "commissions" | "withdrawals" | "rules" | "marketing" | "fraud">("overview");
 
   return (
     <div className="space-y-6">
@@ -43,13 +43,14 @@ function AdminAffiliateHub() {
       />
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
-        <TabsList className="grid grid-cols-3 md:grid-cols-6 gap-1 h-auto p-1 bg-muted/40">
+        <TabsList className="grid grid-cols-3 md:grid-cols-7 gap-1 h-auto p-1 bg-muted/40">
           <TabsTrigger value="overview" className="gap-2"><TrendingUp className="w-4 h-4"/>نظرة عامة</TabsTrigger>
           <TabsTrigger value="affiliates" className="gap-2"><Users className="w-4 h-4"/>المسوّقون</TabsTrigger>
           <TabsTrigger value="commissions" className="gap-2"><Percent className="w-4 h-4"/>العمولات</TabsTrigger>
           <TabsTrigger value="withdrawals" className="gap-2"><Banknote className="w-4 h-4"/>طلبات السحب</TabsTrigger>
           <TabsTrigger value="rules" className="gap-2"><Percent className="w-4 h-4"/>القواعد</TabsTrigger>
           <TabsTrigger value="marketing" className="gap-2"><Megaphone className="w-4 h-4"/>المواد التسويقية</TabsTrigger>
+          <TabsTrigger value="fraud" className="gap-2"><ShieldAlert className="w-4 h-4"/>الأمن والاحتيال</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4"><OverviewPane/></TabsContent>
@@ -58,6 +59,7 @@ function AdminAffiliateHub() {
         <TabsContent value="withdrawals" className="mt-4"><WithdrawalsPane/></TabsContent>
         <TabsContent value="rules" className="mt-4"><RulesPane/></TabsContent>
         <TabsContent value="marketing" className="mt-4"><MarketingPane/></TabsContent>
+        <TabsContent value="fraud" className="mt-4"><FraudPane/></TabsContent>
       </Tabs>
     </div>
   );
@@ -658,3 +660,131 @@ function statusLabel(s: string): string {
 }
 // Referenced for future deep-link expansions
 void ExternalLink;
+
+// ============================================================
+// FRAUD PANE — cross-affiliate anomaly detection
+// ============================================================
+type FraudAlert = {
+  id: string;
+  severity: "HIGH" | "MEDIUM" | "LOW";
+  type: "IP_COLLISION" | "SELF_REFERRAL" | "FINGERPRINT_REUSE" | "RAPID_SIGNUPS" | "BOT_TRAFFIC";
+  detail: string;
+  count: number;
+  firstSeen: string;
+  lastSeen: string;
+  affiliates: Array<{ id: string; code?: string; displayName?: string; phone?: string; status?: string }>;
+};
+type FraudResp = {
+  windowDays: number;
+  summary: { high: number; medium: number; low: number; total: number };
+  alerts: FraudAlert[];
+};
+const FRAUD_TYPE_AR: Record<FraudAlert["type"], string> = {
+  IP_COLLISION: "تشابك عناوين IP",
+  SELF_REFERRAL: "إحالة ذاتية",
+  FINGERPRINT_REUSE: "بصمة جهاز متكررة",
+  RAPID_SIGNUPS: "تحويلات متسارعة",
+  BOT_TRAFFIC: "حركة بوت",
+};
+const SEV_STYLE: Record<FraudAlert["severity"], string> = {
+  HIGH: "bg-red-100 text-red-800 border-red-200",
+  MEDIUM: "bg-amber-100 text-amber-800 border-amber-200",
+  LOW: "bg-blue-100 text-blue-800 border-blue-200",
+};
+
+function FraudPane() {
+  const [days, setDays] = useState("30");
+  const { data, isLoading, refetch, isFetching } = useQuery<FraudResp>({
+    queryKey: ["admin-fraud", days],
+    queryFn: async () => (await api.get(`/admin/affiliate/fraud?days=${days}`)).data as FraudResp,
+    refetchInterval: 60_000,
+  });
+
+  return (
+    <div className="space-y-4">
+      <Card>
+        <CardContent className="p-4 flex flex-wrap items-center gap-3">
+          <ShieldAlert className="w-5 h-5 text-red-600" />
+          <span className="font-semibold">تنبيهات الأمان والاحتيال</span>
+          <span className="text-xs text-muted-foreground">مراقبة سلوك المسوّقين والنقرات المشبوهة.</span>
+          <div className="ms-auto flex items-center gap-2">
+            <Select value={days} onValueChange={setDays}>
+              <SelectTrigger className="w-36"><SelectValue/></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="7">آخر 7 أيام</SelectItem>
+                <SelectItem value="30">آخر 30 يوم</SelectItem>
+                <SelectItem value="90">آخر 90 يوم</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button size="sm" variant="outline" onClick={() => refetch()} disabled={isFetching}>
+              <RefreshCw className={cn("w-4 h-4 me-2", isFetching && "animate-spin")}/>تحديث
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-24"/>)}
+        </div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <MiniStat label="مرتفعة" value={data?.summary.high ?? 0} tone="bg-red-50 text-red-700"/>
+            <MiniStat label="متوسطة" value={data?.summary.medium ?? 0} tone="bg-amber-50 text-amber-700"/>
+            <MiniStat label="منخفضة" value={data?.summary.low ?? 0} tone="bg-blue-50 text-blue-700"/>
+            <MiniStat label="الإجمالي" value={data?.summary.total ?? 0} tone="bg-muted"/>
+          </div>
+
+          {!data?.alerts.length ? (
+            <Card><CardContent className="p-10 text-center text-muted-foreground">
+              <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-emerald-600"/>
+              لا توجد تنبيهات — كل شيء يبدو طبيعياً خلال آخر {data?.windowDays ?? days} يوم.
+            </CardContent></Card>
+          ) : (
+            <div className="space-y-3">
+              {data.alerts.map((a) => (
+                <motion.div key={a.id} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}>
+                  <Card>
+                    <CardContent className="p-4 space-y-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={cn("text-xs px-2 py-0.5 rounded-full border font-semibold", SEV_STYLE[a.severity])}>
+                          {a.severity === "HIGH" ? "خطورة عالية" : a.severity === "MEDIUM" ? "متوسطة" : "منخفضة"}
+                        </span>
+                        <span className="text-sm font-semibold">{FRAUD_TYPE_AR[a.type]}</span>
+                        <span className="ms-auto text-xs text-muted-foreground">
+                          {formatDate(a.firstSeen)} — {formatDate(a.lastSeen)} · {a.count} حدث
+                        </span>
+                      </div>
+                      <p className="text-sm text-foreground/80">{a.detail}</p>
+                      {a.affiliates.length > 0 && (
+                        <div className="flex flex-wrap gap-2 pt-1 border-t">
+                          {a.affiliates.map((af) => (
+                            <span key={af.id} className="text-xs px-2 py-1 rounded-md bg-muted border">
+                              {af.displayName || af.code || af.id.slice(0, 8)}
+                              {af.code ? ` · ${af.code}` : ""}
+                              {af.phone ? ` · ${af.phone}` : ""}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function MiniStat({ label, value, tone }: { label: string; value: number; tone: string }) {
+  return (
+    <div className={cn("rounded-xl p-4 border", tone)}>
+      <div className="text-xs opacity-80">{label}</div>
+      <div className="text-2xl font-bold mt-1">{value}</div>
+    </div>
+  );
+}
