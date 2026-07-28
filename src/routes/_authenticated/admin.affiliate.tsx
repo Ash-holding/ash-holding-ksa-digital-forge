@@ -32,7 +32,7 @@ const money = (n: number | string) =>
   new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 2 }).format(Number(n || 0)) + " ر.س";
 
 function AdminAffiliateHub() {
-  const [tab, setTab] = useState<"overview" | "affiliates" | "commissions" | "withdrawals" | "rules" | "marketing" | "fraud">("overview");
+  const [tab, setTab] = useState<"overview" | "applications" | "affiliates" | "commissions" | "withdrawals" | "rules" | "marketing" | "fraud">("overview");
 
   return (
     <div className="space-y-6">
@@ -43,8 +43,9 @@ function AdminAffiliateHub() {
       />
 
       <Tabs dir="rtl" value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
-        <TabsList className="grid grid-cols-3 md:grid-cols-7 gap-1 h-auto p-1 bg-muted/40">
+        <TabsList className="grid grid-cols-3 md:grid-cols-8 gap-1 h-auto p-1 bg-muted/40">
           <TabsTrigger value="overview" className="gap-2"><TrendingUp className="w-4 h-4"/>نظرة عامة</TabsTrigger>
+          <TabsTrigger value="applications" className="gap-2"><UserPlus className="w-4 h-4"/>طلبات الانضمام</TabsTrigger>
           <TabsTrigger value="affiliates" className="gap-2"><Users className="w-4 h-4"/>المسوّقون</TabsTrigger>
           <TabsTrigger value="commissions" className="gap-2"><Percent className="w-4 h-4"/>العمولات</TabsTrigger>
           <TabsTrigger value="withdrawals" className="gap-2"><Banknote className="w-4 h-4"/>طلبات السحب</TabsTrigger>
@@ -53,7 +54,8 @@ function AdminAffiliateHub() {
           <TabsTrigger value="fraud" className="gap-2"><ShieldAlert className="w-4 h-4"/>الأمن والاحتيال</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="mt-4"><OverviewPane/></TabsContent>
+        <TabsContent value="overview" className="mt-4"><OverviewPane onGoApplications={() => setTab("applications")}/></TabsContent>
+        <TabsContent value="applications" className="mt-4"><ApplicationsPane/></TabsContent>
         <TabsContent value="affiliates" className="mt-4"><AffiliatesPane/></TabsContent>
         <TabsContent value="commissions" className="mt-4"><CommissionsPane/></TabsContent>
         <TabsContent value="withdrawals" className="mt-4"><WithdrawalsPane/></TabsContent>
