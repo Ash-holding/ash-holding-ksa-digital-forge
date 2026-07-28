@@ -65,6 +65,7 @@ function ClientContractDetail() {
   const [t1, setT1] = useState(false);
   const [t2, setT2] = useState(false);
   const [t3, setT3] = useState(false);
+  const [pAck, setPAck] = useState(false);
 
   const sign = useMutation({
     mutationFn: () => api.post(`/financing/contracts/${id}/sign`, {
