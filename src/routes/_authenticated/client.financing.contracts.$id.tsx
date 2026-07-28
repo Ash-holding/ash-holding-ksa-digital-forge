@@ -137,6 +137,11 @@ function ClientContractDetail() {
         </div>
       )}
 
+      {/* Early settlement */}
+      {(data.status === "ACTIVE" || data.status === "DEFAULTED") && (
+        <EarlySettlementPanel contractId={data.id} />
+      )}
+
 
       {/* Key figures */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
