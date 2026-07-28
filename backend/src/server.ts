@@ -21,6 +21,7 @@ import { adminRouter } from "./routes/admin.js";
 import { settingsRouter } from "./routes/settings.js";
 import { notificationsRouter } from "./routes/notifications.js";
 import { whatsappRouter } from "./routes/whatsapp.js";
+import { walletRouter } from "./routes/wallet.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rate-limit.js";
 
