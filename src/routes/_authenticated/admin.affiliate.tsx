@@ -696,7 +696,7 @@ function FraudPane() {
   const [days, setDays] = useState("30");
   const { data, isLoading, refetch, isFetching } = useQuery<FraudResp>({
     queryKey: ["admin-fraud", days],
-    queryFn: () => api.get<FraudResp>(`/admin/affiliate/fraud?days=${days}`),
+    queryFn: async () => (await api.get(`/admin/affiliate/fraud?days=${days}`)).data as FraudResp,
     refetchInterval: 60_000,
   });
 
