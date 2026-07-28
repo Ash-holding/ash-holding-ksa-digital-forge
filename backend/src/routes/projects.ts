@@ -829,12 +829,22 @@ projectsRouter.patch("/requests/:id", requireStaff, async (req, res, next) => {
     const updated = await prisma.projectRequest.update({
       where: { id: req.params.id },
       data: {
+        title: body.title ?? existing.title,
+        description: body.description !== undefined ? body.description : existing.description,
+        category: body.category ?? existing.category,
+        priority: body.priority ?? existing.priority,
+        budgetMin: body.budgetMin !== undefined ? body.budgetMin : existing.budgetMin,
+        budgetMax: body.budgetMax !== undefined ? body.budgetMax : existing.budgetMax,
+        targetDate: body.targetDate !== undefined ? body.targetDate : existing.targetDate,
+        contactName: body.contactName !== undefined ? body.contactName : existing.contactName,
+        contactPhone: body.contactPhone !== undefined ? body.contactPhone : existing.contactPhone,
         status: finalStatus,
-        adminNote: body.adminNote ?? existing.adminNote,
+        adminNote: body.adminNote !== undefined ? body.adminNote : existing.adminNote,
         projectId: projectId ?? undefined,
       },
       include: { client: { include: { user: { select: { name: true, email: true } } } } },
     });
+
     await logAudit(req, "project_request.update", "ProjectRequest", updated.id);
 
     // ---------- WhatsApp — notify client on status or admin-note change ----------
