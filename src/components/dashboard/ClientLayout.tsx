@@ -3,7 +3,7 @@ import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, FolderKanban, Boxes, FileText, ScrollText,
-  LifeBuoy, CreditCard, Files, User, Bell, Menu, X, LogOut,
+  LifeBuoy, CreditCard, Files, User, Bell, Menu, X, LogOut, Wallet,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,7 @@ const ITEMS = [
   { to: "/client/projects", label: "المشاريع", icon: FolderKanban },
   { to: "/client/services", label: "الخدمات", icon: Boxes },
   { to: "/client/invoices", label: "الفواتير", icon: FileText },
+  { to: "/client/wallet", label: "المحفظة الرقمية", icon: Wallet },
   { to: "/client/contracts", label: "العقود", icon: ScrollText },
   { to: "/client/support", label: "الدعم", icon: LifeBuoy },
   { to: "/client/payments", label: "المدفوعات", icon: CreditCard },
