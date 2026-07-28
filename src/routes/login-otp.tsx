@@ -172,7 +172,9 @@ function LoginOtpPage() {
         toast.error("تعذّر الاتصال بالخادم", {
           id: "otp-network-error",
           description: "تحقق من اتصالك بالإنترنت وحاول مجدداً.",
+          duration: 4000,
         });
+
         pushLog({ kind: "verify", ok: false, reason: "تعذّر الاتصال بالخادم" });
       }
     } finally {
