@@ -116,3 +116,112 @@ export async function notifyApplicant(applicationId: string, message: string) {
     console.error("financing notify failed", e);
   }
 }
+
+// ============================================================
+// Bank-style formal WhatsApp templates
+// Format mirrors Saudi bank & finance-company SMS notifications:
+//   [شركة آش القابضة | تمويل خدمي]
+//   نوع الإشعار
+//   تفاصيل بأسطر منظمة
+//   الوقت | المرجع | القناة
+// ============================================================
+const NOW_AR = () =>
+  new Intl.DateTimeFormat("ar-SA", {
+    dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Riyadh",
+  }).format(new Date());
+
+const HEADER = "🏛️ شركة آش القابضة | التمويل الخدمي الداخلي";
+const FOOTER = (code: string) =>
+  `\nـــــــــــــــــــــــــ\n📄 المرجع: ${code}\n🕘 ${NOW_AR()} (توقيت الرياض)\n📞 الدعم: 920000000 | ash-holding.sa`;
+
+const fmtSAR = (n: number | string | null | undefined) => {
+  const v = Number(n || 0);
+  return `${v.toLocaleString("ar-SA", { minimumFractionDigits: 0, maximumFractionDigits: 2 })} ﷼`;
+};
+
+export type BankNoticeKind =
+  | "RECEIVED" | "IN_REVIEW" | "MORE_INFO"
+  | "APPROVED" | "REJECTED" | "STATUS_UPDATE"
+  | "CONTRACT_READY" | "CONTRACT_SIGNED" | "ACTIVATED"
+  | "INSTALLMENT_DUE" | "INSTALLMENT_PAID" | "OVERDUE";
+
+export function bankMessage(
+  kind: BankNoticeKind,
+  ctx: {
+    code: string;
+    amount?: number | string | null;
+    installment?: number | string | null;
+    dueDate?: string | null;
+    reasonAr?: string | null;
+    statusAr?: string | null;
+    productAr?: string | null;
+  },
+): string {
+  const L: string[] = [HEADER, ""];
+  switch (kind) {
+    case "RECEIVED":
+      L.push("✅ إشعار استلام طلب تمويل",
+        `تم استلام طلبكم${ctx.productAr ? ` لمنتج «${ctx.productAr}»` : ""}.`,
+        ctx.amount ? `المبلغ المطلوب: ${fmtSAR(ctx.amount)}` : "",
+        "سيتم إشعاركم فور اكتمال الدراسة الائتمانية.");
+      break;
+    case "IN_REVIEW":
+      L.push("🔍 تحديث حالة الطلب",
+        `الحالة الحالية: ${ctx.statusAr || "قيد المراجعة"}`,
+        "لا يلزمكم أي إجراء حالياً. سنُعلمكم بأي تحديث.");
+      break;
+    case "MORE_INFO":
+      L.push("📋 طلب معلومات/مستندات إضافية",
+        ctx.reasonAr || "الرجاء الدخول إلى بوابة العميل ورفع المستندات المطلوبة لاستكمال الدراسة.");
+      break;
+    case "APPROVED":
+      L.push("🎉 موافقة على طلب التمويل",
+        `تم اعتماد تمويل بمبلغ ${fmtSAR(ctx.amount || 0)}.`,
+        "يُرجى الدخول إلى بوابة العميل لمراجعة العرض وتوقيع العقد إلكترونياً.");
+      break;
+    case "REJECTED":
+      L.push("⚠️ اعتذار عن تلبية الطلب",
+        "نأسف لإفادتكم بعدم تمكننا من تلبية طلب التمويل في الوقت الحالي.",
+        ctx.reasonAr ? `السبب: ${ctx.reasonAr}` : "",
+        "يمكنكم إعادة التقديم بعد ٣٠ يوماً.");
+      break;
+    case "CONTRACT_READY":
+      L.push("📝 عقد التمويل جاهز للتوقيع",
+        "تم إصدار عقد التمويل رقمياً وينتظر توقيعكم.",
+        "الرجاء الدخول إلى بوابة العميل لمراجعة الشروط والتوقيع بـ OTP.");
+      break;
+    case "CONTRACT_SIGNED":
+      L.push("🔏 استلام توقيع العقد",
+        "تم تسجيل توقيعكم الإلكتروني بنجاح.",
+        "سيتم تفعيل رصيد الخدمات في محفظتكم خلال ساعات العمل.");
+      break;
+    case "ACTIVATED":
+      L.push("💳 تفعيل رصيد الخدمات",
+        `تم إضافة رصيد بقيمة ${fmtSAR(ctx.amount || 0)} إلى محفظتكم الخدمية.`,
+        "الرصيد قابل للاستخدام لشراء خدمات آش القابضة فقط ولا يُصرف نقداً.");
+      break;
+    case "INSTALLMENT_DUE":
+      L.push("⏰ تذكير باستحقاق قسط",
+        `قيمة القسط: ${fmtSAR(ctx.installment || 0)}`,
+        ctx.dueDate ? `تاريخ الاستحقاق: ${ctx.dueDate}` : "",
+        "يمكنكم السداد من المحفظة أو تفعيل السداد التلقائي.");
+      break;
+    case "INSTALLMENT_PAID":
+      L.push("✅ إشعار استلام دفعة",
+        `تم استلام مبلغ ${fmtSAR(ctx.installment || 0)}`,
+        "شكراً لالتزامكم بالسداد في موعده.");
+      break;
+    case "OVERDUE":
+      L.push("🚨 تنبيه تأخر عن السداد",
+        `القسط المستحق: ${fmtSAR(ctx.installment || 0)}`,
+        "يُرجى المبادرة بالسداد لتفادي رسوم التأخر وأثر ذلك على السجل الائتماني الداخلي.");
+      break;
+    case "STATUS_UPDATE":
+    default:
+      L.push("🔄 تحديث حالة",
+        `الحالة الجديدة: ${ctx.statusAr || "—"}`);
+  }
+  L.push(FOOTER(ctx.code));
+  return L.filter(Boolean).join("\n");
+}
+
