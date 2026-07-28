@@ -26,6 +26,33 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
   const [otp, setOtp] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [readContract, setReadContract] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  async function downloadDraft() {
+    setDownloading(true);
+    try {
+      await downloadContractPDF(
+        {
+          contractNumber: `${reference}-DRAFT`,
+          title,
+          value: amount,
+          currency: "SAR",
+          startDate: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          notes: "مسودة غير موقّعة — للمراجعة فقط قبل التوقيع الرقمي وسداد الفاتورة.",
+          project: { title },
+        },
+        { proposalScope: scope ?? null, proposalDuration: duration },
+        null,
+      );
+      toast.success("تم تنزيل مسودة العقد");
+    } catch (e) {
+      toast.error("تعذّر تنزيل المسودة");
+      console.error(e);
+    } finally {
+      setDownloading(false);
+    }
+  }
   const [sending, setSending] = useState(false);
   const [signing, setSigning] = useState(false);
 
