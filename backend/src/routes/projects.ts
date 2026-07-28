@@ -795,10 +795,11 @@ export async function ensureInvoiceForSignedRequest(requestId: string) {
   const year = now.getFullYear();
   const count = await prisma.invoice.count({ where: { invoiceNumber: { startsWith: `INV-${year}-` } } });
   const invoiceNumber = `INV-${year}-${String(count + 1).padStart(4, "0")}`;
-  const subtotal = Number(r.proposalAmount);
   const taxRate = 15;
-  const taxAmount = +(subtotal * (taxRate / 100)).toFixed(2);
-  const total = +(subtotal + taxAmount).toFixed(2);
+  // proposalAmount هو الإجمالي الشامل للضريبة كما يُعرض للعميل — نستخرج الأساس منه.
+  const total = +Number(r.proposalAmount).toFixed(2);
+  const subtotal = +(total / (1 + taxRate / 100)).toFixed(2);
+  const taxAmount = +(total - subtotal).toFixed(2);
   const ref = shortRef("REQ", r.id);
 
   const invoice = await prisma.invoice.create({
