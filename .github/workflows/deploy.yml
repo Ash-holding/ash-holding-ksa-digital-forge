@@ -34,7 +34,13 @@ jobs:
             git reset --hard origin/$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)
             echo ">> frontend install + build"
             bun install --frozen-lockfile
+            echo ">> clean previous output to avoid stale chunks"
+            rm -rf .output .nitro node_modules/.vite node_modules/.cache
             VITE_API_URL="${{ secrets.VITE_API_URL }}" bun run build
+            if [ ! -f .output/server/index.mjs ]; then
+              echo "!! build did not produce .output/server/index.mjs — aborting deploy"
+              exit 1
+            fi
             if [ -d backend ]; then
               echo ">> backend install + build"
               cd backend
