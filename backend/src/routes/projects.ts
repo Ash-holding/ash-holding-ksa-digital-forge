@@ -764,15 +764,44 @@ projectsRouter.post("/requests", async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
-// PATCH — staff updates status/note; APPROVED can auto-convert to project
+// GET single request
+projectsRouter.get("/requests/:id", async (req, res, next) => {
+  try {
+    const r = await prisma.projectRequest.findUnique({
+      where: { id: req.params.id },
+      include: {
+        client: { include: { user: { select: { name: true, email: true, phone: true } } } },
+        project: { select: { id: true, title: true, status: true, progress: true } },
+      },
+    });
+    if (!r) return res.status(404).json({ error: "غير موجود" });
+    if (!isStaff(req)) {
+      const cid = await currentClientId(req);
+      if (r.clientId !== cid) return res.status(403).json({ error: "ممنوع" });
+    }
+    res.json({ request: r, ref: shortRef("REQ", r.id) });
+  } catch (e) { next(e); }
+});
+
+// PATCH — staff updates any field; APPROVED can auto-convert to project
 projectsRouter.patch("/requests/:id", requireStaff, async (req, res, next) => {
   try {
     const body = z.object({
+      title: z.string().min(3).max(160).optional(),
+      description: z.string().max(4000).optional().nullable(),
+      category: z.enum(REQUEST_CATEGORIES).optional(),
+      priority: z.enum(REQUEST_PRIORITIES).optional(),
+      budgetMin: z.coerce.number().nonnegative().optional().nullable(),
+      budgetMax: z.coerce.number().nonnegative().optional().nullable(),
+      targetDate: z.coerce.date().optional().nullable(),
+      contactName: z.string().max(120).optional().nullable(),
+      contactPhone: z.string().max(40).optional().nullable(),
       status: z.enum(REQUEST_STATUSES).optional(),
       adminNote: z.string().max(2000).optional().nullable(),
       convertToProject: z.boolean().optional(),
       projectBudget: z.coerce.number().optional().nullable(),
     }).parse(req.body);
+
 
     const existing = await prisma.projectRequest.findUnique({ where: { id: req.params.id } });
     if (!existing) return res.status(404).json({ error: "غير موجود" });
