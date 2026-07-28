@@ -69,6 +69,7 @@ import { Route as AuthenticatedAdminInvoicesRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminFilesRouteImport } from './routes/_authenticated/admin.files'
 import { Route as AuthenticatedAdminContractsRouteImport } from './routes/_authenticated/admin.contracts'
 import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authenticated/admin.audit-log'
+import { Route as AuthenticatedAdminAffiliateRouteImport } from './routes/_authenticated/admin.affiliate'
 import { Route as AuthenticatedClientProjectsIndexRouteImport } from './routes/_authenticated/client.projects.index'
 import { Route as AuthenticatedAdminProjectRequestsIndexRouteImport } from './routes/_authenticated/admin.project-requests.index'
 import { Route as AuthenticatedAdminClientsIndexRouteImport } from './routes/_authenticated/admin.clients.index'
@@ -421,6 +422,12 @@ const AuthenticatedAdminAuditLogRoute =
     path: '/audit-log',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminAffiliateRoute =
+  AuthenticatedAdminAffiliateRouteImport.update({
+    id: '/affiliate',
+    path: '/affiliate',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedClientProjectsIndexRoute =
   AuthenticatedClientProjectsIndexRouteImport.update({
     id: '/',
@@ -566,6 +573,7 @@ export interface FileRoutesByFullPath {
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/services/': typeof ServicesIndexRoute
+  '/admin/affiliate': typeof AuthenticatedAdminAffiliateRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/contracts': typeof AuthenticatedAdminContractsRouteWithChildren
   '/admin/files': typeof AuthenticatedAdminFilesRoute
@@ -644,6 +652,7 @@ export interface FileRoutesByTo {
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/services': typeof ServicesIndexRoute
+  '/admin/affiliate': typeof AuthenticatedAdminAffiliateRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/admin/contracts': typeof AuthenticatedAdminContractsRouteWithChildren
   '/admin/files': typeof AuthenticatedAdminFilesRoute
@@ -725,6 +734,7 @@ export interface FileRoutesById {
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/services/': typeof ServicesIndexRoute
+  '/_authenticated/admin/affiliate': typeof AuthenticatedAdminAffiliateRoute
   '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
   '/_authenticated/admin/contracts': typeof AuthenticatedAdminContractsRouteWithChildren
   '/_authenticated/admin/files': typeof AuthenticatedAdminFilesRoute
@@ -808,6 +818,7 @@ export interface FileRouteTypes {
     | '/portfolio/$slug'
     | '/services/$slug'
     | '/services/'
+    | '/admin/affiliate'
     | '/admin/audit-log'
     | '/admin/contracts'
     | '/admin/files'
@@ -886,6 +897,7 @@ export interface FileRouteTypes {
     | '/portfolio/$slug'
     | '/services/$slug'
     | '/services'
+    | '/admin/affiliate'
     | '/admin/audit-log'
     | '/admin/contracts'
     | '/admin/files'
@@ -966,6 +978,7 @@ export interface FileRouteTypes {
     | '/portfolio/$slug'
     | '/services/$slug'
     | '/services/'
+    | '/_authenticated/admin/affiliate'
     | '/_authenticated/admin/audit-log'
     | '/_authenticated/admin/contracts'
     | '/_authenticated/admin/files'
@@ -1469,6 +1482,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAuditLogRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/affiliate': {
+      id: '/_authenticated/admin/affiliate'
+      path: '/affiliate'
+      fullPath: '/admin/affiliate'
+      preLoaderRoute: typeof AuthenticatedAdminAffiliateRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/client/projects/': {
       id: '/_authenticated/client/projects/'
       path: '/'
@@ -1715,6 +1735,7 @@ const AuthenticatedAdminClientsIdRouteWithChildren =
   )
 
 interface AuthenticatedAdminRouteChildren {
+  AuthenticatedAdminAffiliateRoute: typeof AuthenticatedAdminAffiliateRoute
   AuthenticatedAdminAuditLogRoute: typeof AuthenticatedAdminAuditLogRoute
   AuthenticatedAdminContractsRoute: typeof AuthenticatedAdminContractsRouteWithChildren
   AuthenticatedAdminFilesRoute: typeof AuthenticatedAdminFilesRoute
@@ -1735,6 +1756,7 @@ interface AuthenticatedAdminRouteChildren {
 }
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
+  AuthenticatedAdminAffiliateRoute: AuthenticatedAdminAffiliateRoute,
   AuthenticatedAdminAuditLogRoute: AuthenticatedAdminAuditLogRoute,
   AuthenticatedAdminContractsRoute:
     AuthenticatedAdminContractsRouteWithChildren,
