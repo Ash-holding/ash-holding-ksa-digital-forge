@@ -10,81 +10,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    name: Build frontend
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Build
-        env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL }}
-        run: bun run build
-
-      - name: List build output
-        run: ls -la .output || true; ls -la dist || true
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: dist
-          path: |
-            .output
-            dist
-          include-hidden-files: true
-          if-no-files-found: error
-          retention-days: 7
-
   deploy:
-    name: Deploy to server
-    needs: build
+    name: Deploy on server
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: dist
-          path: build-output
-
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan -H -p ${{ secrets.SSH_PORT || 22 }} ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
-
-      - name: Rsync build to server
-        run: |
-          rsync -az --delete \
-            -e "ssh -i ~/.ssh/id_ed25519 -p ${{ secrets.SSH_PORT || 22 }}" \
-            build-output/ \
-            ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/
-
-      - name: Remote release (git pull + install + restart)
+      - name: Trigger remote build & deploy
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT || 22 }}
+          command_timeout: 10m
           script: |
             set -e
+            export PATH="$HOME/.bun/bin:$PATH"
             cd ${{ secrets.DEPLOY_PATH }}
-            git pull --ff-only origin main || true
+            echo ">> git pull"
+            git fetch --all
+            git reset --hard origin/main
+            echo ">> frontend install + build"
+            bun install --frozen-lockfile
+            VITE_API_URL="${{ secrets.VITE_API_URL }}" bun run build
             if [ -d backend ]; then
+              echo ">> backend install + build"
               cd backend
               npm ci --no-audit --no-fund
               npx prisma generate
@@ -93,6 +42,8 @@ jobs:
               pm2 reload ashholding-api || pm2 start dist/server.js --name ashholding-api
               cd ..
             fi
+            echo ">> reload web"
             pm2 reload ashholding-web || PORT=3000 HOST=127.0.0.1 pm2 start .output/server/index.mjs --name ashholding-web
             pm2 save || true
             sudo systemctl reload nginx || true
+            echo ">> done"
