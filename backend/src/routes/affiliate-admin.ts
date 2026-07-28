@@ -1,6 +1,6 @@
 // Affiliate admin API (SUPER_ADMIN | ADMIN | AFFILIATE_MANAGER).
 // Mounted at /api/admin/affiliate.
-import { Router } from "express";
+import { Router, type Request } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import type { Prisma } from "@prisma/client";
@@ -205,8 +205,18 @@ affiliateAdminRouter.patch("/affiliates/:id", async (req, res, next) => {
 affiliateAdminRouter.post("/affiliates/:id/approve", async (req, res, next) => {
   try {
     const user = (req as any).user;
+    const existing = await prisma.affiliate.findUnique({ where: { id: req.params.id }, select: { id: true } });
+    if (!existing) {
+      const app = await prisma.affiliateApplication.findUnique({ where: { id: req.params.id }, select: { id: true } });
+      if (app) {
+        const result = await approveAffiliateApplication(req, app.id);
+        return res.status(result.status).json(result.body);
+      }
+      return res.status(404).json({ error: "لا يوجد مسوّق أو طلب انضمام بهذا الرقم" });
+    }
+
     const a = await prisma.affiliate.update({
-      where: { id: req.params.id },
+      where: { id: existing.id },
       data: { status: "ACTIVE", approvedAt: new Date(), approvedById: user.id, suspendedAt: null, suspendReason: null },
     });
     await prisma.affiliateApplication.updateMany({
@@ -269,82 +279,84 @@ affiliateAdminRouter.get("/applications", async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+async function approveAffiliateApplication(req: Request, applicationId: string) {
+  const user = (req as any).user;
+  const app = await prisma.affiliateApplication.findUnique({ where: { id: applicationId } });
+  if (!app) return { status: 404, body: { error: "الطلب غير موجود" } };
+  if (app.status === "APPROVED" && app.affiliateId) return { status: 200, body: { ok: true, affiliateId: app.affiliateId, alreadyApproved: true } };
+
+  let userId = app.userId;
+  if (!userId) {
+    const byEmail = await prisma.user.findUnique({ where: { email: app.email }, select: { id: true } });
+    const byPhone = byEmail ? null : await prisma.user.findFirst({ where: { phone: app.phone }, select: { id: true } });
+    if (byEmail?.id) userId = byEmail.id;
+    else if (byPhone?.id) userId = byPhone.id;
+    else {
+      const created = await prisma.user.create({
+        data: { email: app.email, phone: app.phone, name: app.fullName, role: "CLIENT" },
+        select: { id: true },
+      });
+      userId = created.id;
+    }
+  }
+
+  const existingAff = await prisma.affiliate.findUnique({ where: { userId }, select: { id: true, code: true } });
+  if (existingAff) {
+    await prisma.affiliateApplication.update({
+      where: { id: app.id },
+      data: { status: "APPROVED", affiliateId: existingAff.id, reviewedAt: new Date(), reviewedById: user.id },
+    });
+    return { status: 200, body: { ok: true, affiliateId: existingAff.id, affiliate: existingAff } };
+  }
+
+  let code = "";
+  for (let i = 0; i < 5; i++) {
+    code = "ASH" + randomBytes(3).toString("hex").toUpperCase();
+    const clash = await prisma.affiliate.findUnique({ where: { code }, select: { id: true } });
+    if (!clash) break;
+  }
+
+  const affiliate = await prisma.affiliate.create({
+    data: {
+      userId,
+      code,
+      type: app.type,
+      status: "ACTIVE",
+      displayName: app.fullName,
+      phone: app.phone,
+      email: app.email,
+      city: app.city,
+      country: app.country,
+      idNumber: app.idNumber,
+      commercialNo: app.commercialNo,
+      preferredPayout: app.preferredPayout,
+      approvedAt: new Date(),
+      approvedById: user.id,
+    },
+    select: { id: true, code: true },
+  });
+
+  await prisma.affiliateApplication.update({
+    where: { id: app.id },
+    data: { status: "APPROVED", affiliateId: affiliate.id, reviewedAt: new Date(), reviewedById: user.id },
+  });
+
+  await logAudit(req, "affiliate_application.approve", "AffiliateApplication", app.id, { affiliateId: affiliate.id, code: affiliate.code });
+
+  WA.notify(
+    app.phone,
+    `تهانينا ${app.fullName} 🎉\nتم اعتماد انضمامك لبرنامج شركاء ASH HOLDING.\nكود المسوّق: ${affiliate.code}\nيمكنك الآن الدخول إلى بوابة المسوّق وبدء الترويج.`,
+    { kind: "affiliate_application.approved", entityId: app.id },
+  );
+
+  return { status: 200, body: { ok: true, affiliate } };
+}
+
 // Approve an application → creates User (if needed) + active Affiliate, then links & marks APPROVED.
 affiliateAdminRouter.post("/applications/:id/approve", async (req, res, next) => {
   try {
-    const user = (req as any).user;
-    const app = await prisma.affiliateApplication.findUnique({ where: { id: req.params.id } });
-    if (!app) return res.status(404).json({ error: "الطلب غير موجود" });
-    if (app.affiliateId) return res.status(400).json({ error: "الطلب مرتبط بحساب مسوّق بالفعل" });
-    if (app.status === "APPROVED") return res.status(400).json({ error: "الطلب معتمد مسبقاً" });
-
-    // Resolve or create the underlying user
-    let userId = app.userId;
-    if (!userId) {
-      const byEmail = await prisma.user.findUnique({ where: { email: app.email }, select: { id: true } });
-      const byPhone = byEmail ? null : await prisma.user.findFirst({ where: { phone: app.phone }, select: { id: true } });
-      if (byEmail?.id) userId = byEmail.id;
-      else if (byPhone?.id) userId = byPhone.id;
-      else {
-        const created = await prisma.user.create({
-          data: { email: app.email, phone: app.phone, name: app.fullName, role: "CLIENT" },
-          select: { id: true },
-        });
-        userId = created.id;
-      }
-    }
-
-    // Ensure the user doesn't already have an affiliate profile
-    const existingAff = await prisma.affiliate.findUnique({ where: { userId }, select: { id: true } });
-    if (existingAff) {
-      await prisma.affiliateApplication.update({
-        where: { id: app.id },
-        data: { status: "APPROVED", affiliateId: existingAff.id, reviewedAt: new Date(), reviewedById: user.id },
-      });
-      return res.json({ ok: true, affiliateId: existingAff.id });
-    }
-
-    // Generate a unique short code
-    let code = "";
-    for (let i = 0; i < 5; i++) {
-      code = "ASH" + randomBytes(3).toString("hex").toUpperCase();
-      const clash = await prisma.affiliate.findUnique({ where: { code }, select: { id: true } });
-      if (!clash) break;
-    }
-
-    const affiliate = await prisma.affiliate.create({
-      data: {
-        userId,
-        code,
-        type: app.type,
-        status: "ACTIVE",
-        displayName: app.fullName,
-        phone: app.phone,
-        email: app.email,
-        city: app.city,
-        country: app.country,
-        idNumber: app.idNumber,
-        commercialNo: app.commercialNo,
-        preferredPayout: app.preferredPayout,
-        approvedAt: new Date(),
-        approvedById: user.id,
-      },
-      select: { id: true, code: true },
-    });
-
-    await prisma.affiliateApplication.update({
-      where: { id: app.id },
-      data: { status: "APPROVED", affiliateId: affiliate.id, reviewedAt: new Date(), reviewedById: user.id },
-    });
-
-    await logAudit(req, "affiliate_application.approve", "AffiliateApplication", app.id, { affiliateId: affiliate.id, code: affiliate.code });
-
-    WA.send(
-      app.phone,
-      `تهانينا ${app.fullName} 🎉\nتم اعتماد انضمامك لبرنامج شركاء ASH HOLDING.\nكود المسوّق: ${affiliate.code}\nيمكنك الآن الدخول إلى بوابة المسوّق وبدء الترويج.`
-    ).catch(() => {});
-
-    res.json({ ok: true, affiliate });
+    const result = await approveAffiliateApplication(req, req.params.id);
+    res.status(result.status).json(result.body);
   } catch (e) { next(e); }
 });
 
