@@ -787,7 +787,6 @@ projectsRouter.get("/requests/:id", async (req, res, next) => {
       where: { id: req.params.id },
       include: {
         client: { include: { user: { select: { name: true, email: true, phone: true } } } },
-        project: { select: { id: true, title: true, status: true, progress: true } },
       },
     });
     if (!r) return res.status(404).json({ error: "غير موجود" });
@@ -795,7 +794,13 @@ projectsRouter.get("/requests/:id", async (req, res, next) => {
       const cid = await currentClientId(req);
       if (r.clientId !== cid) return res.status(403).json({ error: "ممنوع" });
     }
-    res.json({ request: r, ref: shortRef("REQ", r.id) });
+    const project = r.projectId
+      ? await prisma.project.findUnique({
+          where: { id: r.projectId },
+          select: { id: true, title: true, status: true, progress: true },
+        })
+      : null;
+    res.json({ request: { ...r, project }, ref: shortRef("REQ", r.id) });
   } catch (e) { next(e); }
 });
 
