@@ -5,8 +5,9 @@ import { useState, useMemo } from "react";
 import {
   Wallet, Search, Check, X, Plus, Minus, TrendingUp, Clock,
   CheckCircle2, XCircle, ArrowDownToLine, ArrowUpFromLine, Gift,
+  FileText, ExternalLink, Eye,
 } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, fileUrl } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
