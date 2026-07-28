@@ -254,7 +254,7 @@ function FinancingHome() {
       </section>
 
       {/* TRUST BANNER — real image */}
-      <section className="relative overflow-hidden rounded-[2rem] ring-1 ring-slate-200 shadow-xl">
+      <section className="relative min-h-[520px] md:min-h-[440px] overflow-hidden rounded-[2rem] ring-1 ring-slate-200 shadow-xl">
         <img
           src={trustImg.url}
           alt="مقر آش القابضة"
