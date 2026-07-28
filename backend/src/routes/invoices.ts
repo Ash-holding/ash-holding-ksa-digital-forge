@@ -108,9 +108,18 @@ invoicesRouter.get("/:id", async (req, res, next) => {
       const cid = await currentClientId(req);
       if (inv.clientId !== cid) return res.status(403).json({ error: "Forbidden" });
     }
-    res.json({ invoice: inv });
+    // Attach linked project request info (for PDF/reference)
+    const linkedRequest = await prisma.projectRequest.findFirst({
+      where: { linkedInvoiceId: inv.id },
+      select: { id: true, title: true, category: true, proposalScope: true, proposalDuration: true },
+    });
+    const requestRef = linkedRequest
+      ? `REQ-${linkedRequest.id.replace(/-/g, "").slice(0, 6).toUpperCase()}`
+      : null;
+    res.json({ invoice: { ...inv, linkedRequest, requestRef } });
   } catch (e) { next(e); }
 });
+
 
 invoicesRouter.post("/", requireStaff, async (req, res, next) => {
   try {
