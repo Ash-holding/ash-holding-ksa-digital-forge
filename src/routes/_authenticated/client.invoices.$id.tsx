@@ -1,11 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   FileText, Download, Receipt, CreditCard, User, Calendar,
   Wallet as WalletIcon, Landmark, Sparkles, Copy, Check, Send,
   BadgeCheck, Stamp, ArrowUpRight, ArrowDownLeft, RotateCcw, Wrench,
+  AlertTriangle, RefreshCw, X,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { DetailShell, DetailSection, KV } from "@/components/shared/DetailShell";
@@ -62,6 +63,8 @@ function ClientInvoiceDetail() {
   const [bankRef, setBankRef] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<ReceiptLike | null>(null);
+  const [payError, setPayError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const q = useQuery({
     queryKey: ["client-invoice", id],
@@ -79,25 +82,46 @@ function ClientInvoiceDetail() {
   const walletBal = Number(wallet?.balance ?? 0);
   const total = Number(inv?.total ?? 0);
   const unpaid = inv && inv.status !== "PAID" && inv.status !== "CANCELLED";
+  const insufficientFunds = !!payError && /رصيد|الرصيد/.test(payError);
 
   const payWallet = useMutation({
     mutationFn: async () => (await api.post(`/invoices/${id}/pay-wallet`)).data,
+    onMutate: () => setPayError(null),
     onSuccess: (data) => {
-      setReceipt(buildReceipt(inv, data?.payment, data?.wallet?.balance != null ? Number(data.wallet.balance) : undefined));
-      toast.success("تم سداد الفاتورة من المحفظة ✅ — إيصالك جاهز للتحميل");
+      // Instant status flip — write the paid invoice straight into the cache
+      qc.setQueryData(["client-invoice", id], (old: any) =>
+        old ? { ...old, ...data.invoice, items: old.items, linkedRequest: old.linkedRequest, requestRef: old.requestRef, walletTransactions: old.walletTransactions, payments: data.payment ? [...(old.payments ?? []), data.payment] : old.payments } : old,
+      );
+      if (data?.wallet) qc.setQueryData(["wallet-me"], (old: any) => (old ? { ...old, wallet: data.wallet } : old));
+      const rc = buildReceipt(inv, data?.payment, data?.wallet?.balance != null ? Number(data.wallet.balance) : undefined);
+      setReceipt(rc);
+      toast.success("تم سداد الفاتورة بنجاح ✅", {
+        description: `${total.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} ر.س من المحفظة · كاش باك +${(total * 0.0185).toFixed(2)} ر.س في طريقه لمحفظتك`,
+        duration: 8000,
+        action: { label: "تحميل الإيصال", onClick: () => downloadReceiptPDF(rc).catch(() => toast.error("تعذّر إنشاء الإيصال")) },
+      });
       qc.invalidateQueries({ queryKey: ["client-invoice", id] });
       qc.invalidateQueries({ queryKey: ["wallet-me"] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error || "تعذّر السداد"),
+    onError: (e: any) => {
+      const msg = e?.response?.data?.error || "تعذّر إتمام السداد — تحقق من اتصالك وحاول مجدداً";
+      setPayError(msg);
+      toast.error("تعثّر السداد من المحفظة", { description: msg, duration: 6000 });
+    },
   });
   const submitTransfer = useMutation({
     mutationFn: async () => (await api.post(`/invoices/${id}/submit-bank-transfer`, { bankRef })).data,
+    onMutate: () => setPayError(null),
     onSuccess: () => {
-      toast.success("تم إشعار الإدارة بالتحويل — سيتم تأكيده قريباً");
+      toast.success("تم إشعار الإدارة بالتحويل ✅", { description: "ستتحول الفاتورة إلى «مسددة» فور تأكيد الإدارة للتحويل", duration: 6000 });
       setBankRef("");
       qc.invalidateQueries({ queryKey: ["client-invoice", id] });
     },
-    onError: (e: any) => toast.error(e?.response?.data?.error || "تعذّر الإرسال"),
+    onError: (e: any) => {
+      const msg = e?.response?.data?.error || "تعذّر إرسال إشعار التحويل — حاول مجدداً";
+      setPayError(msg);
+      toast.error("تعثّر إرسال التحويل", { description: msg, duration: 6000 });
+    },
   });
 
   const copy = async (v: string, key: string) => {
