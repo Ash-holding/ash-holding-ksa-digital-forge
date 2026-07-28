@@ -25,23 +25,67 @@ function notifyAdmins(message: string, meta?: { kind?: string; entityId?: string
 }
 
 const REQUEST_STATUS_LABEL: Record<string, string> = {
-  PENDING: "قيد الانتظار",
-  UNDER_REVIEW: "قيد المراجعة",
-  APPROVED: "تمت الموافقة ✅",
-  REJECTED: "مرفوض ❌",
-  CONVERTED: "تم تحويله لمشروع 🚀",
+  PENDING: "⏳ قيد الانتظار",
+  UNDER_REVIEW: "🔍 قيد المراجعة",
+  APPROVED: "✅ تمت الموافقة",
+  REJECTED: "❌ مرفوض",
+  CONVERTED: "🚀 تم تحويله لمشروع رسمي",
 };
 
 const PROJECT_STATUS_LABEL: Record<string, string> = {
-  NEW: "جديد",
-  PLANNING: "تخطيط",
-  DESIGN: "تصميم",
-  DEVELOPMENT: "تطوير",
-  WAITING_CLIENT: "بانتظار العميل",
-  TESTING: "اختبار",
-  COMPLETED: "مكتمل ✅",
-  ON_HOLD: "متوقف مؤقتاً",
+  NEW: "🆕 جديد",
+  PLANNING: "🗂️ تخطيط",
+  DESIGN: "🎨 تصميم",
+  DEVELOPMENT: "💻 تطوير",
+  WAITING_CLIENT: "⏸️ بانتظار العميل",
+  TESTING: "🧪 اختبار",
+  COMPLETED: "✅ مكتمل",
+  ON_HOLD: "⏳ متوقف مؤقتاً",
 };
+
+const CATEGORY_LABEL: Record<string, string> = {
+  WEBSITE: "🌐 موقع إلكتروني",
+  MOBILE_APP: "📱 تطبيق جوال",
+  ADMIN_SYSTEM: "🗄️ نظام إداري",
+  HOSTING: "☁️ استضافة",
+  VPS: "🖥️ خادم VPS",
+  DEDICATED_SERVER: "🖥️ خادم مخصص",
+  SMTP: "✉️ خدمة SMTP",
+  MARKETING: "📣 تسويق رقمي",
+  DESIGN: "🎨 تصميم وهوية",
+  SUPPORT: "🛠️ دعم وصيانة",
+  OTHER: "📌 طلب مخصص",
+};
+
+const PRIORITY_LABEL: Record<string, string> = {
+  LOW: "🟢 منخفضة",
+  NORMAL: "🔵 عادية",
+  HIGH: "🟠 عالية",
+  URGENT: "🔴 عاجلة",
+};
+
+// Short human reference from UUID: REQ-XXXXXX / PRJ-XXXXXX
+function shortRef(prefix: string, id: string): string {
+  return `${prefix}-${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
+}
+
+function fmtMoney(n: unknown): string {
+  const v = Number(n);
+  if (!isFinite(v) || v <= 0) return "—";
+  return `${v.toLocaleString("en-US")} ر.س`;
+}
+
+function fmtDate(d: Date | string | null | undefined): string {
+  if (!d) return "—";
+  try {
+    return new Date(d).toLocaleDateString("ar-SA-u-ca-gregory", {
+      year: "numeric", month: "long", day: "numeric",
+    });
+  } catch { return String(d); }
+}
+
+const DIVIDER = "━━━━━━━━━━━━━━━━━━━━";
+const SIGNATURE = "\n\n🏢 *ASH HOLDING* — آش القابضة\n🌐 ash-holding.sa";
 
 export const projectsRouter = Router();
 projectsRouter.use(requireAuth);
