@@ -96,7 +96,7 @@ function VerifyLanding() {
       <PageHero
         eyebrow="بوابة التحقق الرسمية"
         title="تحقق من صحة الإيصال"
-        subtitle="أدخل رقم الإيصال (RCP-YYYY-NNNN) أو الفاتورة (INV-YYYY-NNNN) — أو امسح رمز QR الموجود أعلى الإيصال الرسمي — للاطلاع على حالة السداد والتحقق من صحته."
+        description="أدخل رقم الإيصال (RCP-YYYY-NNNN) أو الفاتورة (INV-YYYY-NNNN) — أو امسح رمز QR الموجود أعلى الإيصال الرسمي — للاطلاع على حالة السداد والتحقق من صحته."
         visual={<VerifyVisual />}
       />
 

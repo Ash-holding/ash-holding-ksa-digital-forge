@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WhyRouteImport } from './routes/why'
+import { Route as VerifyRouteImport } from './routes/verify'
 import { Route as TermsRouteImport } from './routes/terms'
 import { Route as SupportRouteImport } from './routes/support'
 import { Route as SlaRouteImport } from './routes/sla'
@@ -32,6 +33,7 @@ import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedClientIndexRouteImport } from './routes/_authenticated/client.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as VerifyReceiptCodeRouteImport } from './routes/verify.receipt.$code'
 import { Route as AuthenticatedClientWalletRouteImport } from './routes/_authenticated/client.wallet'
 import { Route as AuthenticatedClientSupportRouteImport } from './routes/_authenticated/client.support'
 import { Route as AuthenticatedClientServicesRouteImport } from './routes/_authenticated/client.services'
@@ -79,6 +81,11 @@ import { Route as AuthenticatedAdminClientsIdEditRouteImport } from './routes/_a
 const WhyRoute = WhyRouteImport.update({
   id: '/why',
   path: '/why',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VerifyRoute = VerifyRouteImport.update({
+  id: '/verify',
+  path: '/verify',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermsRoute = TermsRouteImport.update({
@@ -190,6 +197,11 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
+} as any)
+const VerifyReceiptCodeRoute = VerifyReceiptCodeRouteImport.update({
+  id: '/receipt/$code',
+  path: '/receipt/$code',
+  getParentRoute: () => VerifyRoute,
 } as any)
 const AuthenticatedClientWalletRoute =
   AuthenticatedClientWalletRouteImport.update({
@@ -463,6 +475,7 @@ export interface FileRoutesByFullPath {
   '/sla': typeof SlaRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/verify': typeof VerifyRouteWithChildren
   '/why': typeof WhyRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/client': typeof AuthenticatedClientRouteWithChildren
@@ -492,6 +505,7 @@ export interface FileRoutesByFullPath {
   '/client/services': typeof AuthenticatedClientServicesRouteWithChildren
   '/client/support': typeof AuthenticatedClientSupportRouteWithChildren
   '/client/wallet': typeof AuthenticatedClientWalletRoute
+  '/verify/receipt/$code': typeof VerifyReceiptCodeRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/client/': typeof AuthenticatedClientIndexRoute
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
@@ -530,6 +544,7 @@ export interface FileRoutesByTo {
   '/sla': typeof SlaRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/verify': typeof VerifyRouteWithChildren
   '/why': typeof WhyRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -555,6 +570,7 @@ export interface FileRoutesByTo {
   '/client/services': typeof AuthenticatedClientServicesRouteWithChildren
   '/client/support': typeof AuthenticatedClientSupportRouteWithChildren
   '/client/wallet': typeof AuthenticatedClientWalletRoute
+  '/verify/receipt/$code': typeof VerifyReceiptCodeRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/client': typeof AuthenticatedClientIndexRoute
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
@@ -595,6 +611,7 @@ export interface FileRoutesById {
   '/sla': typeof SlaRoute
   '/support': typeof SupportRoute
   '/terms': typeof TermsRoute
+  '/verify': typeof VerifyRouteWithChildren
   '/why': typeof WhyRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/client': typeof AuthenticatedClientRouteWithChildren
@@ -624,6 +641,7 @@ export interface FileRoutesById {
   '/_authenticated/client/services': typeof AuthenticatedClientServicesRouteWithChildren
   '/_authenticated/client/support': typeof AuthenticatedClientSupportRouteWithChildren
   '/_authenticated/client/wallet': typeof AuthenticatedClientWalletRoute
+  '/verify/receipt/$code': typeof VerifyReceiptCodeRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/client/': typeof AuthenticatedClientIndexRoute
   '/_authenticated/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
@@ -664,6 +682,7 @@ export interface FileRouteTypes {
     | '/sla'
     | '/support'
     | '/terms'
+    | '/verify'
     | '/why'
     | '/admin'
     | '/client'
@@ -693,6 +712,7 @@ export interface FileRouteTypes {
     | '/client/services'
     | '/client/support'
     | '/client/wallet'
+    | '/verify/receipt/$code'
     | '/admin/'
     | '/client/'
     | '/admin/clients/$id'
@@ -731,6 +751,7 @@ export interface FileRouteTypes {
     | '/sla'
     | '/support'
     | '/terms'
+    | '/verify'
     | '/why'
     | '/portfolio/$slug'
     | '/services/$slug'
@@ -756,6 +777,7 @@ export interface FileRouteTypes {
     | '/client/services'
     | '/client/support'
     | '/client/wallet'
+    | '/verify/receipt/$code'
     | '/admin'
     | '/client'
     | '/admin/clients/$id'
@@ -795,6 +817,7 @@ export interface FileRouteTypes {
     | '/sla'
     | '/support'
     | '/terms'
+    | '/verify'
     | '/why'
     | '/_authenticated/admin'
     | '/_authenticated/client'
@@ -824,6 +847,7 @@ export interface FileRouteTypes {
     | '/_authenticated/client/services'
     | '/_authenticated/client/support'
     | '/_authenticated/client/wallet'
+    | '/verify/receipt/$code'
     | '/_authenticated/admin/'
     | '/_authenticated/client/'
     | '/_authenticated/admin/clients/$id'
@@ -864,6 +888,7 @@ export interface RootRouteChildren {
   SlaRoute: typeof SlaRoute
   SupportRoute: typeof SupportRoute
   TermsRoute: typeof TermsRoute
+  VerifyRoute: typeof VerifyRouteWithChildren
   WhyRoute: typeof WhyRoute
   ServicesSlugRoute: typeof ServicesSlugRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
@@ -876,6 +901,13 @@ declare module '@tanstack/react-router' {
       path: '/why'
       fullPath: '/why'
       preLoaderRoute: typeof WhyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/verify': {
+      id: '/verify'
+      path: '/verify'
+      fullPath: '/verify'
+      preLoaderRoute: typeof VerifyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/terms': {
@@ -1031,6 +1063,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/verify/receipt/$code': {
+      id: '/verify/receipt/$code'
+      path: '/receipt/$code'
+      fullPath: '/verify/receipt/$code'
+      preLoaderRoute: typeof VerifyReceiptCodeRouteImport
+      parentRoute: typeof VerifyRoute
     }
     '/_authenticated/client/wallet': {
       id: '/_authenticated/client/wallet'
@@ -1638,6 +1677,17 @@ const PortfolioRouteWithChildren = PortfolioRoute._addFileChildren(
   PortfolioRouteChildren,
 )
 
+interface VerifyRouteChildren {
+  VerifyReceiptCodeRoute: typeof VerifyReceiptCodeRoute
+}
+
+const VerifyRouteChildren: VerifyRouteChildren = {
+  VerifyReceiptCodeRoute: VerifyReceiptCodeRoute,
+}
+
+const VerifyRouteWithChildren =
+  VerifyRoute._addFileChildren(VerifyRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
@@ -1654,6 +1704,7 @@ const rootRouteChildren: RootRouteChildren = {
   SlaRoute: SlaRoute,
   SupportRoute: SupportRoute,
   TermsRoute: TermsRoute,
+  VerifyRoute: VerifyRouteWithChildren,
   WhyRoute: WhyRoute,
   ServicesSlugRoute: ServicesSlugRoute,
   ServicesIndexRoute: ServicesIndexRoute,
