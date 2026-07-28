@@ -172,7 +172,7 @@ adminRouter.get("/stats", async (_req, res, next) => {
         collectionsRate,
         avgProjectProgress: Math.round(Number(progressAgg._avg.progress || 0)),
         overdueAmount: Number(overdueAgg._sum.total || 0),
-        activeContractsValue: Number(activeContractsAgg._sum.value || 0),
+        activeContractsValue: Number(activeContractsAgg._sum?.value || 0),
         avgTicketResponseHours,
       },
       alerts,
