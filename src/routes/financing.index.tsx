@@ -317,7 +317,7 @@ function FinancingHome() {
             desc="بإمكانك سداد التمويل مبكراً بدون رسوم إضافية، ويُخفَّض إجمالي التكلفة تلقائياً."
           />
         </div>
-        <div className="relative overflow-hidden rounded-3xl bg-slate-950 p-6 ring-1 ring-white/10 text-white">
+        <div className="relative min-h-[280px] overflow-hidden rounded-3xl bg-slate-950 p-6 ring-1 ring-white/10 text-white">
           <img
             src={shieldImg.url}
             alt=""
