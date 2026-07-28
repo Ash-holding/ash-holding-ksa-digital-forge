@@ -98,6 +98,7 @@ function LoginOtpPage() {
       return;
     }
     verifyBusyRef.current = true;
+    ["otp-network-error","otp-verify-error","otp-wrong-code","otp-expired","otp-too-many-attempts","otp-no-active-code","otp-no-account","otp-code-invalid","otp-request-success"].forEach((id)=>toast.dismiss(id));
     toast.dismiss();
     setLoading(true);
     try {
@@ -110,8 +111,10 @@ function LoginOtpPage() {
         });
         setTokens(data.accessToken, data.refreshToken);
         await refresh();
-        toast.success("تم التحقق بنجاح", { id: "otp-verify-success" });
+        ["otp-network-error","otp-verify-error","otp-wrong-code","otp-expired","otp-too-many-attempts","otp-no-active-code","otp-no-account"].forEach((id)=>toast.dismiss(id));
+        toast.success("تم التحقق بنجاح", { id: "otp-verify-success", duration: 2500 });
         navigate({ to: landingFor(data.user.role) });
+
         return;
       } catch (err: any) {
         const status = err?.response?.status;
@@ -169,7 +172,9 @@ function LoginOtpPage() {
         toast.error("تعذّر الاتصال بالخادم", {
           id: "otp-network-error",
           description: "تحقق من اتصالك بالإنترنت وحاول مجدداً.",
+          duration: 4000,
         });
+
         pushLog({ kind: "verify", ok: false, reason: "تعذّر الاتصال بالخادم" });
       }
     } finally {
