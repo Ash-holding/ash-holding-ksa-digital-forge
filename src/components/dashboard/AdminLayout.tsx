@@ -35,6 +35,7 @@ const ITEMS: NavItem[] = [
   { to: "/admin/financing", label: "طلبات التمويل", icon: Wallet },
   { to: "/admin/financing/ops", label: "تشغيل التمويل", icon: Wallet },
   { to: "/admin/financing/disclosures", label: "الإفصاحات", icon: Wallet },
+  { to: "/admin/financing/reports", label: "تقارير التمويل", icon: BarChart3 },
   { to: "/admin/reports", label: "التقارير", icon: BarChart3 },
   { to: "/admin/settings", label: "الإعدادات", icon: Settings },
   { to: "/admin/audit-log", label: "سجل التدقيق", icon: ClipboardList },
