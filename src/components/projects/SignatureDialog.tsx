@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PenLine, ShieldCheck, X, Loader2, MessageCircle, FileText, ArrowRight, ArrowLeft, ScrollText } from "lucide-react";
+import { PenLine, ShieldCheck, X, Loader2, MessageCircle, FileText, ArrowRight, ArrowLeft, ScrollText, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api, apiError } from "@/lib/api";
+import { downloadContractPDF } from "@/lib/contract-print";
 
 type Props = {
   open: boolean;
@@ -25,6 +26,33 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
   const [otp, setOtp] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [readContract, setReadContract] = useState(false);
+  const [downloading, setDownloading] = useState(false);
+
+  async function downloadDraft() {
+    setDownloading(true);
+    try {
+      await downloadContractPDF(
+        {
+          contractNumber: `${reference}-DRAFT`,
+          title,
+          value: amount,
+          currency: "SAR",
+          startDate: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          notes: "مسودة غير موقّعة — للمراجعة فقط قبل التوقيع الرقمي وسداد الفاتورة.",
+          project: { title },
+        },
+        { proposalScope: scope ?? null, proposalDuration: duration },
+        null,
+      );
+      toast.success("تم تنزيل مسودة العقد");
+    } catch (e) {
+      toast.error("تعذّر تنزيل المسودة");
+      console.error(e);
+    } finally {
+      setDownloading(false);
+    }
+  }
   const [sending, setSending] = useState(false);
   const [signing, setSigning] = useState(false);
 
@@ -213,6 +241,16 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
                         هذه مسودة قابلة للقراءة قبل التوقيع. النسخة النهائية المختومة بختم التوقيع الرقمي (SHA-256) وIP وتاريخ السداد ستكون متاحة للتحميل بصيغة PDF من صفحة «العقود» بعد إتمام السداد.
                       </div>
                     </div>
+
+                    <Button
+                      onClick={downloadDraft}
+                      disabled={downloading}
+                      variant="outline"
+                      className="w-full gap-2 h-11 border-electric/40 text-electric hover:bg-electric/10 font-bold"
+                    >
+                      {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                      {downloading ? "جارٍ التحضير…" : "تنزيل مسودة العقد بصيغة PDF"}
+                    </Button>
 
                     <label className="flex items-start gap-2 rounded-xl border-2 border-electric/30 bg-electric/5 p-3 cursor-pointer">
                       <input type="checkbox" checked={readContract} onChange={(e) => setReadContract(e.target.checked)}
