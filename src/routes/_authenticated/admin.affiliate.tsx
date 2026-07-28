@@ -42,7 +42,7 @@ function AdminAffiliateHub() {
         description="مركز إدارة المسوّقين، القواعد، العمولات، السحوبات، والمواد التسويقية."
       />
 
-      <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
+      <Tabs dir="rtl" value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
         <TabsList className="grid grid-cols-3 md:grid-cols-7 gap-1 h-auto p-1 bg-muted/40">
           <TabsTrigger value="overview" className="gap-2"><TrendingUp className="w-4 h-4"/>نظرة عامة</TabsTrigger>
           <TabsTrigger value="affiliates" className="gap-2"><Users className="w-4 h-4"/>المسوّقون</TabsTrigger>
