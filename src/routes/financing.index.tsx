@@ -400,6 +400,162 @@ function InfoCard({ icon, title, desc, tone }: { icon: React.ReactNode; title: s
   );
 }
 
+function ZeroFeesBanner() {
+  const reduce = useReducedMotion();
+  const items = [
+    { icon: <Ban className="h-6 w-6" />, label: "بدون رسوم إدارية", sub: "لا رسوم فتح ملف" },
+    { icon: <Receipt className="h-6 w-6" />, label: "بدون رسوم إضافية", sub: "على قيمة الطلب" },
+    { icon: <Percent className="h-6 w-6" />, label: "بدون عمولات خفية", sub: "شفافية كاملة" },
+    { icon: <CheckCircle2 className="h-6 w-6" />, label: "بدون رسوم سداد مبكر", sub: "أنت حر متى تشاء" },
+  ];
+  return (
+    <motion.section
+      initial={reduce ? {} : { opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-80px" }}
+      className="relative overflow-hidden rounded-[2rem] bg-gradient-to-l from-emerald-950 via-slate-950 to-slate-950 p-8 md:p-12 text-white ring-1 ring-emerald-400/20 shadow-[0_30px_80px_-30px_rgba(16,185,129,0.35)]"
+    >
+      {/* animated glow orbs */}
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute -top-24 -right-24 h-72 w-72 rounded-full bg-emerald-400/25 blur-[100px]"
+        animate={reduce ? {} : { scale: [1, 1.2, 1], opacity: [0.6, 0.9, 0.6] }}
+        transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+      />
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-24 -left-24 h-72 w-72 rounded-full bg-cyan-400/20 blur-[100px]"
+        animate={reduce ? {} : { scale: [1.1, 1, 1.1], opacity: [0.5, 0.8, 0.5] }}
+        transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+      />
+      {/* subtle grid */}
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-[0.07]"
+        style={{
+          backgroundImage:
+            "linear-gradient(to right, white 1px, transparent 1px), linear-gradient(to bottom, white 1px, transparent 1px)",
+          backgroundSize: "42px 42px",
+        }}
+      />
+
+      <div className="relative z-10 grid gap-10 lg:grid-cols-12 lg:items-center">
+        <div className="lg:col-span-5">
+          <motion.div
+            initial={reduce ? {} : { scale: 0.85, opacity: 0 }}
+            whileInView={{ scale: 1, opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ type: "spring", stiffness: 200, damping: 15 }}
+            className="inline-flex items-center gap-2 rounded-full bg-emerald-400/15 px-3.5 py-1.5 text-[11px] font-bold text-emerald-200 ring-1 ring-emerald-400/40 backdrop-blur"
+          >
+            <motion.span
+              className="grid h-4 w-4 place-items-center rounded-full bg-emerald-400 text-emerald-950"
+              animate={reduce ? {} : { rotate: [0, 360] }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            >
+              <CheckCircle2 className="h-3 w-3" />
+            </motion.span>
+            ضمان شفافية السعر
+          </motion.div>
+
+          <h2 className="mt-5 text-4xl md:text-5xl font-black leading-[1.1] tracking-tight">
+            <span className="inline-block bg-gradient-to-l from-emerald-300 via-teal-200 to-white bg-clip-text text-transparent">
+              صفر رسوم إضافية
+            </span>
+            <br />
+            <span className="text-white">على قيمة الطلب</span>
+          </h2>
+
+          <p className="mt-5 text-[15px] leading-9 text-slate-300 max-w-lg">
+            ما تراه هو ما تدفعه بالضبط.
+            <b className="text-white"> لا رسوم إدارية</b>،
+            <b className="text-white"> لا عمولات خفية</b>،
+            ولا أي رسوم إضافية على قيمة التمويل — إفصاح كامل قبل التوقيع.
+          </p>
+
+          {/* animated big zero */}
+          <div className="mt-6 flex items-end gap-4">
+            <motion.div
+              initial={reduce ? {} : { scale: 0.5, opacity: 0 }}
+              whileInView={{ scale: 1, opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ type: "spring", stiffness: 180, damping: 12, delay: 0.15 }}
+              className="relative"
+            >
+              <div className="text-[7rem] leading-none font-black bg-gradient-to-b from-emerald-300 to-emerald-500 bg-clip-text text-transparent tabular-nums">
+                0
+              </div>
+              <motion.div
+                aria-hidden
+                className="absolute inset-0 rounded-full"
+                animate={reduce ? {} : { boxShadow: ["0 0 40px rgba(16,185,129,0.4)", "0 0 80px rgba(16,185,129,0.7)", "0 0 40px rgba(16,185,129,0.4)"] }}
+                transition={{ duration: 3, repeat: Infinity }}
+              />
+            </motion.div>
+            <div className="pb-3">
+              <div className="text-2xl font-black text-white">رسوم</div>
+              <div className="text-xs font-semibold text-emerald-300">حرفياً بلا استثناء</div>
+            </div>
+          </div>
+        </div>
+
+        <div className="lg:col-span-7 grid gap-3 sm:grid-cols-2">
+          {items.map((it, i) => (
+            <motion.div
+              key={i}
+              initial={reduce ? {} : { opacity: 0, x: 30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ delay: 0.1 + i * 0.08, type: "spring", stiffness: 140, damping: 18 }}
+              whileHover={reduce ? {} : { y: -4, scale: 1.02 }}
+              className="group relative overflow-hidden rounded-2xl bg-white/[0.04] p-5 ring-1 ring-white/10 backdrop-blur transition hover:bg-white/[0.07] hover:ring-emerald-400/40"
+            >
+              <div className="flex items-start gap-4">
+                <motion.div
+                  className="relative grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-500 text-emerald-950 shadow-lg"
+                  whileHover={reduce ? {} : { rotate: [0, -10, 10, 0] }}
+                  transition={{ duration: 0.5 }}
+                >
+                  {it.icon}
+                  <motion.span
+                    aria-hidden
+                    className="absolute inset-0 rounded-xl ring-2 ring-emerald-300/50"
+                    animate={reduce ? {} : { scale: [1, 1.15, 1], opacity: [0.6, 0, 0.6] }}
+                    transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.3 }}
+                  />
+                </motion.div>
+                <div className="min-w-0">
+                  <div className="text-base font-black text-white">{it.label}</div>
+                  <div className="mt-1 text-xs font-medium text-slate-400">{it.sub}</div>
+                </div>
+              </div>
+              <div aria-hidden className="pointer-events-none absolute bottom-0 left-0 h-[2px] w-full bg-gradient-to-l from-emerald-400 via-teal-400 to-transparent opacity-0 transition group-hover:opacity-100" />
+            </motion.div>
+          ))}
+
+          {/* marquee promise */}
+          <div className="sm:col-span-2 mt-2 overflow-hidden rounded-2xl bg-black/30 ring-1 ring-white/10 py-3">
+            <motion.div
+              className="flex whitespace-nowrap gap-10 text-sm font-bold text-emerald-300"
+              animate={reduce ? {} : { x: ["0%", "-50%"] }}
+              transition={{ duration: 22, repeat: Infinity, ease: "linear" }}
+            >
+              {Array.from({ length: 2 }).flatMap((_, r) =>
+                ["✓ صفر رسوم إدارية", "✓ صفر عمولات خفية", "✓ صفر رسوم فتح ملف", "✓ صفر رسوم سداد مبكر", "✓ صفر مفاجآت", "✓ إفصاح كامل قبل التوقيع"].map((t, i) => (
+                  <span key={`${r}-${i}`} className="inline-flex items-center gap-2 px-4">
+                    {t}
+                  </span>
+                ))
+              )}
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </motion.section>
+  );
+}
+
 function fmt(n: number) {
   return new Intl.NumberFormat("ar-SA").format(n);
 }
+
