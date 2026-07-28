@@ -25,6 +25,15 @@ export const Route = createFileRoute("/_authenticated/client/wallet")({
 
 const CURRENCY = "ر.س";
 
+const BANK_FALLBACK = {
+  beneficiary: "شركة علي صالح الشهري القابضة",
+  bank: "بنك ساب (SAB)",
+  iban: "SA3745000000262359391001",
+  currency: "SAR",
+};
+
+const WALLET_FALLBACK = { balance: 0, cashbackBalance: 0 };
+
 function fmtSar(n: number | string | null | undefined) {
   const v = Number(n ?? 0);
   return v.toLocaleString("ar-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -55,11 +64,13 @@ function ClientWallet() {
     queryKey: ["wallet-me"],
     queryFn: async () => (await api.get("/wallet/me")).data,
     refetchInterval: 6000,
+    placeholderData: (prev) => prev ?? { wallet: WALLET_FALLBACK, transactions: [], bank: BANK_FALLBACK, cashbackRate: 0.0185 },
+    staleTime: 3000,
   });
 
-  const wallet = q.data?.wallet;
+  const wallet = q.data?.wallet ?? WALLET_FALLBACK;
   const transactions = q.data?.transactions ?? [];
-  const bank = q.data?.bank;
+  const bank = q.data?.bank ?? BANK_FALLBACK;
   const cashbackRate = q.data?.cashbackRate ?? 0.0185;
 
   const copy = async (val: string, key: string) => {
@@ -89,7 +100,7 @@ function ClientWallet() {
                   <Sparkles className="h-4 w-4" />
                   <span>الرصيد المتاح</span>
                 </div>
-                {q.isLoading ? (
+                {q.isLoading && !q.data ? (
                   <Skeleton className="h-14 w-64 bg-white/20" />
                 ) : (
                   <div className="flex items-baseline gap-2">
