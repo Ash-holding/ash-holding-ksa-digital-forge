@@ -21,7 +21,8 @@ function AuthGate() {
 
   useEffect(() => {
     if (!pending && !user) {
-      navigate({ to: "/login", search: { redirect: window.location.pathname } });
+      const redirect = `${window.location.pathname}${window.location.search}`;
+      navigate({ to: "/login", search: { redirect } });
     }
   }, [pending, user, navigate]);
 

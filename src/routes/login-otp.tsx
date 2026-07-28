@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 
 export const Route = createFileRoute("/login-otp")({
   component: LoginOtpPage,
+  validateSearch: (s) => ({ redirect: (s.redirect as string | undefined) || undefined }),
   head: () => ({
     meta: [
       { title: "الدخول عبر الواتساب | ASH HOLDING" },
@@ -23,6 +24,7 @@ type Step = "phone" | "code";
 
 function LoginOtpPage() {
   const navigate = useNavigate();
+  const search = Route.useSearch();
   const { refresh } = useAuth();
   const [step, setStep] = useState<Step>("phone");
   const [phone, setPhone] = useState("");
@@ -113,7 +115,7 @@ function LoginOtpPage() {
         await refresh();
         ["otp-network-error","otp-verify-error","otp-wrong-code","otp-expired","otp-too-many-attempts","otp-no-active-code","otp-no-account"].forEach((id)=>toast.dismiss(id));
         toast.success("تم التحقق بنجاح", { id: "otp-verify-success", duration: 2500 });
-        navigate({ to: landingFor(data.user.role) });
+        navigate({ to: search.redirect || landingFor(data.user.role) });
 
         return;
       } catch (err: any) {
@@ -219,7 +221,7 @@ function LoginOtpPage() {
 
       <div className="flex items-center justify-center p-6 lg:p-10">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md">
-          <Link to="/login" className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-6">
+          <Link to="/login" search={{ redirect: search.redirect }} className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-6">
             <ArrowLeft className="h-3.5 w-3.5" /> العودة لتسجيل الدخول بالبريد
           </Link>
           <h1 className="text-2xl font-black">الدخول عبر الواتساب</h1>

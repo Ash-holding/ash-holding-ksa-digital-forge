@@ -19,9 +19,9 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/_authenticated/client/financing/apply/$productId")({
   component: FinancingWizardPage,
   validateSearch: (s: Record<string, unknown>) => ({
-    amount: s.amount ? Number(s.amount) : undefined,
-    down: s.down ? Number(s.down) : undefined,
-    term: s.term ? Number(s.term) : undefined,
+    amount: s.amount !== undefined ? Number(s.amount) : undefined,
+    down: s.down !== undefined ? Number(s.down) : undefined,
+    term: s.term !== undefined ? Number(s.term) : undefined,
     id: s.id ? String(s.id) : undefined,
   }),
   head: () => ({

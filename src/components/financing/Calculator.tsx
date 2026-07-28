@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Loader2, Calculator as CalcIcon, Info, ArrowLeft, FileCheck2 } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { api, apiError } from "@/lib/api";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 type Product = {
   id: string; code: string; nameAr: string; customerType: "INDIVIDUAL" | "BUSINESS";
@@ -43,6 +44,7 @@ function AnimatedNumber({ value, className }: { value: number; className?: strin
 }
 
 export function FinancingCalculator() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState<Product[]>([]);
   const [productId, setProductId] = useState<string>("");
   const [amount, setAmount] = useState(50000);
@@ -121,6 +123,18 @@ export function FinancingCalculator() {
     product?.allowedTermsMonths?.length
       ? product.allowedTermsMonths
       : Array.from({ length: (product?.maxTermMonths ?? 36) - (product?.minTermMonths ?? 6) + 1 }, (_, i) => (product?.minTermMonths ?? 6) + i);
+
+  const continueApplication = () => {
+    if (!product) {
+      toast.error("اختر منتج التمويل أولاً");
+      return;
+    }
+    navigate({
+      to: "/client/financing/apply/$productId",
+      params: { productId: product.id },
+      search: { amount, down: downPayment, term },
+    });
+  };
 
   return (
     <div className="grid gap-6 lg:grid-cols-5">
@@ -228,13 +242,12 @@ export function FinancingCalculator() {
             "النتيجة تقديرية ولا تمثل موافقة. يخضع القرار النهائي لدراسة ائتمانية داخلية."}
         </div>
         {product ? (
-          <Link
-            to="/client/financing/apply/$productId"
-            params={{ productId: product.id }}
-            search={{ amount, down: downPayment, term }}
-            className="group mt-2 block rounded-2xl bg-white p-4 text-slate-900 shadow-lg ring-1 ring-white transition hover:shadow-xl hover:ring-white/80"
+          <Button
+            type="button"
+            onClick={continueApplication}
+            className="group mt-2 h-auto w-full rounded-2xl bg-white p-4 text-slate-900 shadow-lg ring-1 ring-white transition hover:bg-white hover:shadow-xl hover:ring-white/80"
           >
-            <div className="flex items-center gap-3">
+            <div className="flex w-full items-center gap-3">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-cyan-500 text-white">
                 <FileCheck2 className="h-5 w-5" />
               </div>
@@ -246,7 +259,7 @@ export function FinancingCalculator() {
               </div>
               <ArrowLeft className="h-4 w-4 text-slate-500 transition group-hover:-translate-x-1" />
             </div>
-          </Link>
+          </Button>
         ) : (
           <div className="mt-2 block w-full rounded-2xl bg-white/10 py-3 text-center text-sm text-slate-400 ring-1 ring-white/15">
             اختر منتجاً أولاً
