@@ -38,32 +38,30 @@ const gradeColor: Record<string, string> = {
 const fmt = (n: number) => new Intl.NumberFormat("ar-SA").format(Math.round(n));
 
 export function InternalCreditReportPanel({ report }: { report: CreditReport }) {
-  // Score wheel percentage (300..850 scale)
   const pct = Math.max(0, Math.min(100, ((report.score - 300) / 550) * 100));
 
   return (
-    <div className="rounded-3xl border border-border bg-gradient-to-br from-slate-950/60 via-slate-900/40 to-slate-950/60 p-6 shadow-2xl">
-      <div className="flex items-center gap-2 text-xs font-semibold text-electric">
+    <div className="rounded-3xl border border-white/10 bg-slate-950 p-6 shadow-2xl" dir="rtl">
+      <div className="flex items-center gap-2 text-sm font-bold text-electric">
         <ShieldCheck className="h-4 w-4" />
         التقرير الائتماني الداخلي — ASH Credit Bureau
-        <span className="mr-auto text-[10px] text-muted-foreground">
+        <span className="ms-auto text-[11px] font-medium text-slate-400">
           {new Date(report.generatedAt).toLocaleString("ar-SA")}
         </span>
       </div>
 
-      {/* SCORE HERO */}
       <div className="mt-5 grid gap-5 md:grid-cols-[220px_1fr]">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           className={`relative aspect-square rounded-3xl bg-gradient-to-br ${gradeColor[report.grade]} p-1`}
         >
-          <div className="h-full w-full rounded-3xl bg-slate-950/80 flex flex-col items-center justify-center">
-            <div className="text-[10px] text-slate-400 tracking-wider">SCORE / 850</div>
-            <div className="text-5xl font-black tabular-nums text-white mt-1">{report.score}</div>
-            <div className="mt-1 text-xs font-bold text-white/80">{report.grade} • {report.riskLevel}</div>
-            <div className="mt-3 w-3/4 h-1.5 rounded-full bg-white/10 overflow-hidden">
-              <div className="h-full bg-white/70" style={{ width: `${pct}%` }} />
+          <div className="h-full w-full rounded-[calc(1.5rem-4px)] bg-slate-950 flex flex-col items-center justify-center">
+            <div className="text-[11px] font-semibold text-slate-300 tracking-[0.2em]">SCORE / 850</div>
+            <div className="mt-1 text-6xl font-black tabular-nums text-white leading-none">{report.score}</div>
+            <div className="mt-2 text-sm font-bold text-white">{report.grade} • <span className="text-white/90">{report.riskLevel}</span></div>
+            <div className="mt-3 w-3/4 h-1.5 rounded-full bg-white/15 overflow-hidden">
+              <div className="h-full bg-white" style={{ width: `${pct}%` }} />
             </div>
           </div>
         </motion.div>
@@ -75,43 +73,42 @@ export function InternalCreditReportPanel({ report }: { report: CreditReport }) 
             <Metric label="القسط / الدخل" value={`${report.affordability.installmentToIncomePct}%`} tone={report.affordability.installmentToIncomePct > 50 ? "bad" : "ok"} />
             <Metric label="السيولة المتبقية" value={`${fmt(report.affordability.disposableAfter)} ﷼`} tone="ok" />
           </div>
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-xs leading-6">
-            <div className="text-white font-semibold mb-1">توصية النظام</div>
-            <div className="text-slate-300">{report.recommendationAr}</div>
+          <div className="rounded-2xl border border-white/15 bg-white/[0.06] p-4 text-sm leading-7">
+            <div className="text-white font-bold mb-1 text-base">توصية النظام</div>
+            <div className="text-slate-200">{report.recommendationAr}</div>
             {report.maxRecommendedAmount > 0 && report.maxRecommendedAmount < report.amountRequested && (
-              <div className="mt-2 text-amber-300">
-                ⚠️ الحد الموصى به لهذا المتقدم: <b>{fmt(report.maxRecommendedAmount)} ﷼</b> — المطلوب {fmt(report.amountRequested)} ﷼
+              <div className="mt-2 text-amber-300 font-semibold">
+                ⚠️ الحد الموصى به لهذا المتقدم: <b className="text-amber-200">{fmt(report.maxRecommendedAmount)} ﷼</b> — المطلوب {fmt(report.amountRequested)} ﷼
               </div>
             )}
           </div>
           {report.auditRequired && (
-            <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200 flex items-center gap-2">
-              <AlertTriangle className="h-3.5 w-3.5" />
+            <div className="rounded-2xl border border-amber-400/40 bg-amber-500/15 px-4 py-2.5 text-sm font-semibold text-amber-100 flex items-center gap-2">
+              <AlertTriangle className="h-4 w-4" />
               يتطلب هذا الملف تدقيقاً بشرياً من لجنة الائتمان قبل الاعتماد النهائي.
             </div>
           )}
         </div>
       </div>
 
-      {/* FACTORS */}
       <div className="mt-6">
-        <div className="text-xs font-semibold text-slate-300 mb-2">العوامل المؤثرة في التقييم</div>
-        <div className="grid gap-1.5 sm:grid-cols-2">
+        <div className="text-sm font-bold text-white mb-2">العوامل المؤثرة في التقييم</div>
+        <div className="grid gap-2 sm:grid-cols-2">
           {report.factors.map((f, i) => (
-            <div key={i} className="flex items-center gap-2 rounded-xl bg-white/5 border border-white/10 px-3 py-2 text-xs">
+            <div key={i} className="flex items-center gap-2 rounded-xl bg-white/[0.06] border border-white/10 px-3 py-2.5 text-sm">
               {f.impact === "positive" ? (
-                <TrendingUp className="h-3.5 w-3.5 text-emerald-400 shrink-0" />
+                <TrendingUp className="h-4 w-4 text-emerald-400 shrink-0" />
               ) : f.impact === "negative" ? (
-                <TrendingDown className="h-3.5 w-3.5 text-rose-400 shrink-0" />
+                <TrendingDown className="h-4 w-4 text-rose-400 shrink-0" />
               ) : (
-                <Info className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+                <Info className="h-4 w-4 text-slate-300 shrink-0" />
               )}
               <div className="flex-1 min-w-0">
-                <div className="text-slate-200 truncate">{f.labelAr}</div>
-                {f.detailAr && <div className="text-[10px] text-slate-400 truncate">{f.detailAr}</div>}
+                <div className="text-white font-semibold truncate">{f.labelAr}</div>
+                {f.detailAr && <div className="text-[11px] text-slate-400 truncate">{f.detailAr}</div>}
               </div>
-              <div className={`text-[10px] font-bold tabular-nums ${
-                f.impact === "positive" ? "text-emerald-300" : f.impact === "negative" ? "text-rose-300" : "text-slate-300"
+              <div className={`text-xs font-black tabular-nums ${
+                f.impact === "positive" ? "text-emerald-300" : f.impact === "negative" ? "text-rose-300" : "text-slate-200"
               }`}>
                 {f.impact === "positive" ? "+" : f.impact === "negative" ? "−" : "±"}{f.weight}
               </div>
@@ -123,14 +120,14 @@ export function InternalCreditReportPanel({ report }: { report: CreditReport }) 
       {report.flags.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-1.5">
           {report.flags.map((flag) => (
-            <span key={flag} className="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-300 ring-1 ring-rose-500/20 font-mono">
+            <span key={flag} className="text-[11px] px-2 py-1 rounded-full bg-rose-500/15 text-rose-200 ring-1 ring-rose-400/30 font-mono font-semibold">
               {flag}
             </span>
           ))}
         </div>
       )}
 
-      <div className="mt-5 text-[10px] leading-6 text-slate-400 border-t border-white/5 pt-3">
+      <div className="mt-5 text-xs leading-7 text-slate-300 border-t border-white/10 pt-3">
         {report.disclosureAr}
       </div>
     </div>
@@ -139,13 +136,13 @@ export function InternalCreditReportPanel({ report }: { report: CreditReport }) 
 
 function Metric({ label, value, tone }: { label: string; value: string; tone: "ok" | "warn" | "bad" }) {
   const color =
-    tone === "bad" ? "text-rose-300 border-rose-500/30 bg-rose-500/5" :
-    tone === "warn" ? "text-amber-300 border-amber-500/30 bg-amber-500/5" :
-    "text-emerald-300 border-emerald-500/30 bg-emerald-500/5";
+    tone === "bad" ? "text-rose-100 border-rose-400/40 bg-rose-500/15" :
+    tone === "warn" ? "text-amber-100 border-amber-400/40 bg-amber-500/15" :
+    "text-emerald-100 border-emerald-400/40 bg-emerald-500/15";
   return (
-    <div className={`rounded-2xl border px-3 py-2 ${color}`}>
-      <div className="text-[10px] text-slate-400">{label}</div>
-      <div className="text-sm font-bold tabular-nums mt-0.5">{value}</div>
+    <div className={`rounded-2xl border px-3 py-2.5 ${color}`}>
+      <div className="text-[11px] font-semibold text-slate-300">{label}</div>
+      <div className="text-base font-black tabular-nums mt-1">{value}</div>
     </div>
   );
 }
