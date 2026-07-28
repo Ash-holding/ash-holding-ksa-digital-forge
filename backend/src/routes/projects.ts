@@ -781,9 +781,45 @@ projectsRouter.post("/requests", async (req, res, next) => {
 });
 
 // GET single request
+export async function ensureInvoiceForSignedRequest(requestId: string) {
+  const r = await prisma.projectRequest.findUnique({ where: { id: requestId } });
+  if (!r) return null;
+  if (r.status !== "SIGNED" && r.status !== "IN_PROGRESS" && r.status !== "DELIVERED" && r.status !== "COMPLETED") return null;
+  if (r.linkedInvoiceId) {
+    const exists = await prisma.invoice.findUnique({ where: { id: r.linkedInvoiceId }, select: { id: true } });
+    if (exists) return r.linkedInvoiceId;
+  }
+  if (!r.proposalAmount) return null;
+
+  const now = new Date();
+  const year = now.getFullYear();
+  const count = await prisma.invoice.count({ where: { invoiceNumber: { startsWith: `INV-${year}-` } } });
+  const invoiceNumber = `INV-${year}-${String(count + 1).padStart(4, "0")}`;
+  const subtotal = Number(r.proposalAmount);
+  const taxRate = 15;
+  const taxAmount = +(subtotal * (taxRate / 100)).toFixed(2);
+  const total = +(subtotal + taxAmount).toFixed(2);
+  const ref = shortRef("REQ", r.id);
+
+  const invoice = await prisma.invoice.create({
+    data: {
+      invoiceNumber,
+      clientId: r.clientId,
+      status: "UNPAID",
+      subtotal, discount: 0, taxRate, taxAmount, total,
+      dueAt: new Date(Date.now() + 7 * 86400000),
+      notes: `فاتورة تلقائية لطلب ${ref} — ${r.title}`,
+      items: { create: [{ title: r.title, description: r.proposalScope ?? null, quantity: 1, unitPrice: subtotal, total: subtotal }] },
+    },
+  });
+  await prisma.projectRequest.update({ where: { id: r.id }, data: { linkedInvoiceId: invoice.id } });
+  console.log("[invoice.backfill] created", invoice.invoiceNumber, "for request", ref);
+  return invoice.id;
+}
+
 projectsRouter.get("/requests/:id", async (req, res, next) => {
   try {
-    const r = await prisma.projectRequest.findUnique({
+    let r = await prisma.projectRequest.findUnique({
       where: { id: req.params.id },
       include: {
         client: { include: { user: { select: { name: true, email: true, phone: true } } } },
@@ -794,15 +830,27 @@ projectsRouter.get("/requests/:id", async (req, res, next) => {
       const cid = await currentClientId(req);
       if (r.clientId !== cid) return res.status(403).json({ error: "ممنوع" });
     }
-    const project = r.projectId
+    // Auto-heal: if signed but no invoice was created (legacy path), create it now.
+    try {
+      const invId = await ensureInvoiceForSignedRequest(r.id);
+      if (invId && invId !== r.linkedInvoiceId) {
+        r = await prisma.projectRequest.findUnique({
+          where: { id: req.params.id },
+          include: { client: { include: { user: { select: { name: true, email: true, phone: true } } } } },
+        }) as typeof r;
+      }
+    } catch (e) { console.error("[ensureInvoice]", e); }
+
+    const project = r!.projectId
       ? await prisma.project.findUnique({
-          where: { id: r.projectId },
+          where: { id: r!.projectId },
           select: { id: true, title: true, status: true, progress: true },
         })
       : null;
-    res.json({ request: { ...r, project }, ref: shortRef("REQ", r.id) });
+    res.json({ request: { ...r, project }, ref: shortRef("REQ", r!.id) });
   } catch (e) { next(e); }
 });
+
 
 // PATCH — staff updates any field; APPROVED can auto-convert to project
 projectsRouter.patch("/requests/:id", requireStaff, async (req, res, next) => {

@@ -5,7 +5,7 @@ import { requireAuth, requireStaff } from "../middleware/auth.js";
 import { currentClientId, isStaff, paging } from "../lib/scope.js";
 import { logAudit } from "../lib/audit.js";
 import { WA } from "../lib/whatsapp.js";
-import { activateRequestIfInvoicePaid } from "./projects.js";
+import { activateRequestIfInvoicePaid, ensureInvoiceForSignedRequest } from "./projects.js";
 import { awardCashback, ensureWallet } from "./wallet.js";
 
 async function clientPhone(clientId: string): Promise<string | null> {
@@ -56,12 +56,29 @@ invoicesRouter.get("/", async (req, res, next) => {
   try {
     const { skip, take, page, pageSize } = paging(req);
     let where: import("@prisma/client").Prisma.InvoiceWhereInput = {};
+    let scopedClientId: string | null = null;
     if (!isStaff(req)) {
       const cid = await currentClientId(req);
       if (!cid) return res.json({ rows: [], total: 0, page, pageSize });
       where.clientId = cid;
-    } else if (req.query.clientId) where.clientId = req.query.clientId as string;
+      scopedClientId = cid;
+    } else if (req.query.clientId) {
+      where.clientId = req.query.clientId as string;
+      scopedClientId = req.query.clientId as string;
+    }
     if (req.query.status) where.status = req.query.status as never;
+
+    // Auto-heal: backfill invoices for any signed request without a linked invoice.
+    if (scopedClientId) {
+      const orphan = await prisma.projectRequest.findMany({
+        where: { clientId: scopedClientId, status: { in: ["SIGNED", "IN_PROGRESS", "DELIVERED", "COMPLETED"] as never }, linkedInvoiceId: null, proposalAmount: { not: null } },
+        select: { id: true },
+        take: 20,
+      });
+      for (const o of orphan) {
+        try { await ensureInvoiceForSignedRequest(o.id); } catch (e) { console.error("[invoices.backfill]", e); }
+      }
+    }
 
     const [rows, total] = await Promise.all([
       prisma.invoice.findMany({
@@ -74,6 +91,7 @@ invoicesRouter.get("/", async (req, res, next) => {
     res.json({ rows, total, page, pageSize });
   } catch (e) { next(e); }
 });
+
 
 invoicesRouter.get("/:id", async (req, res, next) => {
   try {
