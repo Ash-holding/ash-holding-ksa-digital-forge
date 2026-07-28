@@ -165,11 +165,10 @@ function OverviewPage() {
       <div className="grid gap-4 xl:grid-cols-12">
         <Panel
           className="xl:col-span-8"
-          title="الإيرادات مقابل المستهدف"
+          title="الإيرادات الشهرية"
           action={
             <div className="flex items-center gap-3 text-[10px]">
-              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-electric" />فعلي</span>
-              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-purple-accent" />مستهدف</span>
+              <span className="inline-flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-electric" />المدفوعات المحصّلة</span>
             </div>
           }
         >
@@ -189,8 +188,7 @@ function OverviewPage() {
                 <XAxis dataKey="month" stroke="#94a3b8" fontSize={10} reversed />
                 <YAxis stroke="#94a3b8" fontSize={10} orientation="right" tickFormatter={(v) => `${v / 1000}k`} width={40} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: number) => moneyText(v)} />
-                <Area type="monotone" dataKey="total" name="فعلي" stroke="#3b82f6" strokeWidth={2.5} fill="url(#revFill)" />
-                <Line type="monotone" dataKey="target" name="مستهدف" stroke="#a855f7" strokeWidth={2} strokeDasharray="4 4" dot={false} />
+                <Area type="monotone" dataKey="total" name="محصّل" stroke="#3b82f6" strokeWidth={2.5} fill="url(#revFill)" />
               </ComposedChart>
             </ResponsiveContainer>
             )}
