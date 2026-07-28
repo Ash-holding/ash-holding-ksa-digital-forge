@@ -84,7 +84,8 @@ api.interceptors.response.use(
     const isMissing = status === 404 || status === 502 || status === 503 || status === 504;
     const path = (original?.url ?? "").toString().replace(/^https?:\/\/[^/]+/, "").replace(/^\/api/, "");
     const isAdminEndpoint = path.startsWith("/admin") || path.startsWith("admin");
-    if (original && (isNetwork || isMissing) && isDemoMode() && !isAdminEndpoint && !original.url?.includes("/auth/")) {
+    const isAdminPage = typeof window !== "undefined" && window.location.pathname.startsWith("/admin");
+    if (original && (isNetwork || isMissing) && isDemoMode() && !isAdminEndpoint && !isAdminPage && !original.url?.includes("/auth/")) {
       return demoResponse(original);
     }
     return Promise.reject(error);
