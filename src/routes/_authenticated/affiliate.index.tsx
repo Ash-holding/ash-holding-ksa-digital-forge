@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
+import { useState } from "react";
 import {
   TrendingUp, MousePointerClick, Users, Link2, Sparkles,
-  Wallet, ArrowUpRight, BadgeDollarSign, Clock, CheckCircle2,
+  Wallet, ArrowUpRight, BadgeDollarSign, Clock, CheckCircle2, Check, Copy,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { formatDate } from "@/lib/format";
@@ -28,6 +29,7 @@ function fmt(n: number) {
 }
 
 function Dashboard() {
+  const [copied, setCopied] = useState(false);
   const { data, isLoading } = useQuery({
     queryKey: ["affiliate-dashboard"],
     queryFn: async () => (await api.get("/affiliate/dashboard")).data as Dashboard,
@@ -66,10 +68,16 @@ function Dashboard() {
             </div>
           </div>
           <button
-            onClick={() => { navigator.clipboard.writeText(referralUrl); }}
-            className="rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-2.5 text-sm font-bold text-white shadow-lg hover:opacity-90"
+            onClick={async () => {
+              try { await navigator.clipboard.writeText(referralUrl); } catch { /* noop */ }
+              setCopied(true);
+              setTimeout(() => setCopied(false), 1800);
+            }}
+            className={`rounded-xl px-5 py-2.5 text-sm font-bold text-white shadow-lg transition-all inline-flex items-center gap-2 ${
+              copied ? "bg-emerald-600" : "bg-gradient-to-r from-amber-500 to-orange-600 hover:opacity-90"
+            }`}
           >
-            نسخ رابط الإحالة
+            {copied ? <><Check className="h-4 w-4" /> تم النسخ</> : <><Copy className="h-4 w-4" /> نسخ رابط الإحالة</>}
           </button>
         </div>
       </motion.section>
