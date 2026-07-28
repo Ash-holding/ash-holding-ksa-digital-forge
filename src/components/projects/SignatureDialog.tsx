@@ -67,7 +67,7 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
           >
             <div className="flex flex-col w-full sm:rounded-3xl border border-electric/30 bg-gradient-to-br from-card via-card to-electric/5 shadow-2xl overflow-hidden">
               {/* header */}
-              <div className="relative p-5 border-b border-border/60 bg-gradient-to-l from-electric/15 to-transparent">
+              <div className="relative shrink-0 p-5 border-b border-border/60 bg-gradient-to-l from-electric/15 to-transparent">
                 <button onClick={onClose} className="absolute end-3 top-3 h-8 w-8 grid place-items-center rounded-full hover:bg-muted/40">
                   <X className="h-4 w-4" />
                 </button>
