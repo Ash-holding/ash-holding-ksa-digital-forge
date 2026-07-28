@@ -54,9 +54,16 @@ enum ProjectStatus {
 enum ProjectRequestStatus {
   PENDING
   UNDER_REVIEW
+  PROPOSAL_SENT
+  CLIENT_REVISION
+  AWAITING_SIGNATURE
+  SIGNED
+  IN_PROGRESS
+  DELIVERED
   APPROVED
   REJECTED
   CONVERTED
+  COMPLETED
 }
 
 enum ProjectRequestPriority {
