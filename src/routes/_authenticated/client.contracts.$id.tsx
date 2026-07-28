@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { FileSignature, PenLine, User, Calendar } from "lucide-react";
+import { FileSignature, PenLine, User, Calendar, Download, ShieldCheck, Lock } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { DetailShell, DetailSection, KV } from "@/components/shared/DetailShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Money } from "@/components/ui/money";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate } from "@/lib/format";
+import { downloadContractPDF } from "@/lib/contract-print";
 
 export const Route = createFileRoute("/_authenticated/client/contracts/$id")({
   component: ClientContractDetail,
@@ -19,16 +20,26 @@ function ClientContractDetail() {
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["client-contract", id],
-    queryFn: async () => (await api.get(`/contracts/${id}`)).data.contract,
+    queryFn: async () => (await api.get(`/contracts/${id}`)).data,
     refetchInterval: 8000, refetchOnWindowFocus: true,
   });
-  const c = q.data;
+  const c = q.data?.contract;
+  const linkedRequest = q.data?.linkedRequest ?? null;
+  const paidInvoice = q.data?.paidInvoice ?? null;
+  const isPaid = paidInvoice?.status === "PAID";
+  const canDownload = isPaid && (c?.status === "SIGNED" || c?.status === "ACTIVE");
 
   const sign = useMutation({
     mutationFn: () => api.post(`/contracts/${id}/request-sign`),
     onSuccess: () => { toast.success("تم إرسال طلب التوقيع"); qc.invalidateQueries({ queryKey: ["client-contract", id] }); },
     onError: (e) => toast.error(apiError(e)),
   });
+
+  const handleDownload = async () => {
+    if (!c) return;
+    try { await downloadContractPDF(c, linkedRequest, paidInvoice); toast.success("تم تحميل العقد"); }
+    catch { toast.error("تعذّر إنشاء ملف PDF"); }
+  };
 
   return (
     <DetailShell
@@ -41,10 +52,16 @@ function ClientContractDetail() {
       live
       onRefresh={() => q.refetch()}
       refreshing={q.isFetching}
-      actions={c && c.status !== "SIGNED" && c.status !== "ACTIVE" && (
-        <Button size="sm" className="gap-1.5" onClick={() => sign.mutate()}>
-          <PenLine className="h-4 w-4" />التوقيع الإلكتروني
-        </Button>
+      actions={c && (
+        canDownload ? (
+          <Button size="sm" className="gap-1.5 bg-gradient-to-r from-electric to-plasma text-white" onClick={handleDownload}>
+            <Download className="h-4 w-4" /> تحميل العقد الرسمي PDF
+          </Button>
+        ) : c.status !== "SIGNED" && c.status !== "ACTIVE" ? (
+          <Button size="sm" className="gap-1.5" onClick={() => sign.mutate()}>
+            <PenLine className="h-4 w-4" /> التوقيع الإلكتروني
+          </Button>
+        ) : null
       )}
     >
       {q.isLoading || !c ? (
@@ -52,12 +69,38 @@ function ClientContractDetail() {
       ) : (
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4">
+            {/* Gate banner */}
+            {canDownload ? (
+              <div className="rounded-2xl border-2 border-emerald-400/40 bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent p-4 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-emerald-500/20 flex items-center justify-center">
+                  <ShieldCheck className="h-5 w-5 text-emerald-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-foreground">العقد جاهز ومُوقَّع رقمياً</div>
+                  <div className="text-xs text-muted-foreground">تم توثيق موافقتك وسداد الفاتورة {paidInvoice?.invoiceNumber ?? ""} — يمكنك تحميل النسخة الرسمية بصيغة PDF.</div>
+                </div>
+                <Button size="sm" className="gap-1.5" onClick={handleDownload}>
+                  <Download className="h-4 w-4" /> تحميل
+                </Button>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-amber-400/30 bg-amber-500/5 p-4 flex items-center gap-3">
+                <div className="h-10 w-10 rounded-xl bg-amber-500/20 flex items-center justify-center">
+                  <Lock className="h-5 w-5 text-amber-400" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-sm font-bold text-foreground">العقد الرسمي مُقفَل</div>
+                  <div className="text-xs text-muted-foreground">سيُتاح تحميل العقد بعد التوقيع الرقمي وسداد الفاتورة.</div>
+                </div>
+              </div>
+            )}
+
             <DetailSection title="بيانات العقد" icon={FileSignature}>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 <KV k="القيمة" v={<Money value={c.value ?? 0} className="text-electric font-black text-base" />} />
                 <KV k="تاريخ البدء" v={formatDate(c.startDate)} />
                 <KV k="تاريخ الانتهاء" v={formatDate(c.endDate)} />
-                <KV k="المدة" v={c.durationMonths ? `${c.durationMonths} شهر` : "—"} />
+                <KV k="المدة" v={linkedRequest?.proposalDuration ? `${linkedRequest.proposalDuration} يوم` : "—"} />
                 <KV k="المشروع" v={c.project?.title} />
                 <KV k="أُنشئ في" v={formatDate(c.createdAt)} />
               </div>
@@ -65,22 +108,19 @@ function ClientContractDetail() {
 
             <DetailSection title="بنود العقد">
               <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
-                {c.description || "لا توجد تفاصيل إضافية"}
+                {linkedRequest?.proposalScope || c.notes || "لا توجد تفاصيل إضافية"}
               </p>
             </DetailSection>
 
-            <DetailSection title="المرفقات">
-              {(c.files ?? []).length ? (
-                <ul className="space-y-1.5 text-sm">
-                  {c.files.map((f: any) => (
-                    <li key={f.id} className="flex items-center justify-between border-b border-border/40 pb-1.5">
-                      <span>{f.name}</span>
-                      <a href={f.url} target="_blank" rel="noreferrer" className="text-electric hover:underline text-xs">تحميل</a>
-                    </li>
-                  ))}
-                </ul>
-              ) : <p className="text-xs text-muted-foreground text-center py-4">لا مرفقات</p>}
-            </DetailSection>
+            {linkedRequest?.signatureHash && (
+              <DetailSection title="التوقيع الرقمي" icon={ShieldCheck}>
+                <div className="grid gap-2 text-xs">
+                  <KV k="بصمة التوقيع" v={<span className="font-mono text-[10px] break-all" dir="ltr">{linkedRequest.signatureHash}</span>} />
+                  <KV k="عنوان IP" v={<span className="font-mono" dir="ltr">{linkedRequest.signatureIp ?? "—"}</span>} />
+                  <KV k="تاريخ التوقيع" v={formatDate(c.signedAt ?? linkedRequest.signedAt)} />
+                </div>
+              </DetailSection>
+            )}
           </div>
 
           <div className="space-y-4">
@@ -90,6 +130,7 @@ function ClientContractDetail() {
             </DetailSection>
             <DetailSection title="الحالة" icon={Calendar}>
               <KV k="حالة العقد" v={<StatusBadge value={c.status} />} />
+              <KV k="حالة الفاتورة" v={paidInvoice?.status ? <StatusBadge value={paidInvoice.status} /> : "—"} />
               <KV k="آخر تحديث" v={formatDate(c.updatedAt)} />
             </DetailSection>
           </div>
@@ -98,3 +139,4 @@ function ClientContractDetail() {
     </DetailShell>
   );
 }
+
