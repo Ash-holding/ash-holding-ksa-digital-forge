@@ -74,9 +74,29 @@ contractsRouter.get("/:id", async (req, res, next) => {
       const cid = await currentClientId(req);
       if (c.clientId !== cid) return res.status(403).json({ error: "Forbidden" });
     }
-    res.json({ contract: c });
+    let linkedRequest: unknown = null;
+    let paidInvoice: unknown = null;
+    if (c.projectId) {
+      const r = await prisma.projectRequest.findFirst({
+        where: { projectId: c.projectId },
+        select: {
+          id: true, title: true, description: true, proposalScope: true, proposalDuration: true,
+          proposalAmount: true, signedAt: true, signatureHash: true, signatureIp: true,
+          signatureUserAgent: true, contactPhone: true, contactEmail: true, linkedInvoiceId: true,
+        },
+      });
+      linkedRequest = r;
+      if (r?.linkedInvoiceId) {
+        paidInvoice = await prisma.invoice.findUnique({
+          where: { id: r.linkedInvoiceId },
+          select: { id: true, invoiceNumber: true, status: true, paidAt: true, total: true },
+        });
+      }
+    }
+    res.json({ contract: c, linkedRequest, paidInvoice });
   } catch (e) { next(e); }
 });
+
 
 contractsRouter.post("/", requireStaff, async (req, res, next) => {
   try {
