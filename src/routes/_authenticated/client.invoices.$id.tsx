@@ -340,6 +340,24 @@ function ClientInvoiceDetail() {
                 </div>
               ) : <p className="text-xs text-muted-foreground text-center py-4">لم يتم تسجيل أي دفعات بعد</p>}
             </DetailSection>
+
+            {/* WALLET LEDGER — every wallet movement tied to this invoice */}
+            <DetailSection title="سجل عمليات المحفظة" icon={WalletIcon}>
+              {(inv.walletTransactions ?? []).length ? (
+                <div className="space-y-2">
+                  {inv.walletTransactions.map((tx: any, i: number) => (
+                    <WalletTxRow key={tx.id} tx={tx} index={i} />
+                  ))}
+                  <div className="rounded-lg bg-muted/40 border border-border/60 px-3 py-2 text-[10px] text-muted-foreground text-center">
+                    جميع حركات المحفظة المرتبطة بهذه الفاتورة موثّقة وتصلك إشعاراتها عبر واتساب
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  لا توجد عمليات محفظة مرتبطة بهذه الفاتورة بعد — ستظهر هنا فور السداد من المحفظة أو إضافة الكاش باك
+                </p>
+              )}
+            </DetailSection>
           </div>
 
           <div className="space-y-4">
