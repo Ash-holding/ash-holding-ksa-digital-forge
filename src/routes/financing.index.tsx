@@ -209,15 +209,16 @@ function FinancingHome() {
             كل قرار يصدر عن مختصين لدى ASH — بلا قرارات آلية.
             جميع الإفصاحات والرسوم تظهر لك قبل التوقيع، وتصلك إشعارات رسمية على الواتساب في كل مرحلة.
           </p>
-          <div className="relative overflow-hidden rounded-3xl ring-1 ring-slate-200 shadow-xl">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-3xl ring-1 ring-slate-200 shadow-xl">
             <img
               src={journeyImg.url}
               alt="مراجعة طلب التمويل"
               width={1400}
               height={1000}
               loading="lazy"
-              className="h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover"
             />
+
             <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent" />
             <div className="absolute bottom-4 right-4 left-4 flex items-center gap-3 rounded-2xl bg-white/95 p-3 backdrop-blur-xl ring-1 ring-white/50">
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-600 text-white">
