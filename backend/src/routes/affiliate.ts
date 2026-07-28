@@ -20,6 +20,8 @@ import { z } from "zod";
 import { randomBytes } from "crypto";
 import { prisma } from "../lib/prisma.js";
 import { requireAuth, requireRole } from "../middleware/auth.js";
+import { affiliateApplyLimiter } from "../middleware/rate-limit.js";
+import { safeEqualSecret } from "../lib/cron-auth.js";
 import { WA } from "../lib/whatsapp.js";
 import { releaseMaturedCommissions } from "../lib/commission.js";
 
@@ -75,7 +77,7 @@ const applySchema = z.object({
   agreementVersion: z.string().max(20).default("v1"),
 });
 
-affiliateRouter.post("/apply", async (req, res, next) => {
+affiliateRouter.post("/apply", affiliateApplyLimiter, async (req, res, next) => {
   try {
     const body = applySchema.parse(req.body);
 
@@ -429,9 +431,8 @@ affiliateRouter.patch("/me", requireAuth, async (req, res, next) => {
 // POST /api/affiliate/admin/release  (SUPER_ADMIN | ADMIN | AFFILIATE_MANAGER)
 //   or via header  X-Cron-Secret: <AFFILIATE_CRON_SECRET>
 affiliateRouter.post("/admin/release", (req, res, next) => {
-  const cronSecret = process.env.AFFILIATE_CRON_SECRET;
   const headerSecret = req.header("x-cron-secret");
-  if (cronSecret && headerSecret && cronSecret === headerSecret) return next();
+  if (safeEqualSecret(headerSecret, process.env.AFFILIATE_CRON_SECRET)) return next();
   // Otherwise require an authenticated staff/manager user.
   return requireAuth(req, res, (err?: unknown) => {
     if (err) return next(err);
