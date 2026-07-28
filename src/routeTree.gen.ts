@@ -20,6 +20,7 @@ import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as LoginOtpRouteImport } from './routes/login-otp'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
+import { Route as FinancingRouteImport } from './routes/financing'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as AffiliateProgramRouteImport } from './routes/affiliate-program'
@@ -28,6 +29,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ServicesIndexRouteImport } from './routes/services.index'
+import { Route as FinancingIndexRouteImport } from './routes/financing.index'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
 import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated/client'
@@ -146,6 +148,11 @@ const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
   path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FinancingRoute = FinancingRouteImport.update({
+  id: '/financing',
+  path: '/financing',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const FaqRoute = FaqRouteImport.update({
   id: '/faq',
   path: '/faq',
@@ -184,6 +191,11 @@ const ServicesIndexRoute = ServicesIndexRouteImport.update({
   id: '/services/',
   path: '/services/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const FinancingIndexRoute = FinancingIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => FinancingRoute,
 } as any)
 const ServicesSlugRoute = ServicesSlugRouteImport.update({
   id: '/services/$slug',
@@ -556,6 +568,7 @@ export interface FileRoutesByFullPath {
   '/affiliate-program': typeof AffiliateProgramRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/financing': typeof FinancingRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/login-otp': typeof LoginOtpRoute
@@ -572,6 +585,7 @@ export interface FileRoutesByFullPath {
   '/client': typeof AuthenticatedClientRouteWithChildren
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/financing/': typeof FinancingIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/admin/affiliate': typeof AuthenticatedAdminAffiliateRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
@@ -651,6 +665,7 @@ export interface FileRoutesByTo {
   '/why': typeof WhyRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/financing': typeof FinancingIndexRoute
   '/services': typeof ServicesIndexRoute
   '/admin/affiliate': typeof AuthenticatedAdminAffiliateRoute
   '/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
@@ -717,6 +732,7 @@ export interface FileRoutesById {
   '/affiliate-program': typeof AffiliateProgramRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
+  '/financing': typeof FinancingRouteWithChildren
   '/forgot-password': typeof ForgotPasswordRoute
   '/login': typeof LoginRoute
   '/login-otp': typeof LoginOtpRoute
@@ -733,6 +749,7 @@ export interface FileRoutesById {
   '/_authenticated/client': typeof AuthenticatedClientRouteWithChildren
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
+  '/financing/': typeof FinancingIndexRoute
   '/services/': typeof ServicesIndexRoute
   '/_authenticated/admin/affiliate': typeof AuthenticatedAdminAffiliateRoute
   '/_authenticated/admin/audit-log': typeof AuthenticatedAdminAuditLogRoute
@@ -801,6 +818,7 @@ export interface FileRouteTypes {
     | '/affiliate-program'
     | '/contact'
     | '/faq'
+    | '/financing'
     | '/forgot-password'
     | '/login'
     | '/login-otp'
@@ -817,6 +835,7 @@ export interface FileRouteTypes {
     | '/client'
     | '/portfolio/$slug'
     | '/services/$slug'
+    | '/financing/'
     | '/services/'
     | '/admin/affiliate'
     | '/admin/audit-log'
@@ -896,6 +915,7 @@ export interface FileRouteTypes {
     | '/why'
     | '/portfolio/$slug'
     | '/services/$slug'
+    | '/financing'
     | '/services'
     | '/admin/affiliate'
     | '/admin/audit-log'
@@ -961,6 +981,7 @@ export interface FileRouteTypes {
     | '/affiliate-program'
     | '/contact'
     | '/faq'
+    | '/financing'
     | '/forgot-password'
     | '/login'
     | '/login-otp'
@@ -977,6 +998,7 @@ export interface FileRouteTypes {
     | '/_authenticated/client'
     | '/portfolio/$slug'
     | '/services/$slug'
+    | '/financing/'
     | '/services/'
     | '/_authenticated/admin/affiliate'
     | '/_authenticated/admin/audit-log'
@@ -1045,6 +1067,7 @@ export interface RootRouteChildren {
   AffiliateProgramRoute: typeof AffiliateProgramRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
+  FinancingRoute: typeof FinancingRouteWithChildren
   ForgotPasswordRoute: typeof ForgotPasswordRoute
   LoginRoute: typeof LoginRoute
   LoginOtpRoute: typeof LoginOtpRoute
@@ -1139,6 +1162,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ForgotPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/financing': {
+      id: '/financing'
+      path: '/financing'
+      fullPath: '/financing'
+      preLoaderRoute: typeof FinancingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/faq': {
       id: '/faq'
       path: '/faq'
@@ -1194,6 +1224,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/services/'
       preLoaderRoute: typeof ServicesIndexRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/financing/': {
+      id: '/financing/'
+      path: '/'
+      fullPath: '/financing/'
+      preLoaderRoute: typeof FinancingIndexRouteImport
+      parentRoute: typeof FinancingRoute
     }
     '/services/$slug': {
       id: '/services/$slug'
@@ -1960,6 +1997,18 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface FinancingRouteChildren {
+  FinancingIndexRoute: typeof FinancingIndexRoute
+}
+
+const FinancingRouteChildren: FinancingRouteChildren = {
+  FinancingIndexRoute: FinancingIndexRoute,
+}
+
+const FinancingRouteWithChildren = FinancingRoute._addFileChildren(
+  FinancingRouteChildren,
+)
+
 interface PortfolioRouteChildren {
   PortfolioSlugRoute: typeof PortfolioSlugRoute
 }
@@ -1991,6 +2040,7 @@ const rootRouteChildren: RootRouteChildren = {
   AffiliateProgramRoute: AffiliateProgramRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
+  FinancingRoute: FinancingRouteWithChildren,
   ForgotPasswordRoute: ForgotPasswordRoute,
   LoginRoute: LoginRoute,
   LoginOtpRoute: LoginOtpRoute,
