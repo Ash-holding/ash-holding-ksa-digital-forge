@@ -1,13 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   FileText, Download, Receipt, CreditCard, User, Calendar,
   Wallet as WalletIcon, Landmark, Sparkles, Copy, Check, Send,
   BadgeCheck, Stamp, ArrowUpRight, ArrowDownLeft, RotateCcw, Wrench,
-  AlertTriangle, RefreshCw, X,
+  AlertTriangle, RefreshCw, X, Building2, Hash, Printer, QrCode,
 } from "lucide-react";
+
 import { api } from "@/lib/api";
 import { DetailShell, DetailSection, KV } from "@/components/shared/DetailShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
