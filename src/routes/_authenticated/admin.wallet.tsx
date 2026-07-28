@@ -230,10 +230,31 @@ function AdminWallet() {
 
 function PendingRow({ tx, onApprove, onReject }: any) {
   const [rejectOpen, setRejectOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
   const [reason, setReason] = useState("");
   const isTopup = tx.type === "TOPUP";
+  const receipt = tx.receiptUrl ? fileUrl(tx.receiptUrl) : null;
+  const isImage = receipt && /\.(png|jpe?g|gif|webp|bmp)$/i.test(receipt);
+  const isPdf = receipt && /\.pdf$/i.test(receipt);
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl border border-amber-500/30 bg-amber-500/5">
+      {receipt && (
+        <button
+          type="button"
+          onClick={() => setPreviewOpen(true)}
+          className="relative h-16 w-16 sm:h-14 sm:w-14 shrink-0 rounded-lg overflow-hidden border border-border bg-muted grid place-items-center group"
+          title="معاينة الإيصال"
+        >
+          {isImage ? (
+            <img src={receipt} alt="إيصال" className="h-full w-full object-cover" />
+          ) : (
+            <FileText className="h-5 w-5 text-rose-600" />
+          )}
+          <span className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition grid place-items-center">
+            <Eye className="h-4 w-4 text-white" />
+          </span>
+        </button>
+      )}
       <div className={cn("grid h-10 w-10 place-items-center rounded-lg shrink-0",
         isTopup ? "bg-emerald-500/10 text-emerald-600" : "bg-rose-500/10 text-rose-600")}>
         {isTopup ? <ArrowDownToLine className="h-4 w-4" /> : <ArrowUpFromLine className="h-4 w-4" />}
@@ -246,6 +267,15 @@ function PendingRow({ tx, onApprove, onReject }: any) {
           {tx.iban ? ` · IBAN: ${tx.iban}` : ""}
         </div>
         {tx.note && <div className="text-[11px] text-muted-foreground truncate mt-0.5">{tx.note}</div>}
+        {receipt && (
+          <button
+            type="button"
+            onClick={() => setPreviewOpen(true)}
+            className="mt-1 inline-flex items-center gap-1 text-[11px] font-bold text-primary hover:underline"
+          >
+            <Eye className="h-3 w-3" /> معاينة الإيصال المرفق
+          </button>
+        )}
       </div>
       <div className="text-lg font-black tabular-nums shrink-0">{fmt(tx.amount)} ر.س</div>
       <div className="flex gap-2">
@@ -263,6 +293,37 @@ function PendingRow({ tx, onApprove, onReject }: any) {
           </DialogContent>
         </Dialog>
       </div>
+
+      {receipt && (
+        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+          <DialogContent dir="rtl" className="max-w-3xl p-0 overflow-hidden">
+            <DialogHeader className="p-4 border-b border-border flex-row items-center justify-between">
+              <DialogTitle className="flex items-center gap-2">
+                <FileText className="h-4 w-4 text-primary" /> إيصال التحويل البنكي
+              </DialogTitle>
+              <a
+                href={receipt}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-1 text-xs font-bold text-primary hover:underline"
+              >
+                فتح في تبويب جديد <ExternalLink className="h-3 w-3" />
+              </a>
+            </DialogHeader>
+            <div className="bg-muted/40 max-h-[75vh] overflow-auto grid place-items-center">
+              {isImage ? (
+                <img src={receipt} alt="إيصال" className="max-w-full max-h-[75vh] object-contain" />
+              ) : isPdf ? (
+                <iframe src={receipt} title="إيصال" className="w-full h-[75vh] bg-white" />
+              ) : (
+                <div className="p-10 text-sm text-muted-foreground">
+                  الملف غير قابل للمعاينة — <a href={receipt} target="_blank" rel="noreferrer" className="text-primary font-bold hover:underline">تحميل الإيصال</a>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
