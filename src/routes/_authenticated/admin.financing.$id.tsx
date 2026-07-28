@@ -54,12 +54,20 @@ const STAGE_LABELS: Record<string, string> = {
 };
 
 const STATUS_AR: Record<string, string> = {
-  DRAFT: "مسودة", SUBMITTED: "تم التقديم",
-  KYC_REVIEW: "تحقق الهوية", KYC_APPROVED: "اعتماد الهوية", KYC_REJECTED: "رفض التحقق",
-  CREDIT_REVIEW: "دراسة ائتمانية", RISK_REVIEW: "مراجعة المخاطر",
-  COMMITTEE_REVIEW: "اللجنة الائتمانية", PENDING_FINAL: "اعتماد نهائي",
-  MORE_INFO: "بحاجة لمعلومات", APPROVED: "معتمد", REJECTED: "مرفوض",
-  CANCELLED: "ملغى", EXPIRED: "منتهي",
+  DRAFT: "مسودة قيد الإعداد",
+  SUBMITTED: "تم استلام الطلب رسمياً",
+  KYC_REVIEW: "تحقق الهوية والامتثال (KYC)",
+  KYC_APPROVED: "اعتماد الهوية",
+  KYC_REJECTED: "تعذّر التحقق من الهوية",
+  CREDIT_REVIEW: "قيد الدراسة الائتمانية",
+  RISK_REVIEW: "قيد تقييم المخاطر",
+  COMMITTEE_REVIEW: "معروض على اللجنة الائتمانية",
+  PENDING_FINAL: "بانتظار الاعتماد النهائي",
+  MORE_INFO: "بحاجة لمستندات/معلومات إضافية",
+  APPROVED: "موافقة نهائية",
+  REJECTED: "اعتذار عن الطلب",
+  CANCELLED: "تم إلغاء الطلب",
+  EXPIRED: "انتهت صلاحية الطلب",
 };
 
 function AdminFinancingDetail() {

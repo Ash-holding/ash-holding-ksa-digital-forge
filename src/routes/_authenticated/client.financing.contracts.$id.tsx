@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
-import { FileText, Download, ShieldCheck, ArrowRight, CheckCircle2 } from "lucide-react";
+import { FileText, Download, ShieldCheck, ArrowRight, CheckCircle2, ScrollText } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { ClientPageHeader } from "@/components/client/ClientPageHeader";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,8 @@ export const Route = createFileRoute("/_authenticated/client/financing/contracts
   head: () => ({ meta: [{ title: "عقد التمويل — ASH" }] }),
 });
 
+type PromissoryMeta = { sentAt?: string; acceptedAt?: string; acceptedIp?: string | null };
+
 type Contract = {
   id: string; code: string; status: string;
   amount: number | string; downPayment: number | string; financedAmount: number | string;
@@ -28,6 +30,7 @@ type Contract = {
   clientSignedAt?: string | null; clientSignatureName?: string | null; clientSignatureHash?: string | null;
   activatedAt?: string | null;
   autopayEnabled?: boolean;
+  termsSnapshot?: { promissory?: PromissoryMeta } | null;
   application?: { code?: string; fullNameAr?: string | null; nationalId?: string | null; businessName?: string | null };
   product?: { nameAr?: string; code?: string };
   installments: Array<{
@@ -37,9 +40,13 @@ type Contract = {
 };
 
 const STATUS_AR: Record<string, string> = {
-  DRAFT: "مسودة", AWAITING_CLIENT_SIGNATURE: "بانتظار توقيعك",
-  SIGNED: "موقع — بانتظار التفعيل", ACTIVE: "نشط — تم صرف الرصيد",
-  COMPLETED: "منتهي بالكامل", CANCELLED: "ملغى", DEFAULTED: "متعثر",
+  DRAFT: "مسودة",
+  AWAITING_CLIENT_SIGNATURE: "بانتظار توقيعك",
+  SIGNED: "موقّع — مرحلة السند التنفيذي",
+  ACTIVE: "نشط — تم صرف الرصيد",
+  COMPLETED: "منتهي بالكامل",
+  CANCELLED: "ملغى",
+  DEFAULTED: "متعثر",
 };
 
 const money = (v: unknown) =>
@@ -58,6 +65,7 @@ function ClientContractDetail() {
   const [t1, setT1] = useState(false);
   const [t2, setT2] = useState(false);
   const [t3, setT3] = useState(false);
+  const [pAck, setPAck] = useState(false);
 
   const sign = useMutation({
     mutationFn: () => api.post(`/financing/contracts/${id}/sign`, {
@@ -79,11 +87,23 @@ function ClientContractDetail() {
     onError: (e) => toast.error(apiError(e) || "تعذر تحديث السداد التلقائي"),
   });
 
+  const acceptPromissory = useMutation({
+    mutationFn: () => api.post(`/financing/contracts/${id}/promissory/accept`),
+    onSuccess: () => {
+      toast.success("✅ تم قبول السند التنفيذي — جارٍ صرف الرصيد إلى محفظتك");
+      qc.invalidateQueries({ queryKey: ["client-fin-contract", id] });
+    },
+    onError: (e) => toast.error(apiError(e) || "تعذر تسجيل الموافقة"),
+  });
+
   if (isLoading || !data) return <div className="p-8 text-sm text-muted-foreground">جاري التحميل…</div>;
 
 
   const canSign = data.status === "AWAITING_CLIENT_SIGNATURE";
   const canDownload = ["SIGNED", "ACTIVE", "COMPLETED"].includes(data.status);
+  const promissory = data.termsSnapshot?.promissory;
+  const canAcceptPromissory = data.status === "SIGNED" && !!promissory?.sentAt && !promissory?.acceptedAt;
+  const promissoryPending = data.status === "SIGNED" && !promissory?.sentAt;
 
   return (
     <div className="space-y-6">
@@ -114,6 +134,52 @@ function ClientContractDetail() {
           <Link to="/client/wallet" className="mr-auto">
             <Button size="sm" variant="outline">فتح المحفظة</Button>
           </Link>
+        </motion.div>
+      )}
+
+      {/* Promissory pending — awaiting admin issue */}
+      {promissoryPending && (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm flex items-center gap-3">
+          <ScrollText className="h-5 w-5 text-slate-300" />
+          <div>
+            <div className="font-bold">جارٍ إعداد السند التنفيذي</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              تم استلام توقيعك على العقد. سيتم إشعارك فور إصدار السند التنفيذي من إدارة التمويل.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Promissory acceptance card */}
+      {canAcceptPromissory && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent p-5 space-y-4"
+        >
+          <div className="flex items-center gap-2 font-bold text-amber-200">
+            <ScrollText className="h-5 w-5" /> السند التنفيذي جاهز للموافقة
+          </div>
+          <div className="text-xs text-slate-200 leading-relaxed">
+            بموجب هذا السند التنفيذي، تُقرّ بموافقتك على الالتزام بسداد المبلغ الممول <b>{money(data.financedAmount)} ر.س</b> وفق جدول الأقساط
+            المعتمد في العقد رقم <b>{data.code}</b>. يُعدّ هذا السند مستنداً رسمياً قابلاً للتنفيذ عبر الجهات المختصة عند الإخلال بالسداد.
+            <br />
+            <b className="text-amber-300">فور موافقتك يتم صرف رصيد الخدمات إلى محفظتك مباشرة.</b>
+          </div>
+          <label className="flex items-start gap-2 text-xs cursor-pointer">
+            <Checkbox checked={pAck} onCheckedChange={(v) => setPAck(v === true)} />
+            <span>أُقر بقبول السند التنفيذي والتزامي بجميع بنوده وجدول السداد المرفق.</span>
+          </label>
+          <Button
+            className="w-full gap-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold"
+            disabled={!pAck || acceptPromissory.isPending}
+            onClick={() => acceptPromissory.mutate()}
+          >
+            <ShieldCheck className="h-4 w-4" />
+            {acceptPromissory.isPending ? "جارٍ التوثيق…" : "أوافق على السند وأستلم الرصيد فوراً"}
+          </Button>
+          <div className="text-[10px] text-slate-400 text-center">
+            تم إصدار السند بتاريخ {new Date(promissory!.sentAt!).toLocaleString("ar-SA")}
+          </div>
         </motion.div>
       )}
 
