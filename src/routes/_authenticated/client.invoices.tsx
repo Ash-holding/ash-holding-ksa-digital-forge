@@ -30,6 +30,7 @@ type SortKey = "recent" | "due" | "amount";
 
 function ClientInvoicesPage() {
   const nav = useNavigate();
+  const qc = useQueryClient();
   const [status, setStatus] = useState<string | null>(null);
   const [q, setQ] = useState("");
   const [sort, setSort] = useState<SortKey>("recent");
@@ -39,6 +40,25 @@ function ClientInvoicesPage() {
     queryFn: async () => (await api.get("/invoices", { params: { pageSize: 100 } })).data,
     refetchInterval: 15000,
     refetchOnWindowFocus: true,
+  });
+
+  const walletQ = useQuery({
+    queryKey: ["wallet-me"],
+    queryFn: async () => (await api.get("/wallet/me")).data,
+    refetchInterval: 15000,
+  });
+  const walletBal = Number(walletQ.data?.wallet?.balance ?? 0);
+
+  const payWallet = useMutation({
+    mutationFn: async (invoiceId: string) => (await api.post(`/invoices/${invoiceId}/pay-wallet`)).data,
+    onSuccess: (data, invoiceId) => {
+      toast.success("تم السداد من المحفظة بنجاح");
+      if (data?.wallet) qc.setQueryData(["wallet-me"], (old: any) => (old ? { ...old, wallet: data.wallet } : old));
+      qc.invalidateQueries({ queryKey: ["client-invoices"] });
+      qc.invalidateQueries({ queryKey: ["wallet-me"] });
+      qc.invalidateQueries({ queryKey: ["invoice", invoiceId] });
+    },
+    onError: (e: any) => toast.error(e?.response?.data?.error || "تعذّر السداد من المحفظة"),
   });
 
   const rows = (list.data?.rows ?? []) as any[];
