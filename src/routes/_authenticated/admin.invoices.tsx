@@ -59,9 +59,27 @@ function InvoicesPage() {
   const tax = +(taxable * (taxRate / 100)).toFixed(2);
   const total = +(taxable + tax).toFixed(2);
 
-  const columns: Column<Row>[] = [
-    { key: "number", header: "الرقم", render: (r) => <span dir="ltr" className="font-mono text-sm">{r.invoiceNumber}</span> },
-    { key: "client", header: "العميل", render: (r) => r.client.user.name },
+  const columns: Column<Row & { linkedRequest?: any; contract?: any; service?: any; requestRef?: string | null }>[] = [
+    { key: "number", header: "الفاتورة", render: (r) => (
+      <div className="min-w-0">
+        <div dir="ltr" className="font-mono text-sm font-bold text-foreground">{r.invoiceNumber}</div>
+        <div className="text-[10px] text-muted-foreground truncate">{r.client.user.name}</div>
+      </div>
+    ) },
+    { key: "links", header: "المرتبطات", hideOnMobile: true, render: (r) => (
+      <div className="flex flex-wrap items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        {r.project && (
+          <LinkPill to="/admin/projects/$id" params={{ id: (r.project as any).id ?? "" }} icon={Briefcase} label={r.project.title} tone="blue" />
+        )}
+        {r.contract && (
+          <LinkPill to="/admin/contracts/$id" params={{ id: r.contract.id }} icon={Handshake} label={r.contract.contractNumber} tone="violet" mono />
+        )}
+        {r.linkedRequest && (
+          <LinkPill to="/admin/project-requests/$id" params={{ id: r.linkedRequest.id }} icon={Sparkles} label={r.requestRef ?? "طلب"} tone="amber" mono />
+        )}
+        {!r.project && !r.contract && !r.linkedRequest && <span className="text-[10.5px] text-muted-foreground">—</span>}
+      </div>
+    ) },
     { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
     { key: "total", header: "الإجمالي", render: (r) => <Money value={r.total} className="font-bold" /> },
     { key: "due", header: "الاستحقاق", render: (r) => formatDate(r.dueAt), hideOnMobile: true },
