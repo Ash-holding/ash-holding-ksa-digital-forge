@@ -84,6 +84,7 @@ paymentsRouter.post("/", requireStaff, async (req, res, next) => {
         `ASH HOLDING — تم تسجيل دفعة ✅\nالمبلغ: ${created.amount} ${created.currency}\nطريقة الدفع: ${created.method}`,
         { kind: "payment.create", entityId: created.id },
       );
+      generateCommissionForPayment(created.id).catch((e) => console.error("[commission]", e));
     }
     res.status(201).json({ payment: created });
   } catch (e) { next(e); }
