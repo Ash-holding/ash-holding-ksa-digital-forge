@@ -287,6 +287,28 @@ projectsRouter.post("/requests", async (req, res, next) => {
       include: { client: { include: { user: { select: { name: true, email: true } } } } },
     });
     await logAudit(req, "project_request.create", "ProjectRequest", created.id);
+
+    // ---------- WhatsApp notifications ----------
+    const clientName = created.client?.user?.name || created.contactName || "عميل";
+    const clientContact = created.contactPhone || (await clientPhone(created.clientId));
+    const budgetLine =
+      created.budgetMin || created.budgetMax
+        ? `\nالميزانية: ${created.budgetMin ?? "?"} - ${created.budgetMax ?? "?"} ر.س`
+        : "";
+
+    // → notify admins
+    notifyAdmins(
+      `ASH HOLDING — طلب مشروع جديد 🆕\nمن: ${clientName}\nالعنوان: ${created.title}\nالتصنيف: ${created.category}\nالأولوية: ${created.priority}${budgetLine}\nراجع لوحة الأدمن للتفاصيل.`,
+      { kind: "project_request.new", entityId: created.id },
+    );
+
+    // → confirm to client
+    WA.notify(
+      clientContact,
+      `ASH HOLDING — تم استلام طلبك ✅\nالعنوان: ${created.title}\nالحالة: ${REQUEST_STATUS_LABEL[created.status] || created.status}\nسنراجع الطلب ونعود إليك قريباً.`,
+      { kind: "project_request.created", entityId: created.id },
+    );
+
     res.status(201).json({ request: created });
   } catch (e) { next(e); }
 });
@@ -334,9 +356,24 @@ projectsRouter.patch("/requests/:id", requireStaff, async (req, res, next) => {
       include: { client: { include: { user: { select: { name: true, email: true } } } } },
     });
     await logAudit(req, "project_request.update", "ProjectRequest", updated.id);
+
+    // ---------- WhatsApp — notify client on status or admin-note change ----------
+    const statusChanged = existing.status !== updated.status;
+    const noteChanged = (existing.adminNote || "") !== (updated.adminNote || "") && !!updated.adminNote;
+    if (statusChanged || noteChanged) {
+      const phone = updated.contactPhone || (await clientPhone(updated.clientId));
+      const lines = [`ASH HOLDING — تحديث على طلبك 📩`, `العنوان: ${updated.title}`];
+      if (statusChanged) lines.push(`الحالة الجديدة: ${REQUEST_STATUS_LABEL[updated.status] || updated.status}`);
+      if (noteChanged) lines.push(`ملاحظة الإدارة: ${updated.adminNote}`);
+      if (updated.status === "CONVERTED") lines.push(`تم فتح مشروع رسمي — يمكنك متابعته من قسم "مشاريعي".`);
+      lines.push(`للتفاصيل ادخل بوابة العميل.`);
+      WA.notify(phone, lines.join("\n"), { kind: "project_request.status", entityId: updated.id });
+    }
+
     res.json({ request: updated });
   } catch (e) { next(e); }
 });
+
 
 // DELETE — client can delete own PENDING; staff can delete any
 projectsRouter.delete("/requests/:id", async (req, res, next) => {
