@@ -72,22 +72,16 @@ function phoneVariants(normalized: string) {
 async function findOtpUser(normalized: string) {
   const isAdminPhone = Boolean(ADMIN_LOGIN_PHONE && normalized === ADMIN_LOGIN_PHONE);
   if (isAdminPhone) {
-    const admin = await prisma.user.findFirst({
-      where: {
-        OR: [
-          { email: ADMIN_LOGIN_EMAIL },
-          { role: "SUPER_ADMIN" },
-          { role: "ADMIN" },
-        ],
-      },
-      orderBy: [{ role: "asc" }, { createdAt: "asc" }],
+    const adminByEmail = await prisma.user.findUnique({ where: { email: ADMIN_LOGIN_EMAIL }, include: { client: true } });
+    const admin = adminByEmail ?? await prisma.user.findFirst({
+      where: { role: { in: ["SUPER_ADMIN", "ADMIN"] } },
+      orderBy: { createdAt: "asc" },
       include: { client: true },
     });
     if (admin) {
       return prisma.user.update({
         where: { id: admin.id },
         data: {
-          email: admin.email === ADMIN_LOGIN_EMAIL ? admin.email : admin.email,
           phone: normalized,
           role: admin.email === ADMIN_LOGIN_EMAIL ? "SUPER_ADMIN" : admin.role,
           status: "ACTIVE",
@@ -95,6 +89,7 @@ async function findOtpUser(normalized: string) {
         include: { client: true },
       });
     }
+    return null;
   }
 
   const variants = phoneVariants(normalized);
@@ -133,10 +128,11 @@ async function recordOtpLogin(req: import("express").Request, user: { id: string
     await prisma.client.update({ where: { id: user.client.id }, data: { lastSeenAt: new Date() } });
     return;
   }
+  const clientId = user.client.id;
   lookupIp(ip).then(async (geo) => {
     try {
       await prisma.client.update({
-        where: { id: user.client?.id },
+        where: { id: clientId },
         data: {
           lastIpAddress: ip,
           lastSeenAt: new Date(),
