@@ -132,14 +132,15 @@ function FinancingHome() {
             transition={{ delay: 0.15 }}
             className="lg:col-span-6 relative"
           >
-            <div className="relative overflow-hidden rounded-3xl ring-1 ring-white/10 shadow-2xl">
+            <div className="relative aspect-[4/3] lg:aspect-auto lg:h-full overflow-hidden rounded-3xl ring-1 ring-white/10 shadow-2xl">
               <img
                 src={heroImg.url}
                 alt="لوحة محفظة التمويل الداخلي"
                 width={1600}
                 height={1200}
-                className="h-full w-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover"
               />
+
               <div aria-hidden className="absolute inset-0 bg-gradient-to-tl from-slate-950/70 via-transparent to-transparent" />
               {/* floating stat card */}
               <motion.div
