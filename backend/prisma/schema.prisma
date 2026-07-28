@@ -379,6 +379,7 @@ model Invoice {
   project  Project?      @relation(fields: [projectId], references: [id])
   items    InvoiceItem[]
   payments Payment[]
+  requests ProjectRequest[] @relation("RequestInvoice")
 
   @@index([clientId])
   @@index([status])
