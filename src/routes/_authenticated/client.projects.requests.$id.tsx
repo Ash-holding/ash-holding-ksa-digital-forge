@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import {
   ArrowRight, Hash, Copy, ExternalLink, Sparkles, CheckCircle2, XCircle,
   MessageSquare, PenLine, Receipt, Clock, Wallet, Calendar, FileText,
-  AlertTriangle, ShieldCheck, User as UserIcon,
+  AlertTriangle, ShieldCheck, User as UserIcon, RefreshCw, StickyNote,
 } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
@@ -42,7 +42,10 @@ function ClientRequestDetailPage() {
   const q = useQuery({
     queryKey: ["client-project-request", id],
     queryFn: async () => (await api.get(`/projects/requests/${id}`)).data,
-    refetchInterval: 8000,
+    refetchInterval: 5000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
   const r = q.data?.request;
   const ref: string = q.data?.ref || `REQ-${id.slice(0, 6).toUpperCase()}`;
@@ -103,13 +106,24 @@ function ClientRequestDetailPage() {
             <ArrowRight className="h-4 w-4" /> عودة لطلباتي
           </Link>
         </Button>
-        {r.project?.id && (
-          <Button asChild size="sm" className="gap-1.5 bg-gradient-to-r from-electric to-purple-accent">
-            <Link to="/client/projects/$id" params={{ id: r.project.id }}>
-              فتح المشروع <ExternalLink className="h-3.5 w-3.5" />
-            </Link>
+        <div className="flex items-center gap-2">
+          {r.updatedAt && (
+            <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-muted/40 px-2.5 py-1 text-[10px] font-bold text-muted-foreground">
+              <Clock className="h-3 w-3" /> آخر تحديث {formatDate(r.updatedAt)}
+            </span>
+          )}
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => q.refetch()} disabled={q.isFetching}>
+            <RefreshCw className={cn("h-3.5 w-3.5", q.isFetching && "animate-spin")} />
+            تحديث
           </Button>
-        )}
+          {r.project?.id && (
+            <Button asChild size="sm" className="gap-1.5 bg-gradient-to-r from-electric to-purple-accent">
+              <Link to="/client/projects/$id" params={{ id: r.project.id }}>
+                فتح المشروع <ExternalLink className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Cinematic Hero */}
@@ -144,6 +158,26 @@ function ClientRequestDetailPage() {
       <ApprovalStepper status={status as never} revisionCount={r.revisionCount ?? 0} />
 
       {executing && <CountdownTimer startAt={r.executionStartAt} dueAt={r.executionDueAt} />}
+
+      {!rejected && r.adminNote && (
+        <motion.div
+          initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-amber-400/40 bg-gradient-to-br from-amber-500/10 via-card to-amber-500/5 p-4"
+        >
+          <div className="flex items-center gap-2 mb-2">
+            <div className="grid h-8 w-8 place-items-center rounded-xl bg-amber-500/20 text-amber-500">
+              <StickyNote className="h-4 w-4" />
+            </div>
+            <div>
+              <div className="text-[10px] text-muted-foreground">ملاحظة رسمية من الفريق</div>
+              <div className="font-black text-[13px] text-amber-500">تحديث من الإدارة</div>
+            </div>
+          </div>
+          <div className="text-[13px] whitespace-pre-wrap leading-relaxed text-foreground/90">
+            {r.adminNote}
+          </div>
+        </motion.div>
+      )}
 
       {rejected && (
         <div className="rounded-2xl border border-rose-400/40 bg-rose-500/10 p-4 text-center text-rose-200">
