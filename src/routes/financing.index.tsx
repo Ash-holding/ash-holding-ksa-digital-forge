@@ -3,7 +3,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import {
   Wallet, Sparkles, ShieldCheck, ClipboardCheck, FileSignature,
   BadgeCheck, HandCoins, Scale, Lock, ArrowLeft, LogIn,
-  TrendingUp, Building2, CheckCircle2, Zap,
+  TrendingUp, Building2, CheckCircle2, Zap, Ban, Receipt, Percent,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
