@@ -29,7 +29,7 @@ const DEFAULTS: Seed[] = [
     minAmount: 5000, maxAmount: 100000, minDownPaymentPct: 10,
     minTermMonths: 3, maxTermMonths: 24, allowedTermsMonths: [3, 6, 12, 18, 24],
     ratePct: 8.5, adminFeePct: 1, adminFeeFlat: 100,
-    requiredDocsAr: ["الهوية الوطنية", "شهادة راتب حديثة", "كشف حساب بنكي (3 أشهر)"],
+    requiredDocsAr: ["صورة الهوية الوطنية", "شهادة راتب / تعريف حديث", "كشف حساب بنكي (آخر 3 أشهر)", "تقرير سمة (SIMAH) — اختياري"],
     eligibilityNoteAr: "دخل شهري لا يقل عن 4,000 ﷼، وأن لا تتجاوز نسبة الاستقطاع 45٪.",
   },
   {
