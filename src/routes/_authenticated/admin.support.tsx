@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -28,6 +28,7 @@ type Stats = { total: number; open: number; inProgress: number; waiting: number;
 
 function SupportPage() {
   const qc = useQueryClient();
+  const nav = useNavigate();
   const [page, setPage] = useState(1);
   const [open, setOpen] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -88,7 +89,7 @@ function SupportPage() {
 
       <DataTable<Row> columns={columns} rows={filtered} loading={list.isLoading}
         total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
-        onRowClick={(r) => setSelectedId(r.id)}
+        onRowClick={(r) => nav({ to: "/admin/support/$id", params: { id: r.id } })}
         emptyTitle="لا توجد تذاكر" />
 
       <FormSheet open={open} onOpenChange={setOpen} title="تذكرة جديدة" submitText="إنشاء"
