@@ -256,9 +256,50 @@ model Client {
   payments   Payment[]
   files      File[]
   projectRequests ProjectRequest[]
+  wallet     Wallet?
 
   @@index([status])
   @@index([verificationStatus])
+}
+
+model Wallet {
+  id               String   @id @default(cuid())
+  clientId         String   @unique
+  balance          Decimal  @default(0) @db.Decimal(14, 2)
+  cashbackBalance  Decimal  @default(0) @db.Decimal(14, 2)
+  currency         String   @default("SAR")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  client       Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  transactions WalletTransaction[]
+}
+
+model WalletTransaction {
+  id            String         @id @default(cuid())
+  walletId      String
+  type          WalletTxType
+  status        WalletTxStatus @default(PENDING)
+  amount        Decimal        @db.Decimal(14, 2)
+  balanceAfter  Decimal?       @db.Decimal(14, 2)
+  currency      String         @default("SAR")
+  reference     String?
+  invoiceId     String?
+  paymentId     String?
+  bankRef       String?
+  iban          String?
+  note          String?
+  createdById   String?
+  approvedById  String?
+  approvedAt    DateTime?
+  createdAt     DateTime       @default(now())
+
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([status])
+  @@index([type])
+  @@index([createdAt])
 }
 
 
