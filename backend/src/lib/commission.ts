@@ -84,7 +84,7 @@ export async function generateCommissionForPayment(paymentId: string) {
   const payment = await prisma.payment.findUnique({
     where: { id: paymentId },
     include: {
-      invoice: { select: { id: true, invoiceNumber: true, projectId: true, contractId: true } },
+      invoice: { select: { id: true, invoiceNumber: true } },
     },
   });
   if (!payment || payment.status !== "SUCCESS") return null;
@@ -175,10 +175,10 @@ export async function generateCommissionForPayment(paymentId: string) {
       await db.affiliateNotification.create({
         data: {
           affiliateId: affiliate.id,
-          type: "COMMISSION_PENDING",
+          category: "commission",
           title: "عمولة جديدة معلّقة",
           body: `تم احتساب ${amount.toLocaleString("ar-SA")} ${payment.currency} كعمولة معلّقة (تُتاح بعد ${holdDays} يوم).`,
-          meta: { commissionId: commission.id, paymentId: payment.id },
+          link: `/affiliate/commissions`,
         },
       });
 
@@ -280,10 +280,10 @@ export async function releaseMaturedCommissions(limit = 200) {
         await db.affiliateNotification.create({
           data: {
             affiliateId: c.affiliateId,
-            type: "COMMISSION_AVAILABLE",
+            category: "commission",
             title: "عمولة متاحة للسحب",
             body: `أصبح مبلغ ${amt.toLocaleString("ar-SA")} ${c.currency} متاحاً للسحب.`,
-            meta: { commissionId: c.id },
+            link: `/affiliate/wallet`,
           },
         });
       });
