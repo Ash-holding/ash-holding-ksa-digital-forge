@@ -144,6 +144,7 @@ walletRouter.post("/topup", async (req, res, next) => {
       amount: z.number().positive(),
       bankRef: z.string().optional().nullable(),
       note: z.string().optional().nullable(),
+      receiptUrl: z.string().optional().nullable(),
     }).parse(req.body);
     const wallet = await ensureWallet(cid);
     const tx = await prisma.walletTransaction.create({
@@ -153,6 +154,7 @@ walletRouter.post("/topup", async (req, res, next) => {
         status: "PENDING",
         amount: body.amount,
         bankRef: body.bankRef || null,
+        receiptUrl: body.receiptUrl || null,
         note: body.note || `طلب شحن رصيد عبر تحويل بنكي`,
       },
     });
@@ -163,6 +165,7 @@ walletRouter.post("/topup", async (req, res, next) => {
       [
         `المبلغ: *${fmtMoney(body.amount)} ر.س*`,
         body.bankRef ? `المرجع البنكي: ${body.bankRef}` : "",
+        body.receiptUrl ? `تم إرفاق صورة الإيصال ✅` : "",
         `سيتم تأكيد الشحن فور مراجعة الحوالة.`,
       ].filter(Boolean).join("\n"),
     );
