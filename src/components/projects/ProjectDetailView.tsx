@@ -267,37 +267,63 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
                 <Plus className="h-4 w-4" /> مرحلة
               </Button>
             )}
-          </div>
+          </motion.div>
 
           {stages.isLoading ? (
             <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-28 rounded-2xl" />)}</div>
           ) : !stagesList.length ? (
             <EmptyStages isAdmin={isAdmin} onAdd={() => setStageOpen(true)} />
           ) : (
-            <ol className="space-y-3">
+            <motion.ol
+              className="space-y-3"
+              initial="hidden" animate="show"
+              variants={{ hidden: {}, show: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } } }}
+            >
+              <AnimatePresence initial={false}>
               {stagesList.map((s, i) => {
                 const meta = STAGE_META[s.status];
                 const Icon = meta.icon;
                 const isLast = i === stagesList.length - 1;
                 return (
-                  <li key={s.id} className="relative">
+                  <motion.li
+                    key={s.id}
+                    layout
+                    variants={{ hidden: { opacity: 0, y: 14 }, show: { opacity: 1, y: 0 } }}
+                    exit={{ opacity: 0, x: -20, transition: { duration: 0.18 } }}
+                    transition={springIn}
+                    className="relative"
+                  >
                     {/* connector line */}
                     {!isLast && (
-                      <span className="absolute top-11 right-[22px] h-[calc(100%-16px)] w-px bg-gradient-to-b from-border to-transparent" />
+                      <motion.span
+                        initial={{ scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ delay: 0.1 + i * 0.06, duration: 0.4 }}
+                        className="absolute top-11 right-[22px] h-[calc(100%-16px)] w-px origin-top bg-gradient-to-b from-border to-transparent"
+                      />
                     )}
 
                     <div className="flex gap-3">
                       {/* step marker */}
-                      <div className={cn(
-                        "relative shrink-0 h-11 w-11 rounded-2xl border bg-card flex items-center justify-center ring-4 ring-offset-0",
-                        meta.ring
-                      )}>
+                      <motion.div
+                        whileHover={{ scale: 1.06 }}
+                        className={cn(
+                          "relative shrink-0 h-11 w-11 rounded-2xl border bg-card flex items-center justify-center ring-4 ring-offset-0",
+                          meta.ring
+                        )}
+                      >
                         <span className="text-sm font-bold tabular-nums text-foreground">{i + 1}</span>
-                        <span className={cn("absolute -bottom-1 -left-1 h-3 w-3 rounded-full border-2 border-card", meta.dot)} />
-                      </div>
+                        <motion.span
+                          className={cn("absolute -bottom-1 -left-1 h-3 w-3 rounded-full border-2 border-card", meta.dot)}
+                          animate={s.status === "IN_PROGRESS" ? { scale: [1, 1.25, 1], opacity: [1, 0.7, 1] } : {}}
+                          transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                        />
+                      </motion.div>
 
                       {/* card */}
-                      <div className="flex-1 min-w-0 rounded-2xl border border-border bg-card hover:border-electric/40 hover:shadow-sm transition-all p-4">
+                      <motion.div
+                        whileHover={{ y: -2 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                        className="flex-1 min-w-0 rounded-2xl border border-border bg-card hover:border-electric/40 hover:shadow-md transition-colors p-4"
+                      >
                         <div className="flex items-start justify-between gap-3">
                           <div className="min-w-0">
                             <div className="flex items-center gap-2 flex-wrap">
@@ -355,13 +381,15 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
                             </div>
                           </div>
                         )}
-                      </div>
+                      </motion.div>
                     </div>
-                  </li>
+                  </motion.li>
                 );
               })}
-            </ol>
+              </AnimatePresence>
+            </motion.ol>
           )}
+
         </section>
 
         {/* CHAT */}
