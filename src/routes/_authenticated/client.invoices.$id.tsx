@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useMemo, useState } from "react";
+import { AnimatePresence, motion, useMotionValue, useTransform, animate as animateMV } from "framer-motion";
+import QRCode from "qrcode";
 import {
   FileText, Download, Receipt, CreditCard, User, Calendar,
   Wallet as WalletIcon, Landmark, Sparkles, Copy, Check, Send,
   BadgeCheck, Stamp, ArrowUpRight, ArrowDownLeft, RotateCcw, Wrench,
   AlertTriangle, RefreshCw, X, Building2, Hash, Printer, QrCode,
+  ShieldCheck, ExternalLink,
 } from "lucide-react";
 
 import { api } from "@/lib/api";
@@ -19,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
-import { downloadInvoicePDF } from "@/lib/invoice-print";
+import { downloadInvoicePDF, computeInvoiceHash, signatureIdFromHash } from "@/lib/invoice-print";
 import { downloadReceiptPDF, type ReceiptLike } from "@/lib/receipt-print";
 import { cn } from "@/lib/utils";
 
