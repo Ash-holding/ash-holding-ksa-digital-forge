@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { ArrowLeft, MessageCircle, ShieldCheck } from "lucide-react";
@@ -32,6 +32,8 @@ function LoginOtpPage() {
   const [loading, setLoading] = useState(false);
   const [expiresAt, setExpiresAt] = useState<number | null>(null);
   const [remaining, setRemaining] = useState(0);
+  const requestBusyRef = useRef(false);
+  const verifyBusyRef = useRef(false);
 
   type LogEntry = { at: number; kind: "request" | "verify"; ok: boolean; reason: string };
   const [log, setLog] = useState<LogEntry[]>([]);
@@ -54,43 +56,49 @@ function LoginOtpPage() {
   const ss = String(remaining % 60).padStart(2, "0");
 
   const requestOtp = async () => {
-    if (loading) return;
+    if (loading || requestBusyRef.current) return;
     if (!phone || phone.length < 8) {
-      toast.error("أدخل رقم هاتف صحيح");
+      toast.dismiss();
+      toast.error("أدخل رقم هاتف صحيح", { id: "otp-phone-invalid" });
       return;
     }
+    requestBusyRef.current = true;
+    toast.dismiss();
     setLoading(true);
     try {
       let ttlSec = 600;
       try {
         const { data } = await api.post("/whatsapp/otp/request", { phone, purpose });
         ttlSec = Number(data?.expiresInSec) || 600;
-        toast.success("تم إرسال رمز التحقق على واتساب");
+        toast.success("تم إرسال رمز التحقق على واتساب", { id: "otp-request-success" });
         pushLog({ kind: "request", ok: true, reason: `أُرسل رمز إلى ${maskedPhone}` });
       } catch (err: any) {
         const apiMsg = err?.response?.data?.error;
-        // Demo fallback: backend not deployed → simulate OTP delivery
-        if (typeof window !== "undefined") {
-          sessionStorage.setItem("ash_demo_otp", "123456");
-          sessionStorage.setItem("ash_demo_otp_phone", phone);
-        }
-        toast.info("وضع تجريبي: استخدم الرمز 123456");
-        pushLog({ kind: "request", ok: false, reason: apiMsg || "تعذّر الاتصال — وضع تجريبي" });
+        toast.error(apiMsg || "تعذّر إرسال رمز التحقق", {
+          id: "otp-request-error",
+          description: "تحقق من اتصال الخادم وخدمة واتساب ثم حاول مرة أخرى.",
+        });
+        pushLog({ kind: "request", ok: false, reason: apiMsg || "تعذّر الاتصال بالخادم" });
+        return;
       }
       setCode("");
       setExpiresAt(Date.now() + ttlSec * 1000);
       setStep("code");
     } finally {
+      requestBusyRef.current = false;
       setLoading(false);
     }
   };
 
   const verifyOtp = async () => {
-    if (loading) return;
+    if (loading || verifyBusyRef.current) return;
     if (!/^\d{4,8}$/.test(code)) {
-      toast.error("أدخل الرمز المكوّن من 6 أرقام");
+      toast.dismiss();
+      toast.error("أدخل الرمز المكوّن من 6 أرقام", { id: "otp-code-invalid" });
       return;
     }
+    verifyBusyRef.current = true;
+    toast.dismiss();
     setLoading(true);
     try {
       try {
@@ -102,7 +110,7 @@ function LoginOtpPage() {
         });
         setTokens(data.accessToken, data.refreshToken);
         await refresh();
-        toast.success("تم التحقق بنجاح");
+        toast.success("تم التحقق بنجاح", { id: "otp-verify-success" });
         navigate({ to: landingFor(data.user.role) });
         return;
       } catch (err: any) {
@@ -116,6 +124,7 @@ function LoginOtpPage() {
           if (status === 404 || msg.includes("لا يوجد حساب")) {
             reason = "لا يوجد حساب مرتبط — تحويل لإنشاء حساب";
             toast.error("لا يوجد حساب مرتبط بهذا الرقم", {
+              id: "otp-no-account",
               description: "تم تحويلك تلقائياً لإنشاء حساب جديد بنفس الرقم.",
             });
             setPurpose("signup");
@@ -125,26 +134,30 @@ function LoginOtpPage() {
           } else if (msg.includes("انتهت")) {
             reason = "انتهت صلاحية الرمز";
             toast.error("انتهت صلاحية الرمز", {
+              id: "otp-expired",
               description: "اضغط «إعادة إرسال الرمز» لاستلام رمز جديد صالح لـ 10 دقائق.",
             });
           } else if (status === 429 || msg.includes("تجاوزت")) {
             reason = "تجاوز حد المحاولات";
             toast.error("تجاوزت الحد المسموح للمحاولات", {
+              id: "otp-too-many-attempts",
               description: "اطلب رمزاً جديداً وحاول مرة أخرى.",
             });
           } else if (msg.includes("لا يوجد رمز")) {
             reason = "لا يوجد رمز نشط";
             toast.error("لا يوجد رمز نشط لهذا الرقم", {
+              id: "otp-no-active-code",
               description: "اطلب رمزاً جديداً أولاً ثم أعد المحاولة.",
             });
           } else if (msg.includes("غير صحيح") || status === 400) {
             reason = "رمز غير صحيح";
             toast.error("الرمز غير صحيح", {
+              id: "otp-wrong-code",
               description: "تأكد من أنك تستخدم آخر رمز وصلك على واتساب.",
             });
           } else {
             reason = apiMsg || "فشل غير معروف";
-            toast.error(apiMsg || "تعذّر التحقق من الرمز");
+            toast.error(apiMsg || "تعذّر التحقق من الرمز", { id: "otp-verify-error" });
           }
           pushLog({ kind: "verify", ok: false, reason: `${reason}${status ? ` (${status})` : ""}` });
         };
@@ -153,32 +166,14 @@ function LoginOtpPage() {
           showApiError();
           return;
         }
-        const expected = typeof window !== "undefined" ? sessionStorage.getItem("ash_demo_otp") : null;
-        if (!expected || code !== expected) {
-          toast.error("تعذّر الاتصال بالخادم", {
-            description: "تحقق من اتصالك بالإنترنت وحاول مجدداً.",
-          });
-          return;
-        }
-        const demoUser = {
-          id: "demo-client",
-          email: `wa-${phone}@demo.sa`,
-          name: purpose === "signup" && name ? name : "عميل واتساب",
-          role: "CLIENT" as const,
-          phone,
-          client: { id: "demo-c1", companyName: "شركة تجريبية" },
-        };
-        setTokens("demo-access", "demo-refresh");
-        if (typeof window !== "undefined") {
-          localStorage.setItem("ash_demo_user", JSON.stringify(demoUser));
-          sessionStorage.removeItem("ash_demo_otp");
-          sessionStorage.removeItem("ash_demo_otp_phone");
-        }
-        await refresh();
-        toast.success("تم التحقق بنجاح (وضع تجريبي)");
-        navigate({ to: landingFor(demoUser.role) });
+        toast.error("تعذّر الاتصال بالخادم", {
+          id: "otp-network-error",
+          description: "تحقق من اتصالك بالإنترنت وحاول مجدداً.",
+        });
+        pushLog({ kind: "verify", ok: false, reason: "تعذّر الاتصال بالخادم" });
       }
     } finally {
+      verifyBusyRef.current = false;
       setLoading(false);
     }
   };
