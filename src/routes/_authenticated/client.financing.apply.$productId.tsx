@@ -591,7 +591,7 @@ function ReviewStep({ app, product, onSave }: { app: Application; product: Produ
           <SummaryRow label="المبلغ" value={`${fmt(Number(app.amount))} ر.س`} />
           <SummaryRow label="المدة" value={`${app.termMonths} شهر`} />
           <SummaryRow label="الدفعة المقدمة" value={`${fmt(Number(app.downPayment))} ر.س`} />
-          <SummaryRow label="المستندات المرفوعة" value={`${(app.documents ?? []).length}`} />},
+          <SummaryRow label="المستندات المرفوعة" value={`${(app.documents ?? []).length}`} />
         </div>
       </div>
 
