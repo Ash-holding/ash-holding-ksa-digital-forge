@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import {
   FileText, Download, Receipt, CreditCard, User, Calendar,
   Wallet as WalletIcon, Landmark, Sparkles, Copy, Check, Send,
+  BadgeCheck, Stamp,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { DetailShell, DetailSection, KV } from "@/components/shared/DetailShell";
@@ -17,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { formatDate } from "@/lib/format";
 import { downloadInvoicePDF } from "@/lib/invoice-print";
+import { downloadReceiptPDF, type ReceiptLike } from "@/lib/receipt-print";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/client/invoices/$id")({
@@ -31,12 +33,35 @@ const BANK = {
 
 type Method = "wallet" | "bank" | "electronic";
 
+/** Build a printable receipt payload from the invoice + fresh payment data */
+function buildReceipt(inv: any, payment?: any, walletBalance?: number): ReceiptLike {
+  const p = payment ?? (inv?.payments ?? []).find((x: any) => x.status === "SUCCESS") ?? inv?.payments?.[0];
+  const amt = Number(p?.amount ?? inv?.total ?? 0);
+  const method = p?.method ?? "WALLET";
+  return {
+    receiptNumber: `RCP-${String(inv?.invoiceNumber ?? "").replace(/^INV-?/, "")}`,
+    invoiceNumber: inv?.invoiceNumber,
+    requestRef: inv?.requestRef ?? null,
+    projectTitle: inv?.linkedRequest?.title ?? inv?.project?.title ?? null,
+    clientName: inv?.client?.user?.name ?? null,
+    clientCompany: inv?.client?.company ?? null,
+    amount: amt,
+    currency: inv?.currency ?? "SAR",
+    method,
+    paidAt: p?.paidAt ?? inv?.paidAt ?? new Date().toISOString(),
+    cashback: method === "WALLET" ? +(amt * 0.0185).toFixed(2) : 0,
+    balanceAfter: walletBalance != null ? walletBalance : null,
+    paymentId: p?.id ?? null,
+  };
+}
+
 function ClientInvoiceDetail() {
   const { id } = Route.useParams();
   const qc = useQueryClient();
   const [method, setMethod] = useState<Method>("wallet");
   const [bankRef, setBankRef] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<ReceiptLike | null>(null);
 
   const q = useQuery({
     queryKey: ["client-invoice", id],
@@ -57,8 +82,9 @@ function ClientInvoiceDetail() {
 
   const payWallet = useMutation({
     mutationFn: async () => (await api.post(`/invoices/${id}/pay-wallet`)).data,
-    onSuccess: () => {
-      toast.success("تم سداد الفاتورة من المحفظة ✅");
+    onSuccess: (data) => {
+      setReceipt(buildReceipt(inv, data?.payment, data?.wallet?.balance != null ? Number(data.wallet.balance) : undefined));
+      toast.success("تم سداد الفاتورة من المحفظة ✅ — إيصالك جاهز للتحميل");
       qc.invalidateQueries({ queryKey: ["client-invoice", id] });
       qc.invalidateQueries({ queryKey: ["wallet-me"] });
     },
@@ -113,6 +139,58 @@ function ClientInvoiceDetail() {
                 <KV k="تاريخ الدفع" v={formatDate(inv.paidAt)} />
               </div>
             </DetailSection>
+
+            {/* INSTANT RECEIPT — shown right after wallet payment */}
+            {receipt && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 260, damping: 22 }}
+                className="relative overflow-hidden rounded-2xl border border-emerald-500/40 bg-gradient-to-br from-emerald-500/10 via-card to-card p-5"
+              >
+                <div className="absolute -top-10 -left-10 h-32 w-32 rounded-full bg-emerald-500/10 blur-2xl" />
+                <div className="flex items-start gap-3">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/15 border border-emerald-500/30">
+                    <BadgeCheck className="h-6 w-6 text-emerald-600" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-black text-base text-emerald-700 dark:text-emerald-400">تم سداد الفاتورة بنجاح</h3>
+                    <p className="text-[11px] text-muted-foreground mt-0.5">وصلك إشعار بنكي عبر واتساب · إيصالك الرسمي جاهز</p>
+                    <div className="mt-3 grid grid-cols-3 gap-2">
+                      <div className="rounded-lg bg-background/70 border border-border p-2 text-center">
+                        <div className="text-[10px] text-muted-foreground">المبلغ المسدد</div>
+                        <div className="font-black text-sm tabular-nums" dir="ltr">{Number(receipt.amount ?? 0).toLocaleString("ar-SA", { minimumFractionDigits: 2 })}</div>
+                        <div className="text-[9px] text-muted-foreground">ر.س</div>
+                      </div>
+                      <div className="rounded-lg bg-background/70 border border-border p-2 text-center">
+                        <div className="text-[10px] text-muted-foreground">كاش باك مضاف</div>
+                        <div className="font-black text-sm text-amber-600 tabular-nums" dir="ltr">+{Number(receipt.cashback ?? 0).toLocaleString("ar-SA", { minimumFractionDigits: 2 })}</div>
+                        <div className="text-[9px] text-muted-foreground">ر.س</div>
+                      </div>
+                      <div className="rounded-lg bg-background/70 border border-border p-2 text-center">
+                        <div className="text-[10px] text-muted-foreground">رصيدك المتبقي</div>
+                        <div className="font-black text-sm text-emerald-600 tabular-nums" dir="ltr">{receipt.balanceAfter != null ? Number(receipt.balanceAfter).toLocaleString("ar-SA", { minimumFractionDigits: 2 }) : "—"}</div>
+                        <div className="text-[9px] text-muted-foreground">ر.س</div>
+                      </div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Button
+                        className="gap-1.5 bg-emerald-600 hover:bg-emerald-700"
+                        onClick={async () => {
+                          const t = toast.loading("جاري تجهيز الإيصال…");
+                          try { await downloadReceiptPDF(receipt); toast.success("تم تحميل الإيصال", { id: t }); }
+                          catch { toast.error("تعذّر إنشاء الإيصال", { id: t }); }
+                        }}
+                      >
+                        <Download className="h-4 w-4" />
+                        تحميل إيصال السداد PDF
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => setReceipt(null)}>إخفاء</Button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
             {/* PAYMENT METHODS */}
             {unpaid && (
@@ -200,6 +278,31 @@ function ClientInvoiceDetail() {
                   )}
                 </DetailSection>
               </motion.div>
+            )}
+
+            {/* PERSISTENT RECEIPT — available anytime for paid invoices */}
+            {inv.status === "PAID" && !receipt && (
+              <DetailSection title="إيصال السداد" icon={Stamp}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+                      <BadgeCheck className="h-3.5 w-3.5" /> مسددة بالكامل {inv.paidAt ? `· ${formatDate(inv.paidAt)}` : ""}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">الإيصال الرسمي المعتمد متاح دائماً هنا</span>
+                  </div>
+                  <Button
+                    size="sm" variant="outline" className="gap-1.5"
+                    onClick={async () => {
+                      const t = toast.loading("جاري تجهيز الإيصال…");
+                      try { await downloadReceiptPDF(buildReceipt(inv)); toast.success("تم تحميل الإيصال", { id: t }); }
+                      catch { toast.error("تعذّر إنشاء الإيصال", { id: t }); }
+                    }}
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    تحميل الإيصال
+                  </Button>
+                </div>
+              </DetailSection>
             )}
 
             <DetailSection title="البنود" icon={FileText}>
