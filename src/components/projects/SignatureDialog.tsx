@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PenLine, ShieldCheck, X, Loader2, MessageCircle, FileText, ArrowRight, ArrowLeft, ScrollText } from "lucide-react";
+import { PenLine, ShieldCheck, X, Loader2, MessageCircle, FileText, ArrowRight, ArrowLeft, ScrollText, Download } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { api, apiError } from "@/lib/api";
+import { downloadContractPDF } from "@/lib/contract-print";
 
 type Props = {
   open: boolean;
