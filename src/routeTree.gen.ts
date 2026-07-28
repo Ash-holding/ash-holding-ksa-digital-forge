@@ -56,6 +56,7 @@ import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authen
 import { Route as AuthenticatedClientProjectsIndexRouteImport } from './routes/_authenticated/client.projects.index'
 import { Route as AuthenticatedAdminClientsIndexRouteImport } from './routes/_authenticated/admin.clients.index'
 import { Route as AuthenticatedClientProjectsNewRouteImport } from './routes/_authenticated/client.projects.new'
+import { Route as AuthenticatedClientProjectsIdRouteImport } from './routes/_authenticated/client.projects.$id'
 import { Route as AuthenticatedAdminProjectsIdRouteImport } from './routes/_authenticated/admin.projects.$id'
 import { Route as AuthenticatedAdminClientsNewRouteImport } from './routes/_authenticated/admin.clients.new'
 import { Route as AuthenticatedAdminClientsIdRouteImport } from './routes/_authenticated/admin.clients.$id'
@@ -318,6 +319,12 @@ const AuthenticatedClientProjectsNewRoute =
     path: '/new',
     getParentRoute: () => AuthenticatedClientProjectsRoute,
   } as any)
+const AuthenticatedClientProjectsIdRoute =
+  AuthenticatedClientProjectsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedClientProjectsRoute,
+  } as any)
 const AuthenticatedAdminProjectsIdRoute =
   AuthenticatedAdminProjectsIdRouteImport.update({
     id: '/$id',
@@ -390,6 +397,7 @@ export interface FileRoutesByFullPath {
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
   '/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
   '/admin/projects/$id': typeof AuthenticatedAdminProjectsIdRoute
+  '/client/projects/$id': typeof AuthenticatedClientProjectsIdRoute
   '/client/projects/new': typeof AuthenticatedClientProjectsNewRoute
   '/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
   '/client/projects/': typeof AuthenticatedClientProjectsIndexRoute
@@ -439,6 +447,7 @@ export interface FileRoutesByTo {
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
   '/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
   '/admin/projects/$id': typeof AuthenticatedAdminProjectsIdRoute
+  '/client/projects/$id': typeof AuthenticatedClientProjectsIdRoute
   '/client/projects/new': typeof AuthenticatedClientProjectsNewRoute
   '/admin/clients': typeof AuthenticatedAdminClientsIndexRoute
   '/client/projects': typeof AuthenticatedClientProjectsIndexRoute
@@ -493,6 +502,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
   '/_authenticated/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
   '/_authenticated/admin/projects/$id': typeof AuthenticatedAdminProjectsIdRoute
+  '/_authenticated/client/projects/$id': typeof AuthenticatedClientProjectsIdRoute
   '/_authenticated/client/projects/new': typeof AuthenticatedClientProjectsNewRoute
   '/_authenticated/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
   '/_authenticated/client/projects/': typeof AuthenticatedClientProjectsIndexRoute
@@ -547,6 +557,7 @@ export interface FileRouteTypes {
     | '/admin/clients/$id'
     | '/admin/clients/new'
     | '/admin/projects/$id'
+    | '/client/projects/$id'
     | '/client/projects/new'
     | '/admin/clients/'
     | '/client/projects/'
@@ -596,6 +607,7 @@ export interface FileRouteTypes {
     | '/admin/clients/$id'
     | '/admin/clients/new'
     | '/admin/projects/$id'
+    | '/client/projects/$id'
     | '/client/projects/new'
     | '/admin/clients'
     | '/client/projects'
@@ -649,6 +661,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/clients/$id'
     | '/_authenticated/admin/clients/new'
     | '/_authenticated/admin/projects/$id'
+    | '/_authenticated/client/projects/$id'
     | '/_authenticated/client/projects/new'
     | '/_authenticated/admin/clients/'
     | '/_authenticated/client/projects/'
@@ -1007,6 +1020,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientProjectsNewRouteImport
       parentRoute: typeof AuthenticatedClientProjectsRoute
     }
+    '/_authenticated/client/projects/$id': {
+      id: '/_authenticated/client/projects/$id'
+      path: '/$id'
+      fullPath: '/client/projects/$id'
+      preLoaderRoute: typeof AuthenticatedClientProjectsIdRouteImport
+      parentRoute: typeof AuthenticatedClientProjectsRoute
+    }
     '/_authenticated/admin/projects/$id': {
       id: '/_authenticated/admin/projects/$id'
       path: '/$id'
@@ -1110,12 +1130,14 @@ const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
 interface AuthenticatedClientProjectsRouteChildren {
+  AuthenticatedClientProjectsIdRoute: typeof AuthenticatedClientProjectsIdRoute
   AuthenticatedClientProjectsNewRoute: typeof AuthenticatedClientProjectsNewRoute
   AuthenticatedClientProjectsIndexRoute: typeof AuthenticatedClientProjectsIndexRoute
 }
 
 const AuthenticatedClientProjectsRouteChildren: AuthenticatedClientProjectsRouteChildren =
   {
+    AuthenticatedClientProjectsIdRoute: AuthenticatedClientProjectsIdRoute,
     AuthenticatedClientProjectsNewRoute: AuthenticatedClientProjectsNewRoute,
     AuthenticatedClientProjectsIndexRoute:
       AuthenticatedClientProjectsIndexRoute,
