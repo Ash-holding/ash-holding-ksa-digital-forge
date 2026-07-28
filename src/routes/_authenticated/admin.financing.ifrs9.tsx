@@ -112,7 +112,7 @@ function Ifrs9Page() {
     <div className="space-y-6">
       <PageHeader
         title="IFRS 9 — الخسائر الائتمانية المتوقعة"
-        subtitle="تصنيف المراحل، ECL، ومحاكاة السيناريوهات وفق معيار المحاسبة الدولي"
+        description="تصنيف المراحل، ECL، ومحاكاة السيناريوهات وفق معيار المحاسبة الدولي"
         icon={ShieldAlert}
       />
 
