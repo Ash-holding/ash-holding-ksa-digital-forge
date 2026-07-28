@@ -100,7 +100,7 @@ function ClientWallet() {
                   <Sparkles className="h-4 w-4" />
                   <span>الرصيد المتاح</span>
                 </div>
-                {q.isLoading ? (
+                {q.isLoading && !q.data ? (
                   <Skeleton className="h-14 w-64 bg-white/20" />
                 ) : (
                   <div className="flex items-baseline gap-2">
