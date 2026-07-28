@@ -10,6 +10,8 @@ import {
   releaseMaturedCommissions,
   reverseCommissionsForPayment,
 } from "../lib/commission.js";
+import { runFraudScan } from "../lib/fraud.js";
+import { logAudit } from "../lib/audit.js";
 import { randomBytes } from "crypto";
 
 export const affiliateAdminRouter = Router();
