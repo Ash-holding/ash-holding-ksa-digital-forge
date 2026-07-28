@@ -561,6 +561,28 @@ model ProjectRequest {
   status       ProjectRequestStatus   @default(PENDING)
   adminNote    String?
   projectId    String?
+
+  // ---- Proposal (admin → client) ----
+  proposalAmount     Decimal?  @db.Decimal(12, 2)
+  proposalScope      String?
+  proposalDuration   Int?
+  proposalValidUntil DateTime?
+  proposalSentAt     DateTime?
+  revisionCount      Int       @default(0)
+  revisionRequest    String?
+
+  // ---- Digital signature (client) ----
+  signedAt           DateTime?
+  signatureHash      String?
+  signatureIp        String?
+  signatureUserAgent String?
+
+  // ---- Invoice & execution ----
+  linkedInvoiceId    String?
+  linkedInvoice      Invoice?  @relation("RequestInvoice", fields: [linkedInvoiceId], references: [id])
+  executionStartAt   DateTime?
+  executionDueAt     DateTime?
+
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
 
@@ -569,4 +591,5 @@ model ProjectRequest {
   @@index([clientId])
   @@index([status])
   @@index([createdAt])
+  @@index([linkedInvoiceId])
 }
