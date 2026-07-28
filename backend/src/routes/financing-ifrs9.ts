@@ -115,7 +115,7 @@ async function computeEcl(opts: {
 
     let stage: StageKey;
     if (isBad || dpd > 90) stage = "stage3";
-    else if (dpd > 30 || c.restructured) stage = "stage2";
+    else if (dpd > 30 || c.status === "RESTRUCTURED") stage = "stage2";
     else stage = "stage1";
 
     // Apply macro shock: migrate a portion of Stage 1 into Stage 2.
