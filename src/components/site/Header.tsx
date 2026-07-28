@@ -78,6 +78,7 @@ const NAV: NavItem[] = [
       { icon: BarChart3, title: "التقارير والتحليلات", desc: "تتبع الأداء وتحسين القرارات التسويقية.", href: "#marketing", tone: "teal" },
     ],
   },
+  { label: "التمويل", href: "/financing" },
   { label: "حسابي", href: "/login" },
 ];
 

@@ -26,6 +26,8 @@ import { walletRouter } from "./routes/wallet.js";
 import { trackRouter } from "./routes/track.js";
 import { affiliateRouter } from "./routes/affiliate.js";
 import { affiliateAdminRouter } from "./routes/affiliate-admin.js";
+import { financingRouter } from "./routes/financing.js";
+import { financingAdminRouter } from "./routes/financing-admin.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rate-limit.js";
 
@@ -53,6 +55,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/whatsapp", whatsappRouter);
 app.use("/api/verify", verifyRouter); // public — receipt/invoice verification
 app.use("/api/track", trackRouter);   // public — affiliate click/attribution tracking
+app.use("/api/financing", financingRouter); // public read-only financing info (products, quote)
 
 // General API rate limit for everything below
 app.use("/api", apiLimiter);
@@ -72,6 +75,7 @@ app.use("/api/notifications", notificationsRouter);
 app.use("/api/wallet", walletRouter);
 app.use("/api/affiliate", affiliateRouter);
 app.use("/api/admin/affiliate", affiliateAdminRouter);
+app.use("/api/admin/financing", financingAdminRouter);
 
 app.use("/api", notFoundHandler);
 app.use(errorHandler);

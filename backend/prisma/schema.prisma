@@ -20,6 +20,16 @@ enum UserRole {
   AFFILIATE_MANAGER
   AFFILIATE
   FINANCE_REVIEWER
+  CREDIT_ANALYST
+  CREDIT_MANAGER
+  RISK_OFFICER
+  COMPLIANCE_OFFICER
+  LEGAL_OFFICER
+  COLLECTIONS_OFFICER
+  CFO
+  CREDIT_COMMITTEE
+  FINAL_APPROVER
+  INTERNAL_AUDITOR
   CLIENT
 }
 
@@ -1155,5 +1165,147 @@ model AffiliateAuditLog {
 
   @@index([affiliateId])
   @@index([action])
+  @@index([createdAt])
+}
+
+// ===================== FINANCING (Phase 1) =====================
+// «تمويل خدمات ASH» — Closed-Loop Service Credit
+// Not a bank / not a cash wallet / not a public payment instrument.
+// The credit created downstream is redeemable ONLY for ASH services.
+
+enum FinancingCustomerType {
+  INDIVIDUAL
+  BUSINESS
+}
+
+enum FinancingProductStatus {
+  DRAFT
+  PENDING_LEGAL
+  APPROVED
+  PUBLISHED
+  PAUSED
+  ARCHIVED
+}
+
+enum FinancingComplianceItemStatus {
+  MISSING
+  UPLOADED
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum FinancingRateBasis {
+  FLAT_ANNUAL
+  REDUCING_ANNUAL
+  FIXED_TOTAL
+}
+
+model FinancingProduct {
+  id                  String                 @id @default(cuid())
+  code                String                 @unique
+  nameAr              String
+  descriptionAr       String?
+  customerType        FinancingCustomerType
+  minAmount           Decimal                @db.Decimal(14, 2)
+  maxAmount           Decimal                @db.Decimal(14, 2)
+  minDownPaymentPct   Decimal                @default(0)   @db.Decimal(5, 2)
+  minTermMonths       Int
+  maxTermMonths       Int
+  allowedTermsMonths  Int[]                  @default([])
+  rateBasis           FinancingRateBasis     @default(REDUCING_ANNUAL)
+  ratePct             Decimal                @default(0)   @db.Decimal(6, 3)  // annual %
+  adminFeePct         Decimal                @default(0)   @db.Decimal(5, 2)
+  adminFeeFlat        Decimal                @default(0)   @db.Decimal(12, 2)
+  vatOnFees           Boolean                @default(true)
+  gracePeriodDays     Int                    @default(0)
+  earlySettlementNote String?
+  latePaymentNote     String?
+  eligibilityNoteAr   String?
+  requiredDocsAr      String[]               @default([])
+  status              FinancingProductStatus @default(DRAFT)
+  policyVersion       Int                    @default(1)
+  startsAt            DateTime?
+  endsAt              DateTime?
+  createdById         String?
+  approvedById        String?
+  approvedAt          DateTime?
+  publishedAt         DateTime?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+
+  services            FinancingProductService[]
+
+  @@index([status])
+  @@index([customerType, status])
+}
+
+model FinancingProductService {
+  id         String           @id @default(cuid())
+  productId  String
+  serviceId  String?          // optional link to Service model when present
+  labelAr    String
+  createdAt  DateTime         @default(now())
+
+  product    FinancingProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, labelAr])
+  @@index([serviceId])
+}
+
+// Global compliance / production gate — single row (key = "default")
+model FinancingSetting {
+  id                   String   @id @default("default")
+  productionEnabled    Boolean  @default(false)
+  sandboxNoticeAr      String   @default("بيئة تجريبية — الاعتماد النهائي وتفعيل الرصيد متوقفان حتى استكمال الاعتمادات القانونية.")
+  minAmount            Decimal  @default(5000)    @db.Decimal(14, 2)
+  maxAmount            Decimal  @default(500000)  @db.Decimal(14, 2)
+  legalOpinionRef      String?
+  legalCounselName     String?
+  legalOpinionDate     DateTime?
+  lastReviewedById     String?
+  lastReviewedAt       DateTime?
+  publicContactEmail   String?
+  complaintsEmail      String?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+}
+
+model ComplianceApproval {
+  id            String                        @id @default(cuid())
+  code          String                        @unique   // e.g. "legal_opinion","credit_policy"
+  titleAr       String
+  descriptionAr String?
+  status        FinancingComplianceItemStatus @default(MISSING)
+  documentPath  String?
+  documentHash  String?
+  version       Int                           @default(1)
+  approvedById  String?
+  approvedAt    DateTime?
+  expiresAt     DateTime?
+  notes         String?
+  createdAt     DateTime                      @default(now())
+  updatedAt     DateTime                      @updatedAt
+
+  @@index([status])
+}
+
+// Independent, append-only audit trail for the financing subsystem.
+// DB triggers/application code MUST NOT UPDATE or DELETE rows here.
+model FinancingAuditLog {
+  id         String   @id @default(cuid())
+  actorId    String?
+  actorRole  String?
+  action     String
+  entityType String?
+  entityId   String?
+  metadata   Json?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([actorId])
   @@index([createdAt])
 }
