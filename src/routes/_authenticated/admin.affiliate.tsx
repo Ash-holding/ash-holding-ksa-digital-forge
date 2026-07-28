@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Handshake, Users, Percent, Banknote, Megaphone, Clock, RefreshCw, CheckCircle2, XCircle, PauseCircle, Play, TrendingUp, ExternalLink, ShieldAlert } from "lucide-react";
+import { Handshake, Users, Percent, Banknote, Megaphone, Clock, RefreshCw, CheckCircle2, XCircle, PauseCircle, Play, TrendingUp, ExternalLink, ShieldAlert, UserPlus } from "lucide-react";
 import { api } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
