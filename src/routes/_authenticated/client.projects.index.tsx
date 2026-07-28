@@ -254,11 +254,13 @@ function ProjectsView() {
       {view === "table" ? (
         <DataTable columns={columns} rows={filtered} loading={list.isLoading}
           total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
+          onRowClick={(r) => { window.location.href = `/client/projects/${r.id}`; }}
           emptyTitle="لا توجد مشاريع بعد" />
       ) : (
         <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-3">
           {filtered.map((r) => (
-            <div key={r.id} className="rounded-2xl border border-border bg-card p-3.5 hover:border-electric/40 transition group">
+            <Link key={r.id} to="/client/projects/$id" params={{ id: r.id }}
+              className="rounded-2xl border border-border bg-card p-3.5 hover:border-electric/40 hover:shadow-glow transition group block">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="min-w-0">
                   <div className="font-black text-sm truncate group-hover:text-electric transition">{r.title}</div>
@@ -278,7 +280,7 @@ function ProjectsView() {
                 {r.budget ? <Money value={r.budget} className="font-bold" /> : <span className="text-muted-foreground">—</span>}
                 {r.dueDate && r.status !== "COMPLETED" ? <DueBadge date={r.dueDate} /> : <span className="text-[10px] text-muted-foreground">{formatDate(r.dueDate)}</span>}
               </div>
-            </div>
+            </Link>
           ))}
           {!list.isLoading && filtered.length === 0 && (
             <div className="col-span-full rounded-2xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground">لا توجد مشاريع مطابقة</div>
