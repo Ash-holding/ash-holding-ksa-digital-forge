@@ -1235,12 +1235,41 @@ export async function activateRequestIfInvoicePaid(invoiceId: string) {
     data: { status: "IN_PROGRESS", executionStartAt: start, executionDueAt: due, projectId },
   });
 
+  // ---- Auto-generate signed contract ----
   const clientRow = await prisma.client.findUnique({
     where: { id: request.clientId },
     include: { user: { select: { phone: true, name: true } } },
   });
-  const phone = request.contactPhone || clientRow?.phone || clientRow?.user?.phone || null;
   const ref = shortRef("REQ", request.id);
+  const existingContract = await prisma.contract.findFirst({ where: { projectId } });
+  let contract = existingContract;
+  if (!existingContract) {
+    const y = start.getFullYear();
+    const ctrCount = await prisma.contract.count({ where: { contractNumber: { startsWith: `CTR-${y}-` } } });
+    const contractNumber = `CTR-${y}-${String(ctrCount + 1).padStart(4, "0")}`;
+    contract = await prisma.contract.create({
+      data: {
+        contractNumber,
+        clientId: request.clientId,
+        projectId,
+        title: request.title,
+        status: "SIGNED",
+        value: request.proposalAmount ?? undefined,
+        currency: "SAR",
+        startDate: start,
+        endDate: due,
+        signedAt: request.signedAt ?? new Date(),
+        notes: [
+          `عقد رسمي مُعتمد ومُوقّع رقمياً بناءً على الطلب ${ref}.`,
+          `نطاق العمل: ${request.proposalScope ?? request.description ?? "—"}`,
+          request.signatureHash ? `بصمة التوقيع: ${request.signatureHash}` : "",
+          request.signatureIp ? `IP: ${request.signatureIp}` : "",
+        ].filter(Boolean).join("\n"),
+      },
+    });
+  }
+
+  const phone = request.contactPhone || clientRow?.phone || clientRow?.user?.phone || null;
   WA.notify(
     phone,
     [
@@ -1250,11 +1279,13 @@ export async function activateRequestIfInvoicePaid(invoiceId: string) {
       `📁 ${updated.title}`,
       `📅 *بدء التنفيذ:* ${fmtDate(start)}`,
       `⏰ *التسليم المتوقع:* ${fmtDate(due)} (${days} يوم)`,
+      contract ? `📄 *العقد الرسمي:* ${contract.contractNumber} — متاح للتحميل من بوابتك.` : "",
       DIVIDER,
-      `يمكنك متابعة العدّاد التنازلي ومراحل التنفيذ من بوابة العميل.${SIGNATURE}`,
-    ].join("\n"),
+      `يمكنك تحميل العقد ومتابعة المراحل من بوابة العميل.${SIGNATURE}`,
+    ].filter(Boolean).join("\n"),
     { kind: "request.in_progress", entityId: updated.id },
   );
 
   return updated;
 }
+
