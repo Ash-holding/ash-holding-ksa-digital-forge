@@ -53,21 +53,21 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" dir="rtl">
+        <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center sm:p-4" dir="rtl">
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.98, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            exit={{ opacity: 0, scale: 0.98, y: 20 }}
             transition={{ type: "spring", damping: 22 }}
-            className="relative z-10 w-full max-w-lg my-auto"
+            className="relative z-10 w-full sm:max-w-lg h-[100dvh] sm:h-auto sm:max-h-[90vh] flex"
           >
-            <div className="rounded-3xl border border-electric/30 bg-gradient-to-br from-card via-card to-electric/5 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="flex flex-col w-full sm:rounded-3xl border border-electric/30 bg-gradient-to-br from-card via-card to-electric/5 shadow-2xl overflow-hidden">
               {/* header */}
-              <div className="relative p-5 border-b border-border/60 bg-gradient-to-l from-electric/15 to-transparent">
+              <div className="relative shrink-0 p-5 border-b border-border/60 bg-gradient-to-l from-electric/15 to-transparent">
                 <button onClick={onClose} className="absolute end-3 top-3 h-8 w-8 grid place-items-center rounded-full hover:bg-muted/40">
                   <X className="h-4 w-4" />
                 </button>
@@ -83,7 +83,7 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
               </div>
 
               {step === "review" ? (
-                <div className="p-5 space-y-4">
+                <div className="flex-1 overflow-y-auto p-5 space-y-4">
                   <div className="rounded-2xl border border-border bg-background p-4">
                     <div className="text-[11px] text-foreground/60 mb-1">المشروع</div>
                     <div className="font-bold text-[15px] text-foreground mb-3">{title}</div>
@@ -114,7 +114,7 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
                   </Button>
                 </div>
               ) : (
-                <div className="p-5 space-y-4">
+                <div className="flex-1 overflow-y-auto p-5 space-y-4">
                   <div className="text-center">
                     <div className="text-[13px] text-foreground/80 mb-3 font-medium">أدخل الرمز المرسل إلى واتساب</div>
                     <Input
