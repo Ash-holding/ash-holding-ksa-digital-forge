@@ -141,10 +141,10 @@ projectsRouter.get("/:id", async (req, res, next) => {
     const project = await prisma.project.findUnique({
       where: { id: req.params.id },
       include: {
-        client: { include: { user: { select: { name: true, email: true } } } },
+        client: { include: { user: { select: { name: true, email: true, phone: true } } } },
         notes: { include: { author: { select: { name: true, role: true } } }, orderBy: { createdAt: "desc" } },
         files: { orderBy: { createdAt: "desc" } },
-        invoices: { orderBy: { createdAt: "desc" } },
+        invoices: { orderBy: { createdAt: "desc" }, include: { items: true } },
         contracts: { orderBy: { createdAt: "desc" } },
         services: true,
       },
@@ -153,12 +153,103 @@ projectsRouter.get("/:id", async (req, res, next) => {
     if (!isStaff(req)) {
       const cid = await currentClientId(req);
       if (project.clientId !== cid) return res.status(403).json({ error: "Forbidden" });
-      // hide internal notes from client
       project.notes = project.notes.filter((n) => n.visibility !== "INTERNAL");
     }
-    res.json({ project });
+    const linkedRequest = await prisma.projectRequest.findFirst({
+      where: { projectId: req.params.id },
+      select: {
+        id: true, title: true, category: true, priority: true, status: true,
+        budgetMin: true, budgetMax: true, targetDate: true, createdAt: true,
+        contactName: true, contactPhone: true, adminNote: true,
+      },
+    });
+    const requestRef = linkedRequest ? shortRef("REQ", linkedRequest.id) : null;
+    const projectRef = shortRef("PRJ", project.id);
+    res.json({ project, linkedRequest, requestRef, projectRef });
   } catch (e) { next(e); }
 });
+
+// Quick invoice from a project — staff only
+projectsRouter.post("/:id/invoice", requireStaff, async (req, res, next) => {
+  try {
+    const body = z.object({
+      title: z.string().min(2).optional(),
+      description: z.string().max(500).optional().nullable(),
+      amount: z.coerce.number().positive("المبلغ مطلوب"),
+      taxRate: z.coerce.number().min(0).max(100).default(15),
+      dueAt: z.coerce.date().optional().nullable(),
+      notes: z.string().max(1000).optional().nullable(),
+    }).parse(req.body);
+
+    const project = await prisma.project.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, clientId: true, title: true },
+    });
+    if (!project) return res.status(404).json({ error: "المشروع غير موجود" });
+
+    const requestLink = await prisma.projectRequest.findFirst({
+      where: { projectId: project.id },
+      select: { id: true },
+    });
+    const projectRef = shortRef("PRJ", project.id);
+    const requestRef = requestLink ? shortRef("REQ", requestLink.id) : null;
+
+    // Generate invoice number
+    const year = new Date().getFullYear();
+    const count = await prisma.invoice.count({ where: { invoiceNumber: { startsWith: `INV-${year}-` } } });
+    const invoiceNumber = `INV-${year}-${String(count + 1).padStart(4, "0")}`;
+
+    const subtotal = body.amount;
+    const taxAmount = +(subtotal * (body.taxRate / 100)).toFixed(2);
+    const total = +(subtotal + taxAmount).toFixed(2);
+    const notesRef = [
+      requestRef ? `مرجع الطلب: ${requestRef}` : null,
+      `مرجع المشروع: ${projectRef}`,
+      body.notes,
+    ].filter(Boolean).join("\n");
+
+    const invoice = await prisma.invoice.create({
+      data: {
+        invoiceNumber,
+        clientId: project.clientId,
+        projectId: project.id,
+        status: "UNPAID",
+        subtotal, discount: 0, taxRate: body.taxRate, taxAmount, total,
+        dueAt: body.dueAt ?? null,
+        notes: notesRef,
+        items: {
+          create: [{
+            title: body.title || project.title,
+            description: body.description ?? null,
+            quantity: 1, unitPrice: subtotal, total: subtotal,
+          }],
+        },
+      },
+      include: { items: true },
+    });
+    await logAudit(req, "invoice.create_from_project", "Invoice", invoice.id);
+
+    const phone = await clientPhone(project.clientId);
+    WA.notify(
+      phone,
+      [
+        `🧾 *فاتورة جديدة*`,
+        DIVIDER,
+        `🔖 *رقم الفاتورة:* ${invoice.invoiceNumber}`,
+        requestRef ? `📌 *رقم الطلب:* ${requestRef}` : "",
+        `📁 *المشروع:* ${project.title} (${projectRef})`,
+        `💰 *الإجمالي:* ${fmtMoney(invoice.total)}`,
+        body.dueAt ? `⏰ *الاستحقاق:* ${fmtDate(body.dueAt)}` : "",
+        DIVIDER,
+        `يمكنك مراجعتها من بوابة العميل.${SIGNATURE}`,
+      ].filter(Boolean).join("\n"),
+      { kind: "invoice.create", entityId: invoice.id },
+    );
+
+    res.status(201).json({ invoice });
+  } catch (e) { next(e); }
+});
+
 
 projectsRouter.post("/", requireStaff, async (req, res, next) => {
   try {
