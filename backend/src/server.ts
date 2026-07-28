@@ -91,6 +91,7 @@ app.use("/api/financing", financingContractsRouter);
 app.use("/api/financing", financingOpsRouter);
 app.use("/api/financing", financingClosureRouter);
 app.use("/api/admin/financing/reports", financingReportsRouter);
+app.use("/api/admin/financing/ifrs9", financingIfrs9Router);
 
 app.use("/api", notFoundHandler);
 app.use(errorHandler);
