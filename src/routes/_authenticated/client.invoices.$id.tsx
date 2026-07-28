@@ -216,6 +216,52 @@ function ClientInvoiceDetail() {
               </motion.div>
             )}
 
+            {/* PAYMENT FAILURE — clear alert with recovery actions */}
+            <AnimatePresence>
+              {payError && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 280, damping: 24 }}
+                  className="relative overflow-hidden rounded-2xl border border-rose-500/40 bg-gradient-to-br from-rose-500/10 via-card to-card p-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-rose-500/15 border border-rose-500/30">
+                      <AlertTriangle className="h-5 w-5 text-rose-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-black text-sm text-rose-700 dark:text-rose-400">تعثّرت عملية الدفع</h3>
+                      <p className="text-[11px] text-muted-foreground mt-0.5 leading-relaxed">{payError} — لم يتم خصم أي مبلغ من محفظتك.</p>
+                      <div className="mt-2.5 flex flex-wrap gap-2">
+                        <Button
+                          size="sm" variant="outline" className="gap-1.5 border-rose-500/40 text-rose-700 dark:text-rose-400 hover:bg-rose-500/10"
+                          disabled={payWallet.isPending || submitTransfer.isPending}
+                          onClick={() => (method === "wallet" ? payWallet.mutate() : submitTransfer.mutate())}
+                        >
+                          <RefreshCw className={cn("h-3.5 w-3.5", (payWallet.isPending || submitTransfer.isPending) && "animate-spin")} />
+                          إعادة المحاولة
+                        </Button>
+                        {insufficientFunds && (
+                          <Button
+                            size="sm" className="gap-1.5 bg-emerald-600 hover:bg-emerald-700"
+                            onClick={() => navigate({ to: "/client/wallet" })}
+                          >
+                            <WalletIcon className="h-3.5 w-3.5" />
+                            اشحن محفظتك الآن
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost" onClick={() => setPayError(null)}>
+                          <X className="h-3.5 w-3.5" />
+                          إخفاء
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* PAYMENT METHODS */}
             {unpaid && (
               <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
