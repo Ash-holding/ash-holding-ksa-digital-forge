@@ -13,7 +13,7 @@ export function Footer() {
         { label: "آلية العمل", to: "/process" },
         { label: "الأسئلة الشائعة", to: "/faq" },
         { label: "تواصل معنا", to: "/contact" },
-        { label: "تمويل خدمات ASH", to: "/financing" },
+        { label: "التمويل الداخلي", to: "/financing" },
         { label: "الإفصاحات والحوكمة", to: "/financing/disclosures" },
       ],
     },
