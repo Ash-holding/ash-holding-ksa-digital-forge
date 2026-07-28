@@ -198,6 +198,7 @@ model User {
   projectNotes    ProjectNote[]
   projectMessages ProjectMessage[]
   verifiedClients Client[]        @relation("VerifiedBy")
+  affiliate       Affiliate?
 
 
   @@index([role])
