@@ -26,6 +26,7 @@ type Contract = {
   firstDueDate?: string | null; lastDueDate?: string | null;
   clientSignedAt?: string | null; clientSignatureName?: string | null; clientSignatureHash?: string | null;
   activatedAt?: string | null;
+  autopayEnabled?: boolean;
   application?: { code?: string; fullNameAr?: string | null; nationalId?: string | null; businessName?: string | null };
   product?: { nameAr?: string; code?: string };
   installments: Array<{
