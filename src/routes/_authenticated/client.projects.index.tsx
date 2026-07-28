@@ -24,6 +24,16 @@ import { Money } from "@/components/ui/money";
 import { cn } from "@/lib/utils";
 
 export const Route = createFileRoute("/_authenticated/client/projects/")({
+  head: () => ({
+    meta: [
+      { title: "مشاريعي — بوابة العميل" },
+      { name: "description", content: "تابع مشاريعك وطلبات المشاريع من بوابة العميل في آش هولدنق." },
+      { property: "og:title", content: "مشاريعي — بوابة العميل" },
+      { property: "og:description", content: "تابع مشاريعك وطلبات المشاريع من بوابة العميل في آش هولدنق." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
   component: ClientProjectsPage,
 });
 

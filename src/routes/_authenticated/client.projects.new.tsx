@@ -20,6 +20,10 @@ export const Route = createFileRoute("/_authenticated/client/projects/new")({
     meta: [
       { title: "طلب مشروع جديد — بوابة العميل" },
       { name: "description", content: "قدّم طلب مشروع جديد ويتواصل معك فريق آش هولدنق خلال 24 ساعة عمل." },
+      { property: "og:title", content: "طلب مشروع جديد — بوابة العميل" },
+      { property: "og:description", content: "قدّم طلب مشروع جديد ويتواصل معك فريق آش هولدنق خلال 24 ساعة عمل." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
 });
