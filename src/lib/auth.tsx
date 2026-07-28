@@ -56,7 +56,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
       if (typeof window !== "undefined") localStorage.setItem(USER_CACHE_KEY, JSON.stringify(data.user));
     } catch {
-      // Keep cached user if the network hiccups; only clear on explicit 401
+      // If we have no cached user, the stored token is unusable — clear it
+      // so the AuthGate can redirect to /login instead of hanging forever.
+      if (typeof window !== "undefined" && !localStorage.getItem(USER_CACHE_KEY)) {
+        setTokens(null, null);
+        setUser(null);
+      }
     }
     setLoading(false);
   }, []);
