@@ -48,6 +48,24 @@ paymentsRouter.get("/", async (req, res, next) => {
   } catch (e) { next(e); }
 });
 
+paymentsRouter.get("/:id", async (req, res, next) => {
+  try {
+    const p = await prisma.payment.findUnique({
+      where: { id: req.params.id },
+      include: {
+        client: { include: { user: { select: { name: true, email: true, phone: true } } } },
+        invoice: { select: { id: true, invoiceNumber: true, total: true, status: true } },
+      },
+    });
+    if (!p) return res.status(404).json({ error: "غير موجود" });
+    if (!isStaff(req)) {
+      const cid = await currentClientId(req);
+      if (p.clientId !== cid) return res.status(403).json({ error: "Forbidden" });
+    }
+    res.json({ payment: p });
+  } catch (e) { next(e); }
+});
+
 paymentsRouter.post("/", requireStaff, async (req, res, next) => {
   try {
     const data = paymentSchema.parse(req.body);

@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import {
@@ -25,6 +25,7 @@ export const Route = createFileRoute("/_authenticated/client/services")({
 });
 
 function ClientServicesPage() {
+  const nav = useNavigate();
   const [page, setPage] = useState(1);
   const [status, setStatus] = useState<string | null>(null);
   const [type, setType] = useState<string | null>(null);
@@ -147,6 +148,7 @@ function ClientServicesPage() {
       <DataTable
         columns={columns} rows={filtered} loading={list.isLoading}
         total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
+        onRowClick={(r: any) => nav({ to: "/client/services/$id", params: { id: r.id } })}
         emptyTitle="لا توجد خدمات مطابقة"
       />
     </div>
