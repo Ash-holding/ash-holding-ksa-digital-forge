@@ -35,6 +35,7 @@ import { financingOpsRouter, financingOpsPublicRouter } from "./routes/financing
 import { financingClosureRouter, financingDisclosuresPublicRouter } from "./routes/financing-closure.js";
 import { financingReportsRouter } from "./routes/financing-reports.js";
 import { financingIfrs9Router } from "./routes/financing-ifrs9.js";
+import { seedDefaultFinancingProducts } from "./lib/financing/seed-defaults.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rate-limit.js";
 
@@ -97,7 +98,9 @@ app.use("/api", notFoundHandler);
 app.use(errorHandler);
 
 const port = Number(process.env.PORT || 4000);
-app.listen(port, () => {
+app.listen(port, async () => {
   console.log(`ASH HOLDING API listening on :${port}`);
   console.log(`Uploads directory: ${uploadDir}`);
+  await seedDefaultFinancingProducts();
+  console.log(`[financing] default products ensured`);
 });
