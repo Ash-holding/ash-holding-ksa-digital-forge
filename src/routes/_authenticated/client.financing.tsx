@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Wallet, Plus, FileText, ArrowLeft } from "lucide-react";
+import { Wallet, Plus, FileText, ArrowLeft, Calculator as CalcIcon } from "lucide-react";
 import { api } from "@/lib/api";
 import { ClientPageHeader } from "@/components/client/ClientPageHeader";
 import { Button } from "@/components/ui/button";
+import { FinancingCalculator } from "@/components/financing/Calculator";
 
 export const Route = createFileRoute("/_authenticated/client/financing")({
   component: ClientFinancingPage,
