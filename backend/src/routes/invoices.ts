@@ -7,6 +7,7 @@ import { logAudit } from "../lib/audit.js";
 import { WA } from "../lib/whatsapp.js";
 import { activateRequestIfInvoicePaid, ensureInvoiceForSignedRequest } from "./projects.js";
 import { awardCashback, ensureWallet } from "./wallet.js";
+import { generateCommissionForPayment } from "../lib/commission.js";
 
 async function clientPhone(clientId: string): Promise<string | null> {
   const c = await prisma.client.findUnique({
@@ -326,6 +327,7 @@ invoicesRouter.post("/:id/pay-wallet", async (req, res, next) => {
     );
     awardCashback(inv.clientId, inv.id, amount).catch((e) => console.error("[cashback]", e));
     activateRequestIfInvoicePaid(inv.id).catch((e) => console.error("[activate-request]", e));
+    generateCommissionForPayment(result.payment.id).catch((e) => console.error("[commission]", e));
     res.json({ invoice: result.invoiceUpdated, payment: result.payment, wallet: result.w });
   } catch (e) { next(e); }
 });

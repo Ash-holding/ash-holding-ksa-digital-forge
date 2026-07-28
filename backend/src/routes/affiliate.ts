@@ -19,8 +19,9 @@ import { Router } from "express";
 import { z } from "zod";
 import { randomBytes } from "crypto";
 import { prisma } from "../lib/prisma.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAuth, requireRole } from "../middleware/auth.js";
 import { WA } from "../lib/whatsapp.js";
+import { releaseMaturedCommissions } from "../lib/commission.js";
 
 export const affiliateRouter = Router();
 
@@ -423,3 +424,27 @@ affiliateRouter.patch("/me", requireAuth, async (req, res, next) => {
     res.json({ affiliate });
   } catch (e) { next(e); }
 });
+
+// ---------- admin/cron: release matured commissions ----------
+// POST /api/affiliate/admin/release  (SUPER_ADMIN | ADMIN | AFFILIATE_MANAGER)
+//   or via header  X-Cron-Secret: <AFFILIATE_CRON_SECRET>
+affiliateRouter.post("/admin/release", (req, res, next) => {
+  const cronSecret = process.env.AFFILIATE_CRON_SECRET;
+  const headerSecret = req.header("x-cron-secret");
+  if (cronSecret && headerSecret && cronSecret === headerSecret) return next();
+  // Otherwise require an authenticated staff/manager user.
+  return requireAuth(req, res, (err?: unknown) => {
+    if (err) return next(err);
+    const user = (req as any).user;
+    const allowed = ["SUPER_ADMIN", "ADMIN", "AFFILIATE_MANAGER"];
+    if (!user || !allowed.includes(user.role)) return res.status(403).json({ error: "Forbidden" });
+    next();
+  });
+}, async (_req, res, next) => {
+  try {
+    const result = await releaseMaturedCommissions(500);
+    res.json({ ok: true, ...result });
+  } catch (e) { next(e); }
+});
+// Unused-import guard so `requireRole` stays referenced if future admin routes need it.
+void requireRole;
