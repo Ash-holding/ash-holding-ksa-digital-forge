@@ -5,6 +5,7 @@ import { requireAuth, requireStaff } from "../middleware/auth.js";
 import { currentClientId, isStaff, paging } from "../lib/scope.js";
 import { logAudit } from "../lib/audit.js";
 import { WA } from "../lib/whatsapp.js";
+import { generateCommissionForPayment, reverseCommissionsForPayment } from "../lib/commission.js";
 
 export const paymentsRouter = Router();
 paymentsRouter.use(requireAuth);
