@@ -280,6 +280,31 @@ function ClientInvoiceDetail() {
               </motion.div>
             )}
 
+            {/* PERSISTENT RECEIPT — available anytime for paid invoices */}
+            {inv.status === "PAID" && !receipt && (
+              <DetailSection title="إيصال السداد" icon={Stamp}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-3 py-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+                      <BadgeCheck className="h-3.5 w-3.5" /> مسددة بالكامل {inv.paidAt ? `· ${formatDate(inv.paidAt)}` : ""}
+                    </span>
+                    <span className="text-[11px] text-muted-foreground">الإيصال الرسمي المعتمد متاح دائماً هنا</span>
+                  </div>
+                  <Button
+                    size="sm" variant="outline" className="gap-1.5"
+                    onClick={async () => {
+                      const t = toast.loading("جاري تجهيز الإيصال…");
+                      try { await downloadReceiptPDF(buildReceipt(inv)); toast.success("تم تحميل الإيصال", { id: t }); }
+                      catch { toast.error("تعذّر إنشاء الإيصال", { id: t }); }
+                    }}
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    تحميل الإيصال
+                  </Button>
+                </div>
+              </DetailSection>
+            )}
+
             <DetailSection title="البنود" icon={FileText}>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
