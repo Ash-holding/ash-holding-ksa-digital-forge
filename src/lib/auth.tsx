@@ -44,21 +44,8 @@ function demoLogin(email: string, password: string): AuthUser | null {
 const USER_CACHE_KEY = "ash_user_cache";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Hydrate synchronously from cache so protected pages render instantly
-  const [user, setUser] = useState<AuthUser | null>(() => {
-    if (typeof window === "undefined") return null;
-    if (!localStorage.getItem("ash_access")) return null;
-    try {
-      const raw = localStorage.getItem(USER_CACHE_KEY);
-      return raw ? (JSON.parse(raw) as AuthUser) : null;
-    } catch { return null; }
-  });
-  const [loading, setLoading] = useState<boolean>(() => {
-    if (typeof window === "undefined") return true;
-    // If we have a cached user, don't block UI — refresh in background
-    if (!localStorage.getItem("ash_access")) return false;
-    return !localStorage.getItem(USER_CACHE_KEY);
-  });
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const load = useCallback(async () => {
     if (!getAccessToken()) { setUser(null); setLoading(false); return; }
@@ -74,7 +61,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  useEffect(() => { load(); }, [load]);
+  // Hydrate from cache on mount (client-only) to avoid SSR hydration mismatch,
+  // then refresh from server in the background.
+  useEffect(() => {
+    if (typeof window !== "undefined" && localStorage.getItem("ash_access")) {
+      try {
+        const raw = localStorage.getItem(USER_CACHE_KEY);
+        if (raw) { setUser(JSON.parse(raw) as AuthUser); setLoading(false); }
+      } catch { /* ignore */ }
+    }
+    load();
+  }, [load]);
+
   useEffect(() => {
     const handler = () => load();
     if (typeof window !== "undefined") window.addEventListener("ash-auth-change", handler);
