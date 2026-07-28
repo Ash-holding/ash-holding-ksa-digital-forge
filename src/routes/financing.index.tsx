@@ -1,17 +1,24 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   Wallet, Sparkles, ShieldCheck, ClipboardCheck, FileSignature,
-  BadgeCheck, HandCoins, Scale, Lock, ArrowLeft,
+  BadgeCheck, HandCoins, Scale, Lock, ArrowLeft, LogIn,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { api } from "@/lib/api";
 import { DisclaimerBar } from "@/components/financing/DisclaimerBar";
 import { JourneyStepper } from "@/components/financing/JourneyStepper";
-import { FinancingCalculator } from "@/components/financing/Calculator";
 
 export const Route = createFileRoute("/financing/")({
   component: FinancingHome,
+  head: () => ({
+    meta: [
+      { title: "تمويل خدمات ASH — رصيد خدمي داخلي" },
+      { name: "description", content: "تعرّف على برنامج تمويل خدمات آش القابضة: رصيد خدمي غير نقدي داخل محفظتك يُستخدم لشراء خدمات الشركة فقط." },
+      { property: "og:title", content: "تمويل خدمات ASH — رصيد خدمي داخلي" },
+      { property: "og:description", content: "برنامج داخلي ممول من آش القابضة لدعم عملائها في شراء خدمات الشركة على أقساط." },
+    ],
+  }),
 });
 
 type Settings = {
@@ -35,19 +42,13 @@ function FinancingHome() {
     <div className="mx-auto max-w-7xl px-4 md:px-8 space-y-16">
       {/* HERO */}
       <section className="relative overflow-hidden rounded-[2.5rem] bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 p-8 md:p-14 text-white shadow-2xl">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -left-40 -top-40 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl"
-        />
-        <div
-          aria-hidden
-          className="pointer-events-none absolute -right-40 -bottom-40 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl"
-        />
+        <div aria-hidden className="pointer-events-none absolute -left-40 -top-40 h-96 w-96 rounded-full bg-blue-500/20 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -right-40 -bottom-40 h-96 w-96 rounded-full bg-cyan-500/10 blur-3xl" />
         <div className="relative z-10 grid gap-10 lg:grid-cols-2 lg:items-center">
           <div>
             {isSandbox && (
               <span className="inline-flex items-center gap-2 rounded-full bg-amber-500/15 px-3 py-1 text-xs font-semibold text-amber-300 ring-1 ring-amber-500/30">
-                <Lock className="h-3 w-3" /> بيئة تجريبية — لا تُصدر التزامات مالية
+                <Lock className="h-3 w-3" /> برنامج داخلي — للتعريف بالخدمة فقط
               </span>
             )}
             <motion.h1
@@ -63,8 +64,8 @@ function FinancingHome() {
               transition={{ delay: 0.05 }}
               className="mt-5 max-w-xl text-base leading-8 text-slate-300"
             >
-              رصيد <b className="text-white">خدمي داخلي</b> يُقيَّد في محفظتك لدى ASH لشراء خدمات الشركة فقط،
-              ويُسدَّد على أقساط متفق عليها. <b className="text-white">لا يُصرف نقدًا</b> ولا يمكن تحويله لأي جهة أخرى.
+              برنامج <b className="text-white">تمويل داخلي</b> مموّل ذاتياً من آش القابضة، يمنحك <b className="text-white">رصيداً خدمياً</b> يُقيَّد في محفظتك لدى ASH لشراء خدمات الشركة فقط،
+              ويُسدَّد على أقساط. <b className="text-white">لا يُصرف نقداً</b> ولا يُحوَّل لأي جهة خارجية.
             </motion.p>
             <div className="mt-6 grid grid-cols-2 gap-3 max-w-md">
               <Kpi icon={<HandCoins className="h-4 w-4" />} label="حد التمويل" value={
@@ -75,12 +76,12 @@ function FinancingHome() {
               <Kpi icon={<ShieldCheck className="h-4 w-4" />} label="الحوكمة" value="متعددة الطبقات" suffix="فصل الصلاحيات" />
             </div>
             <div className="mt-8 flex flex-wrap gap-3">
-              <a
-                href="#calculator"
+              <Link
+                to="/client/financing"
                 className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-slate-900 shadow-lg shadow-black/20 transition hover:bg-slate-100"
               >
-                جرّب الحاسبة <ArrowLeft className="h-4 w-4" />
-              </a>
+                <LogIn className="h-4 w-4" /> تقديم طلب تمويل (يتطلب تسجيل الدخول)
+              </Link>
               <a
                 href="#how"
                 className="inline-flex items-center gap-2 rounded-2xl bg-white/10 px-5 py-3 text-sm font-semibold text-white ring-1 ring-white/15 transition hover:bg-white/15"
@@ -88,6 +89,9 @@ function FinancingHome() {
                 كيف يعمل
               </a>
             </div>
+            <p className="mt-4 text-[11px] text-slate-400">
+              الحاسبة التقديرية وحاسبة الأقساط ونماذج الطلب تظهر داخل <Link to="/client/financing" className="text-blue-300 underline">بوابة العميل</Link> بعد تسجيل الدخول.
+            </p>
           </div>
 
           <motion.div
@@ -99,7 +103,7 @@ function FinancingHome() {
             <div className="flex items-center justify-between">
               <div className="text-xs text-slate-300">محفظة خدمات ASH</div>
               <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-bold text-emerald-300 ring-1 ring-emerald-500/30">
-                عرض تجريبي
+                عرض توضيحي
               </span>
             </div>
             <div className="mt-6">
@@ -127,19 +131,25 @@ function FinancingHome() {
           <h2 className="text-2xl md:text-3xl font-black text-slate-900">من الطلب إلى تفعيل الرصيد</h2>
           <p className="text-sm leading-8 text-slate-600">
             رحلة واضحة وشفافة — كل قرار يصدر عن مختصين لدى ASH، ولا تعتمد على أي قرار آلي.
-            جميع الإفصاحات والرسوم تظهر لك قبل التوقيع.
+            جميع الإفصاحات والرسوم تظهر لك قبل التوقيع، وتصلك إشعارات بنكية رسمية على الواتساب في كل مرحلة.
           </p>
+          <Link
+            to="/client/financing"
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 text-white px-4 py-2 text-xs font-semibold hover:bg-slate-800"
+          >
+            ابدأ الطلب من بوابتك <ArrowLeft className="h-4 w-4" />
+          </Link>
         </div>
         <div className="lg:col-span-3">
           <JourneyStepper
             steps={[
-              { title: "تقديم الطلب", desc: "اختيار المنتج، تعبئة البيانات، ورفع المستندات المطلوبة.", done: true },
+              { title: "تقديم الطلب", desc: "اختيار المنتج، تعبئة البيانات، ورفع المستندات المطلوبة." },
               { title: "التحقق والامتثال", desc: "التحقق من الهوية والمصدر والقدرة، مع فحوصات مكافحة الاحتيال." },
-              { title: "الدراسة الائتمانية", desc: "مراجعة بشرية من فريق الائتمان — لا قرارات آلية.", active: true },
+              { title: "التقييم الائتماني الداخلي", desc: "نظام ائتماني داخلي (شبيه بسمة) خاص بآش، يُبنى على بياناتك ويُدقَّق يدوياً." },
               { title: "العرض والإفصاح", desc: "إفصاح شامل بالتكلفة، الرسوم، الجدول، والالتزامات." },
               { title: "توقيع العقد", desc: "توقيع رقمي بالبصمة وOTP، مع نسخة PDF مختومة رقميًا." },
               { title: "تفعيل الرصيد الخدمي", desc: "يُقيَّد المبلغ في محفظتك لدى ASH لشراء خدمات الشركة فقط." },
-              { title: "السداد والمتابعة", desc: "أقساط واضحة وتنبيهات واتساب فورية عند كل حركة." },
+              { title: "السداد والمتابعة", desc: "أقساط واضحة وتنبيهات واتساب فورية بصيغة بنكية عند كل حركة." },
             ]}
           />
         </div>
@@ -167,18 +177,6 @@ function FinancingHome() {
         ))}
       </section>
 
-      {/* CALCULATOR */}
-      <section id="calculator" className="space-y-6 scroll-mt-24">
-        <div>
-          <div className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700 ring-1 ring-blue-100">
-            <ClipboardCheck className="h-3 w-3" /> حاسبة الأقساط
-          </div>
-          <h2 className="mt-2 text-2xl md:text-3xl font-black text-slate-900">احسب قسطك التقديري</h2>
-          <p className="mt-2 text-sm text-slate-600">الحساب يتم على الخادم بالكامل — لا يخزّن أي بيانات شخصية.</p>
-        </div>
-        <FinancingCalculator />
-      </section>
-
       {/* COMPLIANCE / FAQ TEASER */}
       <section className="grid gap-6 md:grid-cols-2">
         <div className="rounded-3xl bg-white p-6 ring-1 ring-slate-100">
@@ -196,6 +194,23 @@ function FinancingHome() {
             يظهر لك إفصاح مكتوب يوضح: مبلغ التمويل، الرسوم، إجمالي التكلفة، القسط الشهري،
             جدول السداد، الأثر عند التأخر، وإجراءات السداد المبكر — قبل قبول العرض.
           </p>
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-950 via-slate-900 to-slate-950 p-10 text-center text-white">
+        <div className="mx-auto max-w-xl space-y-3">
+          <ClipboardCheck className="mx-auto h-8 w-8 text-blue-300" />
+          <h2 className="text-2xl font-black">جاهز لتمويل خدماتك؟</h2>
+          <p className="text-sm text-slate-300 leading-7">
+            الطلب، الحاسبة، والمستندات — كلها داخل بوابة العميل الآمنة.
+          </p>
+          <Link
+            to="/client/financing"
+            className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-slate-900 hover:bg-slate-100"
+          >
+            <LogIn className="h-4 w-4" /> ادخل إلى بوابتك
+          </Link>
         </div>
       </section>
     </div>

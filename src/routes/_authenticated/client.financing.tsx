@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { Wallet, Plus, FileText, ArrowLeft } from "lucide-react";
+import { Wallet, FileText, ArrowLeft, Calculator as CalcIcon } from "lucide-react";
 import { api } from "@/lib/api";
 import { ClientPageHeader } from "@/components/client/ClientPageHeader";
-import { Button } from "@/components/ui/button";
+import { FinancingCalculator } from "@/components/financing/Calculator";
 
 export const Route = createFileRoute("/_authenticated/client/financing")({
   component: ClientFinancingPage,
@@ -66,16 +66,21 @@ function ClientFinancingPage() {
       <ClientPageHeader
         icon={Wallet}
         title="تمويل خدمات ASH"
-        description="تابع طلبات التمويل وحالات المراجعة والاعتماد النهائي."
-        actions={
-          <Link to="/financing">
-            <Button size="sm" className="gap-2 bg-gradient-to-r from-electric to-purple-accent">
-              <Plus className="h-4 w-4" />
-              طلب تمويل جديد
-            </Button>
-          </Link>
-        }
+        description="احسب قسطك التقديري، قدّم طلب تمويل، وتابع مراحل الدراسة والاعتماد."
+        actions={null}
       />
+
+      {/* Calculator + Apply — restricted to authenticated clients */}
+      <section className="space-y-3">
+        <div className="flex items-center gap-2 text-xs font-semibold text-electric">
+          <CalcIcon className="h-4 w-4" /> احسب قسطك التقديري وابدأ طلبك
+        </div>
+        <FinancingCalculator />
+      </section>
+
+      <div className="flex items-center justify-between">
+        <div className="text-sm font-semibold text-foreground">طلباتي</div>
+      </div>
 
       <div className="rounded-2xl border border-border bg-card/50 overflow-hidden">
         {isLoading ? (
@@ -84,9 +89,9 @@ function ClientFinancingPage() {
           <div className="p-12 text-center space-y-3">
             <FileText className="h-10 w-10 mx-auto text-muted-foreground" />
             <p className="text-sm text-muted-foreground">لا توجد طلبات تمويل بعد.</p>
-            <Link to="/financing" className="inline-flex items-center gap-2 text-electric hover:underline text-sm">
-              ابدأ طلبك الأول <ArrowLeft className="h-4 w-4" />
-            </Link>
+            <div className="text-xs text-muted-foreground inline-flex items-center gap-2">
+              استخدم الحاسبة أعلاه لاختيار المنتج ثم اضغط «تقديم الطلب» <ArrowLeft className="h-4 w-4" />
+            </div>
           </div>
         ) : (
           <div className="divide-y divide-border">

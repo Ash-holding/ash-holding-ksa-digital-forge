@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { InternalCreditReportPanel, type CreditReport } from "@/components/financing/InternalCreditReport";
 
 export const Route = createFileRoute("/_authenticated/admin/financing/$id")({
   component: AdminFinancingDetail,
@@ -29,6 +30,7 @@ type App = {
   monthlyIncome?: number | string | null; monthlyObligations?: number | string | null; yearsOfService?: number | null;
   businessName?: string | null; crNumber?: string | null; annualRevenue?: number | string | null;
   purposeAr?: string | null; computedScore?: number | null;
+  internalCreditReport?: CreditReport | null;
   submittedAt?: string | null; createdAt: string; rejectionReasonAr?: string | null;
   product: { nameAr: string; customerType: string; ratePct: number | string };
   applicant?: { id: string; name?: string | null; email?: string | null; phone?: string | null };
@@ -157,9 +159,13 @@ function AdminFinancingDetail() {
               <KV k="الدفعة المقدمة" v={`${fmt(Number(app.downPayment))} ر.س`} />
               <KV k="المدة" v={`${app.termMonths} شهر`} />
               <KV k="نسبة الإدارة" v={`${app.product.ratePct}%`} />
-              <KV k="النقاط الأولية" v={app.computedScore != null ? `${app.computedScore}/100` : "—"} />
+              <KV k="التقييم الائتماني الداخلي" v={app.internalCreditReport ? `${app.internalCreditReport.score} (${app.internalCreditReport.grade})` : app.computedScore != null ? `${app.computedScore}/100` : "—"} />
             </Grid>
           </Section>
+
+          {app.internalCreditReport && (
+            <InternalCreditReportPanel report={app.internalCreditReport} />
+          )}
 
           <Section title="المستندات" icon={FileText}>
             {app.documents.length === 0 ? (
