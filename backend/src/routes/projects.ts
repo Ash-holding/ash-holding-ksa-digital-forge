@@ -903,3 +903,349 @@ projectsRouter.delete("/requests/:id", requireStaff, async (req, res, next) => {
     res.json({ ok: true });
   } catch (e) { next(e); }
 });
+
+// ============================================================
+// APPROVAL WORKFLOW  (proposal → revision → signature → invoice → execution)
+// ============================================================
+const REQ_CLIENT_ALLOWED_TRANSITIONS: Record<string, string[]> = {
+  PROPOSAL_SENT: ["CLIENT_REVISION", "AWAITING_SIGNATURE"],
+  AWAITING_SIGNATURE: ["SIGNED"],
+};
+
+async function assertRequestAccess(req: import("express").Request, id: string) {
+  const r = await prisma.projectRequest.findUnique({
+    where: { id },
+    include: { client: { include: { user: { select: { name: true, email: true, phone: true } } } } },
+  });
+  if (!r) return { ok: false as const, status: 404, error: "الطلب غير موجود" };
+  if (!isStaff(req)) {
+    const cid = await currentClientId(req);
+    if (r.clientId !== cid) return { ok: false as const, status: 403, error: "Forbidden" };
+  }
+  return { ok: true as const, request: r };
+}
+
+async function logRequestEvent(req: import("express").Request, requestId: string, from: string, to: string, note?: string, meta?: Record<string, unknown>) {
+  await logAudit(req, `project_request.transition.${to.toLowerCase()}`, "ProjectRequest", requestId, {
+    from, to, note: note || null, ...(meta || {}),
+  });
+}
+
+// ---------- GET timeline (from AuditLog) ----------
+projectsRouter.get("/requests/:id/timeline", async (req, res, next) => {
+  try {
+    const acc = await assertRequestAccess(req, req.params.id);
+    if (!acc.ok) return res.status(acc.status).json({ error: acc.error });
+    const rows = await prisma.auditLog.findMany({
+      where: { entityType: "ProjectRequest", entityId: req.params.id },
+      orderBy: { createdAt: "asc" },
+      include: { user: { select: { name: true, role: true } } },
+      take: 200,
+    });
+    res.json({ rows });
+  } catch (e) { next(e); }
+});
+
+// ---------- ADMIN: submit / update a proposal ----------
+projectsRouter.post("/requests/:id/proposal", requireStaff, async (req, res, next) => {
+  try {
+    const body = z.object({
+      amount: z.coerce.number().positive("المبلغ مطلوب"),
+      scope: z.string().min(10, "اذكر نطاق العمل"),
+      durationDays: z.coerce.number().int().min(1).max(3650),
+      validUntil: z.coerce.date().optional().nullable(),
+      note: z.string().max(2000).optional().nullable(),
+    }).parse(req.body);
+
+    const acc = await assertRequestAccess(req, req.params.id);
+    if (!acc.ok) return res.status(acc.status).json({ error: acc.error });
+    if (["SIGNED","IN_PROGRESS","DELIVERED","COMPLETED","REJECTED"].includes(acc.request.status)) {
+      return res.status(400).json({ error: "لا يمكن تعديل العرض في هذه المرحلة" });
+    }
+
+    const from = acc.request.status;
+    const updated = await prisma.projectRequest.update({
+      where: { id: req.params.id },
+      data: {
+        proposalAmount: body.amount,
+        proposalScope: body.scope,
+        proposalDuration: body.durationDays,
+        proposalValidUntil: body.validUntil ?? null,
+        proposalSentAt: new Date(),
+        adminNote: body.note ?? acc.request.adminNote,
+        status: "PROPOSAL_SENT",
+      },
+    });
+    await logRequestEvent(req, updated.id, from, "PROPOSAL_SENT", body.note ?? undefined, { amount: body.amount, durationDays: body.durationDays });
+
+    const ref = shortRef("REQ", updated.id);
+    const phone = acc.request.contactPhone || acc.request.client?.phone || acc.request.client?.user?.phone || null;
+    WA.notify(
+      phone,
+      [
+        `📤 *عرض جديد لطلبك*`,
+        DIVIDER,
+        `🔖 *رقم الطلب:* ${ref}`,
+        `📁 *العنوان:* ${updated.title}`,
+        `💰 *قيمة العرض:* ${fmtMoney(body.amount)}`,
+        `⏱️ *المدة المقترحة:* ${body.durationDays} يوم`,
+        body.validUntil ? `📅 *صالح حتى:* ${fmtDate(body.validUntil)}` : "",
+        DIVIDER,
+        `يرجى مراجعة العرض في بوابة العميل والرد بالموافقة أو طلب تعديل.${SIGNATURE}`,
+      ].filter(Boolean).join("\n"),
+      { kind: "request.proposal", entityId: updated.id },
+    );
+    res.json({ request: updated });
+  } catch (e) { next(e); }
+});
+
+// ---------- CLIENT: request revision ----------
+projectsRouter.post("/requests/:id/revise", async (req, res, next) => {
+  try {
+    if (isStaff(req)) return res.status(400).json({ error: "هذا الإجراء للعميل" });
+    const body = z.object({ note: z.string().min(5, "اذكر التعديلات المطلوبة").max(2000) }).parse(req.body);
+    const acc = await assertRequestAccess(req, req.params.id);
+    if (!acc.ok) return res.status(acc.status).json({ error: acc.error });
+    if (acc.request.status !== "PROPOSAL_SENT") return res.status(400).json({ error: "لا يوجد عرض قيد المراجعة" });
+
+    const updated = await prisma.projectRequest.update({
+      where: { id: req.params.id },
+      data: {
+        status: "CLIENT_REVISION",
+        revisionCount: { increment: 1 },
+        revisionRequest: body.note,
+      },
+    });
+    await logRequestEvent(req, updated.id, "PROPOSAL_SENT", "CLIENT_REVISION", body.note);
+
+    notifyAdmins(
+      [
+        `✍️ *طلب تعديل من العميل*`,
+        DIVIDER,
+        `🔖 *الطلب:* ${shortRef("REQ", updated.id)}`,
+        `📁 ${updated.title}`,
+        DIVIDER,
+        `📝 *الملاحظات:*\n${body.note}`,
+        DIVIDER,
+        `افتح الطلب في لوحة الإدارة لإرسال عرض معدّل.${SIGNATURE}`,
+      ].join("\n"),
+      { kind: "request.revision", entityId: updated.id },
+    );
+    res.json({ request: updated });
+  } catch (e) { next(e); }
+});
+
+// ---------- ADMIN: request final signature (sends OTP to client) ----------
+async function saveSignatureOtp(requestId: string, otp: string) {
+  const key = `sigotp:${requestId}`;
+  const hash = crypto.createHash("sha256").update(otp).digest("hex");
+  const expiresAt = new Date(Date.now() + 15 * 60_000).toISOString();
+  await prisma.systemSetting.upsert({
+    where: { key },
+    update: { value: { hash, expiresAt } as never },
+    create: { key, value: { hash, expiresAt } as never },
+  });
+}
+async function verifySignatureOtp(requestId: string, otp: string) {
+  const key = `sigotp:${requestId}`;
+  const row = await prisma.systemSetting.findUnique({ where: { key } });
+  if (!row) return false;
+  const rec = row.value as unknown as { hash: string; expiresAt: string };
+  if (!rec || new Date(rec.expiresAt).getTime() < Date.now()) return false;
+  const hash = crypto.createHash("sha256").update(otp).digest("hex");
+  const ok = hash === rec.hash;
+  if (ok) await prisma.systemSetting.deleteMany({ where: { key } }).catch(() => {});
+  return ok;
+}
+
+projectsRouter.post("/requests/:id/request-signature", requireStaff, async (req, res, next) => {
+  try {
+    const acc = await assertRequestAccess(req, req.params.id);
+    if (!acc.ok) return res.status(acc.status).json({ error: acc.error });
+    if (!acc.request.proposalAmount) return res.status(400).json({ error: "لا يوجد عرض مُرسَل" });
+
+    const otp = generateOtp(6);
+    await saveSignatureOtp(acc.request.id, otp);
+    const updated = await prisma.projectRequest.update({
+      where: { id: req.params.id },
+      data: { status: "AWAITING_SIGNATURE" },
+    });
+    await logRequestEvent(req, updated.id, acc.request.status, "AWAITING_SIGNATURE");
+
+    const phone = normalizePhone(acc.request.contactPhone || acc.request.client?.phone || acc.request.client?.user?.phone || "");
+    if (phone) {
+      WA.notify(
+        phone,
+        [
+          `🖋️ *رمز التوقيع الرقمي*`,
+          DIVIDER,
+          `🔖 *الطلب:* ${shortRef("REQ", updated.id)}`,
+          `📁 ${updated.title}`,
+          `🔐 *رمز التحقق:* *${otp}*`,
+          `⏱️ صالح لمدة 15 دقيقة.`,
+          DIVIDER,
+          `أدخل الرمز في صفحة الطلب لتوثيق موافقتك النهائية.${SIGNATURE}`,
+        ].join("\n"),
+        { kind: "request.sig_otp", entityId: updated.id },
+      );
+    }
+    res.json({ request: updated, sent: Boolean(phone) });
+  } catch (e) { next(e); }
+});
+
+// ---------- CLIENT: verify OTP & sign ----------
+projectsRouter.post("/requests/:id/sign", async (req, res, next) => {
+  try {
+    if (isStaff(req)) return res.status(400).json({ error: "هذا الإجراء للعميل" });
+    const body = z.object({
+      otp: z.string().length(6),
+      agreed: z.literal(true, { errorMap: () => ({ message: "يجب الموافقة على الشروط" }) }),
+    }).parse(req.body);
+
+    const acc = await assertRequestAccess(req, req.params.id);
+    if (!acc.ok) return res.status(acc.status).json({ error: acc.error });
+    if (acc.request.status !== "AWAITING_SIGNATURE") return res.status(400).json({ error: "الطلب ليس بانتظار التوقيع" });
+    if (!acc.request.proposalAmount) return res.status(400).json({ error: "لا يوجد عرض للتوقيع عليه" });
+
+    const ok = await verifySignatureOtp(acc.request.id, body.otp);
+    if (!ok) return res.status(400).json({ error: "الرمز غير صحيح أو منتهي" });
+
+    const now = new Date();
+    const ip = ((req.headers["x-forwarded-for"] as string) || req.ip || "").split(",")[0].trim() || null;
+    const ua = (req.headers["user-agent"] as string) || null;
+    const hashBase = `${acc.request.id}|${req.user!.sub}|${body.otp}|${now.toISOString()}`;
+    const signatureHash = crypto.createHash("sha256").update(hashBase).digest("hex");
+
+    // ---- Create invoice tied to this request ----
+    const year = now.getFullYear();
+    const count = await prisma.invoice.count({ where: { invoiceNumber: { startsWith: `INV-${year}-` } } });
+    const invoiceNumber = `INV-${year}-${String(count + 1).padStart(4, "0")}`;
+    const subtotal = Number(acc.request.proposalAmount);
+    const taxRate = 15;
+    const taxAmount = +(subtotal * (taxRate / 100)).toFixed(2);
+    const total = +(subtotal + taxAmount).toFixed(2);
+    const ref = shortRef("REQ", acc.request.id);
+
+    const invoice = await prisma.invoice.create({
+      data: {
+        invoiceNumber,
+        clientId: acc.request.clientId,
+        status: "UNPAID",
+        subtotal, discount: 0, taxRate, taxAmount, total,
+        dueAt: new Date(Date.now() + 7 * 86400000),
+        notes: `فاتورة تلقائية لطلب ${ref} — ${acc.request.title}`,
+        items: {
+          create: [{
+            title: acc.request.title,
+            description: acc.request.proposalScope ?? null,
+            quantity: 1, unitPrice: subtotal, total: subtotal,
+          }],
+        },
+      },
+    });
+
+    const updated = await prisma.projectRequest.update({
+      where: { id: req.params.id },
+      data: {
+        status: "SIGNED",
+        signedAt: now,
+        signatureHash,
+        signatureIp: ip,
+        signatureUserAgent: ua ? ua.slice(0, 300) : null,
+        linkedInvoiceId: invoice.id,
+      },
+    });
+    await logRequestEvent(req, updated.id, "AWAITING_SIGNATURE", "SIGNED", "توقيع رقمي معتمد", { ip, invoiceNumber });
+
+    const phone = acc.request.contactPhone || acc.request.client?.phone || acc.request.client?.user?.phone || null;
+    WA.notify(
+      phone,
+      [
+        `✅ *تم توثيق موافقتك رسمياً*`,
+        DIVIDER,
+        `🔖 *الطلب:* ${ref}`,
+        `📁 ${updated.title}`,
+        `🧾 *الفاتورة:* ${invoiceNumber}`,
+        `💰 *الإجمالي:* ${fmtMoney(total)} (شامل الضريبة)`,
+        `⏰ *الاستحقاق:* خلال 7 أيام`,
+        DIVIDER,
+        `بعد السداد سيتم تحويل الطلب تلقائياً إلى قيد التنفيذ وبدء العدّاد الزمني.${SIGNATURE}`,
+      ].join("\n"),
+      { kind: "request.signed", entityId: updated.id },
+    );
+    notifyAdmins(
+      [
+        `🖋️ *توقيع رقمي جديد*`,
+        DIVIDER,
+        `🔖 ${ref} — ${updated.title}`,
+        `👤 العميل: ${acc.request.client?.user?.name || "—"}`,
+        `🧾 صدرت الفاتورة ${invoiceNumber} بقيمة ${fmtMoney(total)}.`,
+        DIVIDER,
+        `IP: ${ip || "—"}`,
+      ].join("\n"),
+      { kind: "request.signed.admin", entityId: updated.id },
+    );
+
+    res.json({ request: updated, invoice });
+  } catch (e) { next(e); }
+});
+
+// ---------- HOOK: called by invoice mark-paid to move request to IN_PROGRESS ----------
+export async function activateRequestIfInvoicePaid(invoiceId: string) {
+  const request = await prisma.projectRequest.findFirst({ where: { linkedInvoiceId: invoiceId } });
+  if (!request || request.status !== "SIGNED") return null;
+  const start = new Date();
+  const days = request.proposalDuration || 30;
+  const due = new Date(start.getTime() + days * 86400000);
+
+  // Create official project if not linked
+  let projectId = request.projectId;
+  if (!projectId) {
+    const p = await prisma.project.create({
+      data: {
+        clientId: request.clientId,
+        title: request.title,
+        description: request.description ?? request.proposalScope ?? undefined,
+        status: "DEVELOPMENT",
+        progress: 0,
+        budget: request.proposalAmount ?? undefined,
+        startDate: start,
+        dueDate: due,
+      },
+    });
+    projectId = p.id;
+  } else {
+    await prisma.project.update({
+      where: { id: projectId },
+      data: { status: "DEVELOPMENT", startDate: start, dueDate: due, budget: request.proposalAmount ?? undefined },
+    }).catch(() => null);
+  }
+
+  const updated = await prisma.projectRequest.update({
+    where: { id: request.id },
+    data: { status: "IN_PROGRESS", executionStartAt: start, executionDueAt: due, projectId },
+  });
+
+  const clientRow = await prisma.client.findUnique({
+    where: { id: request.clientId },
+    include: { user: { select: { phone: true, name: true } } },
+  });
+  const phone = request.contactPhone || clientRow?.phone || clientRow?.user?.phone || null;
+  const ref = shortRef("REQ", request.id);
+  WA.notify(
+    phone,
+    [
+      `🚀 *مشروعك دخل مرحلة التنفيذ*`,
+      DIVIDER,
+      `🔖 *الطلب:* ${ref}`,
+      `📁 ${updated.title}`,
+      `📅 *بدء التنفيذ:* ${fmtDate(start)}`,
+      `⏰ *التسليم المتوقع:* ${fmtDate(due)} (${days} يوم)`,
+      DIVIDER,
+      `يمكنك متابعة العدّاد التنازلي ومراحل التنفيذ من بوابة العميل.${SIGNATURE}`,
+    ].join("\n"),
+    { kind: "request.in_progress", entityId: updated.id },
+  );
+
+  return updated;
+}
