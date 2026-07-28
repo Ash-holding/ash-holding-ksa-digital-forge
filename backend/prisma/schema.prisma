@@ -1477,6 +1477,9 @@ enum FinancingContractStatus {
   COMPLETED
   DEFAULTED
   CANCELLED
+  EARLY_SETTLED
+  RESTRUCTURED
+  WRITTEN_OFF
 }
 
 enum FinancingInstallmentStatus {
@@ -1562,4 +1565,90 @@ model FinancingInstallment {
   @@unique([contractId, n])
   @@index([status])
   @@index([dueDate])
+}
+
+// ===================== FINANCING PHASE 6 — CLOSURE, RISK & DISCLOSURES =====================
+
+enum EarlySettlementStatus {
+  REQUESTED
+  APPROVED
+  REJECTED
+  SETTLED
+  CANCELLED
+}
+
+model FinancingEarlySettlement {
+  id                String                @id @default(cuid())
+  contractId        String
+  requestedById     String
+  status            EarlySettlementStatus @default(REQUESTED)
+
+  outstandingPrincipal Decimal @db.Decimal(14,2)
+  accruedInterest      Decimal @default(0) @db.Decimal(14,2)
+  earlyRepaymentFee    Decimal @default(0) @db.Decimal(14,2)
+  interestRebate       Decimal @default(0) @db.Decimal(14,2)
+  totalPayoff          Decimal @db.Decimal(14,2)
+
+  clientNote        String?
+  adminNote         String?
+  approvedById      String?
+  approvedAt        DateTime?
+  settledAt         DateTime?
+  settlementTxId    String?
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([contractId])
+  @@index([status])
+}
+
+enum FinancingRiskActionType {
+  WATCHLIST
+  RESTRUCTURE
+  RESCHEDULE
+  WRITE_OFF
+  RECOVERY_NOTE
+}
+
+model FinancingRiskAction {
+  id           String                  @id @default(cuid())
+  contractId   String
+  type         FinancingRiskActionType
+  reasonAr     String
+  detailsJson  Json?
+  createdById  String
+  createdAt    DateTime                @default(now())
+
+  @@index([contractId])
+  @@index([type])
+}
+
+enum FinancingDisclosureCategory {
+  RATE_SHEET
+  TERMS
+  COMPLAINTS
+  GOVERNANCE
+  SAMA_NOTICE
+  REPORT
+}
+
+model FinancingDisclosure {
+  id           String                       @id @default(cuid())
+  slug         String                       @unique
+  titleAr      String
+  category     FinancingDisclosureCategory
+  summaryAr    String?
+  bodyAr       String
+  documentPath String?
+  effectiveAt  DateTime?
+  publishedAt  DateTime?
+  isPublished  Boolean                      @default(false)
+  order        Int                          @default(0)
+  createdById  String?
+  createdAt    DateTime                     @default(now())
+  updatedAt    DateTime                     @updatedAt
+
+  @@index([category])
+  @@index([isPublished])
 }

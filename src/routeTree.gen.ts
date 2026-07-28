@@ -32,6 +32,7 @@ import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as FinancingIndexRouteImport } from './routes/financing.index'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
+import { Route as FinancingDisclosuresRouteImport } from './routes/financing.disclosures'
 import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated/client'
 import { Route as AuthenticatedAffiliateRouteImport } from './routes/_authenticated/affiliate'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
@@ -91,6 +92,7 @@ import { Route as AuthenticatedAdminProjectRequestsIdRouteImport } from './route
 import { Route as AuthenticatedAdminPaymentsIdRouteImport } from './routes/_authenticated/admin.payments.$id'
 import { Route as AuthenticatedAdminInvoicesIdRouteImport } from './routes/_authenticated/admin.invoices.$id'
 import { Route as AuthenticatedAdminFinancingOpsRouteImport } from './routes/_authenticated/admin.financing.ops'
+import { Route as AuthenticatedAdminFinancingDisclosuresRouteImport } from './routes/_authenticated/admin.financing.disclosures'
 import { Route as AuthenticatedAdminFinancingIdRouteImport } from './routes/_authenticated/admin.financing.$id'
 import { Route as AuthenticatedAdminContractsIdRouteImport } from './routes/_authenticated/admin.contracts.$id'
 import { Route as AuthenticatedAdminClientsNewRouteImport } from './routes/_authenticated/admin.clients.new'
@@ -214,6 +216,11 @@ const PortfolioSlugRoute = PortfolioSlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
   getParentRoute: () => PortfolioRoute,
+} as any)
+const FinancingDisclosuresRoute = FinancingDisclosuresRouteImport.update({
+  id: '/disclosures',
+  path: '/disclosures',
+  getParentRoute: () => FinancingRoute,
 } as any)
 const AuthenticatedClientRoute = AuthenticatedClientRouteImport.update({
   id: '/client',
@@ -562,6 +569,12 @@ const AuthenticatedAdminFinancingOpsRoute =
     path: '/ops',
     getParentRoute: () => AuthenticatedAdminFinancingRoute,
   } as any)
+const AuthenticatedAdminFinancingDisclosuresRoute =
+  AuthenticatedAdminFinancingDisclosuresRouteImport.update({
+    id: '/disclosures',
+    path: '/disclosures',
+    getParentRoute: () => AuthenticatedAdminFinancingRoute,
+  } as any)
 const AuthenticatedAdminFinancingIdRoute =
   AuthenticatedAdminFinancingIdRouteImport.update({
     id: '/$id',
@@ -639,6 +652,7 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/affiliate': typeof AuthenticatedAffiliateRouteWithChildren
   '/client': typeof AuthenticatedClientRouteWithChildren
+  '/financing/disclosures': typeof FinancingDisclosuresRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/financing/': typeof FinancingIndexRoute
@@ -686,6 +700,7 @@ export interface FileRoutesByFullPath {
   '/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
   '/admin/contracts/$id': typeof AuthenticatedAdminContractsIdRoute
   '/admin/financing/$id': typeof AuthenticatedAdminFinancingIdRoute
+  '/admin/financing/disclosures': typeof AuthenticatedAdminFinancingDisclosuresRoute
   '/admin/financing/ops': typeof AuthenticatedAdminFinancingOpsRoute
   '/admin/invoices/$id': typeof AuthenticatedAdminInvoicesIdRoute
   '/admin/payments/$id': typeof AuthenticatedAdminPaymentsIdRoute
@@ -727,6 +742,7 @@ export interface FileRoutesByTo {
   '/terms': typeof TermsRoute
   '/verify': typeof VerifyRouteWithChildren
   '/why': typeof WhyRoute
+  '/financing/disclosures': typeof FinancingDisclosuresRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/financing': typeof FinancingIndexRoute
@@ -772,6 +788,7 @@ export interface FileRoutesByTo {
   '/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
   '/admin/contracts/$id': typeof AuthenticatedAdminContractsIdRoute
   '/admin/financing/$id': typeof AuthenticatedAdminFinancingIdRoute
+  '/admin/financing/disclosures': typeof AuthenticatedAdminFinancingDisclosuresRoute
   '/admin/financing/ops': typeof AuthenticatedAdminFinancingOpsRoute
   '/admin/invoices/$id': typeof AuthenticatedAdminInvoicesIdRoute
   '/admin/payments/$id': typeof AuthenticatedAdminPaymentsIdRoute
@@ -819,6 +836,7 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/affiliate': typeof AuthenticatedAffiliateRouteWithChildren
   '/_authenticated/client': typeof AuthenticatedClientRouteWithChildren
+  '/financing/disclosures': typeof FinancingDisclosuresRoute
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
   '/financing/': typeof FinancingIndexRoute
@@ -866,6 +884,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
   '/_authenticated/admin/contracts/$id': typeof AuthenticatedAdminContractsIdRoute
   '/_authenticated/admin/financing/$id': typeof AuthenticatedAdminFinancingIdRoute
+  '/_authenticated/admin/financing/disclosures': typeof AuthenticatedAdminFinancingDisclosuresRoute
   '/_authenticated/admin/financing/ops': typeof AuthenticatedAdminFinancingOpsRoute
   '/_authenticated/admin/invoices/$id': typeof AuthenticatedAdminInvoicesIdRoute
   '/_authenticated/admin/payments/$id': typeof AuthenticatedAdminPaymentsIdRoute
@@ -913,6 +932,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/affiliate'
     | '/client'
+    | '/financing/disclosures'
     | '/portfolio/$slug'
     | '/services/$slug'
     | '/financing/'
@@ -960,6 +980,7 @@ export interface FileRouteTypes {
     | '/admin/clients/new'
     | '/admin/contracts/$id'
     | '/admin/financing/$id'
+    | '/admin/financing/disclosures'
     | '/admin/financing/ops'
     | '/admin/invoices/$id'
     | '/admin/payments/$id'
@@ -1001,6 +1022,7 @@ export interface FileRouteTypes {
     | '/terms'
     | '/verify'
     | '/why'
+    | '/financing/disclosures'
     | '/portfolio/$slug'
     | '/services/$slug'
     | '/financing'
@@ -1046,6 +1068,7 @@ export interface FileRouteTypes {
     | '/admin/clients/new'
     | '/admin/contracts/$id'
     | '/admin/financing/$id'
+    | '/admin/financing/disclosures'
     | '/admin/financing/ops'
     | '/admin/invoices/$id'
     | '/admin/payments/$id'
@@ -1092,6 +1115,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/affiliate'
     | '/_authenticated/client'
+    | '/financing/disclosures'
     | '/portfolio/$slug'
     | '/services/$slug'
     | '/financing/'
@@ -1139,6 +1163,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/clients/new'
     | '/_authenticated/admin/contracts/$id'
     | '/_authenticated/admin/financing/$id'
+    | '/_authenticated/admin/financing/disclosures'
     | '/_authenticated/admin/financing/ops'
     | '/_authenticated/admin/invoices/$id'
     | '/_authenticated/admin/payments/$id'
@@ -1349,6 +1374,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/portfolio/$slug'
       preLoaderRoute: typeof PortfolioSlugRouteImport
       parentRoute: typeof PortfolioRoute
+    }
+    '/financing/disclosures': {
+      id: '/financing/disclosures'
+      path: '/disclosures'
+      fullPath: '/financing/disclosures'
+      preLoaderRoute: typeof FinancingDisclosuresRouteImport
+      parentRoute: typeof FinancingRoute
     }
     '/_authenticated/client': {
       id: '/_authenticated/client'
@@ -1763,6 +1795,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminFinancingOpsRouteImport
       parentRoute: typeof AuthenticatedAdminFinancingRoute
     }
+    '/_authenticated/admin/financing/disclosures': {
+      id: '/_authenticated/admin/financing/disclosures'
+      path: '/disclosures'
+      fullPath: '/admin/financing/disclosures'
+      preLoaderRoute: typeof AuthenticatedAdminFinancingDisclosuresRouteImport
+      parentRoute: typeof AuthenticatedAdminFinancingRoute
+    }
     '/_authenticated/admin/financing/$id': {
       id: '/_authenticated/admin/financing/$id'
       path: '/$id'
@@ -1845,6 +1884,7 @@ const AuthenticatedAdminContractsRouteWithChildren =
 
 interface AuthenticatedAdminFinancingRouteChildren {
   AuthenticatedAdminFinancingIdRoute: typeof AuthenticatedAdminFinancingIdRoute
+  AuthenticatedAdminFinancingDisclosuresRoute: typeof AuthenticatedAdminFinancingDisclosuresRoute
   AuthenticatedAdminFinancingOpsRoute: typeof AuthenticatedAdminFinancingOpsRoute
   AuthenticatedAdminFinancingContractsIdRoute: typeof AuthenticatedAdminFinancingContractsIdRoute
 }
@@ -1852,6 +1892,8 @@ interface AuthenticatedAdminFinancingRouteChildren {
 const AuthenticatedAdminFinancingRouteChildren: AuthenticatedAdminFinancingRouteChildren =
   {
     AuthenticatedAdminFinancingIdRoute: AuthenticatedAdminFinancingIdRoute,
+    AuthenticatedAdminFinancingDisclosuresRoute:
+      AuthenticatedAdminFinancingDisclosuresRoute,
     AuthenticatedAdminFinancingOpsRoute: AuthenticatedAdminFinancingOpsRoute,
     AuthenticatedAdminFinancingContractsIdRoute:
       AuthenticatedAdminFinancingContractsIdRoute,
@@ -2203,10 +2245,12 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
 )
 
 interface FinancingRouteChildren {
+  FinancingDisclosuresRoute: typeof FinancingDisclosuresRoute
   FinancingIndexRoute: typeof FinancingIndexRoute
 }
 
 const FinancingRouteChildren: FinancingRouteChildren = {
+  FinancingDisclosuresRoute: FinancingDisclosuresRoute,
   FinancingIndexRoute: FinancingIndexRoute,
 }
 

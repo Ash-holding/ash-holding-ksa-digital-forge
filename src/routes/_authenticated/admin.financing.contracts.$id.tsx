@@ -7,6 +7,7 @@ import { api, apiError } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { AmortizationTable } from "@/components/financing/AmortizationTable";
+import { AdminRiskPanel } from "@/components/financing/AdminRiskPanel";
 import { downloadFinancingContractPDF } from "@/lib/financing-contract-print";
 
 export const Route = createFileRoute("/_authenticated/admin/financing/contracts/$id")({
@@ -149,6 +150,11 @@ function AdminContractDetail() {
           onPay={(n) => payInstallment.mutate(n)}
         />
       </section>
+
+      {/* Risk / governance / early-settlement approvals */}
+      <AdminRiskPanel contractId={data.id} />
+
+
 
       {!isFinal && !isActive && (
         <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 p-4 space-y-2">
