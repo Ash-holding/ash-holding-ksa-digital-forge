@@ -148,7 +148,7 @@ function ClientServicesPage() {
       <DataTable
         columns={columns} rows={filtered} loading={list.isLoading}
         total={filtered.length} page={page} pageSize={20} onPageChange={setPage}
-        onRowClick={(r: any) => nav({ to: "/client/services/", params: { id: r.id } })}
+        onRowClick={(r: any) => nav({ to: "/client/services/$id", params: { id: r.id } })}
         emptyTitle="لا توجد خدمات مطابقة"
       />
     </div>
