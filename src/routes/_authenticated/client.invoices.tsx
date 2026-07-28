@@ -170,7 +170,7 @@ function ClientInvoicesPage() {
 /* Card                                                                 */
 /* ------------------------------------------------------------------ */
 
-function InvoiceCard({ inv, index, onOpen }: { inv: any; index: number; onOpen: () => void }) {
+function InvoiceCard({ inv, index, onOpen, walletBal, onPayWallet, paying }: { inv: any; index: number; onOpen: () => void; walletBal: number; onPayWallet: () => Promise<any>; paying: boolean }) {
   const isPaid = inv.status === "PAID";
   const isCancelled = inv.status === "CANCELLED";
   const overdue = !isPaid && !isCancelled && inv.dueAt && new Date(inv.dueAt).getTime() < Date.now();
