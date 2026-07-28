@@ -242,6 +242,16 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
                       </div>
                     </div>
 
+                    <Button
+                      onClick={downloadDraft}
+                      disabled={downloading}
+                      variant="outline"
+                      className="w-full gap-2 h-11 border-electric/40 text-electric hover:bg-electric/10 font-bold"
+                    >
+                      {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                      {downloading ? "جارٍ التحضير…" : "تنزيل مسودة العقد بصيغة PDF"}
+                    </Button>
+
                     <label className="flex items-start gap-2 rounded-xl border-2 border-electric/30 bg-electric/5 p-3 cursor-pointer">
                       <input type="checkbox" checked={readContract} onChange={(e) => setReadContract(e.target.checked)}
                         className="mt-0.5 accent-electric h-4 w-4 shrink-0" />
