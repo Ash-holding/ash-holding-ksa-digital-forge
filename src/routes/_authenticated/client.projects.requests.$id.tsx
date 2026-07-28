@@ -42,7 +42,10 @@ function ClientRequestDetailPage() {
   const q = useQuery({
     queryKey: ["client-project-request", id],
     queryFn: async () => (await api.get(`/projects/requests/${id}`)).data,
-    refetchInterval: 8000,
+    refetchInterval: 5000,
+    refetchIntervalInBackground: true,
+    refetchOnWindowFocus: true,
+    staleTime: 0,
   });
   const r = q.data?.request;
   const ref: string = q.data?.ref || `REQ-${id.slice(0, 6).toUpperCase()}`;
