@@ -1393,6 +1393,7 @@ model FinancingApplication {
   // Decision
   computedScore      Int?
   quoteSnapshot      Json?
+  internalCreditReport Json?
   finalApprovedById  String?
   finalApprovedAt    DateTime?
   rejectionReasonAr  String?
