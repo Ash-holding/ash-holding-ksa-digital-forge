@@ -189,10 +189,10 @@ function ClientInvoiceDetail() {
       {/* Print-only CSS: hide chrome, show a clean A4 invoice card */}
       <style>{`
         @media print {
-          @page { size: A4; margin: 14mm; }
+          @page { size: A4; margin: 10mm; }
           body { background: #fff !important; }
           .print\\:hidden { display: none !important; }
-          .invoice-doc { box-shadow: none !important; border-color: #d4d4d8 !important; break-inside: avoid; }
+          .invoice-doc { box-shadow: none !important; border-color: #DDE4F0 !important; break-inside: avoid; }
           .invoice-doc * { animation: none !important; transition: none !important; }
         }
       `}</style>
@@ -202,127 +202,142 @@ function ClientInvoiceDetail() {
       ) : (
         <div className="grid gap-4 lg:grid-cols-3">
           <div className="lg:col-span-2 space-y-4">
-            {/* ============ FORMAL INVOICE DOCUMENT CARD ============ */}
+            {/* ============ MODERN LUXURY INVOICE DOCUMENT ============ */}
             <motion.section
-              initial={{ opacity: 0, y: 12 }}
+              initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="invoice-doc relative overflow-hidden rounded-2xl border border-[#D8E1EC] bg-white shadow-sm"
+              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              className="invoice-doc relative overflow-hidden rounded-2xl border border-[#DDE4F0] bg-white shadow-[0_10px_40px_-18px_rgba(11,30,58,0.18)]"
               dir="rtl"
-              style={{ fontFamily: "'Fira Sans','IBM Plex Sans Arabic','Segoe UI',sans-serif" }}
+              style={{ fontFamily: "'IBM Plex Sans Arabic','Noto Sans Arabic','Fira Sans','Segoe UI',sans-serif" }}
             >
-              {/* Top corporate-blue rule */}
-              <div className="h-1 bg-[#0E4C92]" />
+              {/* Gradient brand rule */}
+              <div className="h-1.5" style={{ background: "linear-gradient(90deg,#0B1E3A 0%,#1D4ED8 55%,#3B82F6 100%)" }} />
 
-              {/* Masthead — brand on right, oversized invoice № on left */}
-              <div className="px-5 sm:px-8 pt-7 pb-4 grid grid-cols-[1fr_auto] items-end gap-4">
+              {/* HEADER */}
+              <div className="grid grid-cols-[1fr_auto] gap-4 px-5 sm:px-8 pt-6 pb-4 border-b border-[#DDE4F0]">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-3 mb-3">
-                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-[#0E4C92] text-white font-black text-xl">ش</span>
+                  <div className="flex items-center gap-3 mb-2">
+                    <motion.span
+                      initial={{ scale: 0.85, rotate: -6, opacity: 0 }}
+                      animate={{ scale: 1, rotate: 0, opacity: 1 }}
+                      transition={{ type: "spring", stiffness: 220, damping: 16 }}
+                      className="grid h-12 w-12 shrink-0 place-items-center rounded-xl text-white font-black text-2xl shadow-[0_8px_20px_-6px_rgba(29,78,216,0.5)]"
+                      style={{ background: "linear-gradient(135deg,#0B1E3A,#1D4ED8)" }}
+                    >ش</motion.span>
                     <div className="min-w-0">
-                      <h2 className="text-base sm:text-lg font-bold text-[#0A2540] truncate">شركة علي صالح الشهري القابضة</h2>
-                      <p className="text-[10.5px] tracking-[0.28em] font-semibold text-[#0E4C92] mt-0.5" dir="ltr">ASH · HOLDING</p>
+                      <h2 className="text-base sm:text-lg font-extrabold text-[#0B1E3A] truncate leading-tight">شركة علي صالح الشهري القابضة</h2>
+                      <p className="text-[10.5px] text-[#5A6B85] mt-0.5">الرياض · المملكة العربية السعودية</p>
                     </div>
                   </div>
-                  <div className="inline-flex items-center gap-2 rounded-sm bg-[#E6EEF7] px-3 py-1">
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#0E4C92]" />
-                    <span className="text-[10px] font-bold tracking-[0.22em] text-[#0E4C92]">فاتورة ضريبية · TAX INVOICE</span>
+                  <div className="text-[11px] text-[#5A6B85] leading-relaxed">
+                    الرقم الضريبي: <span dir="ltr" className="text-[#0B1E3A] font-bold">300000000000003</span>
+                    <span className="mx-2 text-[#DDE4F0]">|</span>
+                    <span dir="ltr" className="text-[#0B1E3A] font-semibold">billing@ash-holding.sa</span>
                   </div>
                 </div>
-                <div className="text-left shrink-0" dir="ltr">
-                  <div className="text-[9.5px] tracking-[0.35em] font-bold text-[#5B6B7A] mb-0.5">INVOICE №</div>
-                  <div
-                    className="text-[#0A2540] leading-none"
-                    style={{ fontFamily: "'DM Serif Display',Georgia,serif", fontSize: "clamp(28px,6vw,44px)", letterSpacing: "-0.5px" }}
+                <div className="text-left shrink-0 min-w-[180px]">
+                  <span className="inline-block px-3 py-1 rounded-full bg-[#EEF2FA] text-[#1D4ED8] text-[10px] font-extrabold tracking-[0.2em] mb-2">فاتورة ضريبية</span>
+                  <div className="text-[10px] font-bold tracking-[0.18em] text-[#5A6B85] mb-1">رقم الفاتورة</div>
+                  <button
+                    type="button"
+                    onClick={() => copy(inv.invoiceNumber, "invno")}
+                    className="group inline-flex items-center gap-2 text-[#0B1E3A] hover:text-[#1D4ED8] transition-colors"
+                    dir="ltr"
+                    title="نسخ رقم الفاتورة"
                   >
-                    {inv.invoiceNumber}
-                  </div>
+                    <span className="text-[22px] font-extrabold leading-none tabular-nums tracking-tight">{inv.invoiceNumber}</span>
+                    <motion.span
+                      key={copied === "invno" ? "copied" : "copy"}
+                      initial={{ scale: 0.6, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="opacity-60 group-hover:opacity-100"
+                    >
+                      {copied === "invno" ? <Check className="h-3.5 w-3.5 text-emerald-600" /> : <Copy className="h-3.5 w-3.5" />}
+                    </motion.span>
+                  </button>
                   <div className="mt-2 flex items-center gap-1.5 justify-end">
                     <StatusBadge value={inv.status} />
-                    {isPaid && (
-                      <motion.span
-                        initial={{ scale: 0, rotate: -30 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: "spring", stiffness: 260, damping: 14, delay: 0.2 }}
-                        className="inline-grid h-5 w-5 place-items-center rounded-full bg-emerald-500 text-white shadow-sm"
-                        aria-label="مدفوعة"
-                      >
-                        <Check className="h-3 w-3" strokeWidth={3} />
-                      </motion.span>
-                    )}
+                    <AnimatePresence>
+                      {isPaid && (
+                        <motion.span
+                          initial={{ scale: 0, rotate: -30 }}
+                          animate={{ scale: 1, rotate: 0 }}
+                          exit={{ scale: 0 }}
+                          transition={{ type: "spring", stiffness: 260, damping: 14, delay: 0.15 }}
+                          className="inline-grid h-5 w-5 place-items-center rounded-full bg-emerald-500 text-white shadow-sm"
+                          aria-label="مدفوعة"
+                        >
+                          <Check className="h-3 w-3" strokeWidth={3} />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                   </div>
                 </div>
               </div>
 
-              {/* Hairline */}
-              <div className="mx-5 sm:mx-8 h-px bg-[#D8E1EC]" />
-
-              {/* Meta grid — 4 columns each with blue accent tick */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 px-5 sm:px-8 py-5">
+              {/* META STRIP */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 px-5 sm:px-8 py-4">
                 {[
-                  ["تاريخ الإصدار", formatDate(inv.issueDate || inv.createdAt)],
-                  ["تاريخ الاستحقاق", formatDate(inv.dueAt)],
-                  ["المرجع", inv.requestRef ?? inv.invoiceNumber],
-                  ["العملة", `${inv.currency} · ريال سعودي`],
-                ].map(([k, v]) => (
-                  <div key={String(k)} className="border-r-2 border-[#0E4C92] pr-2.5" dir="rtl">
-                    <div className="text-[9px] font-bold tracking-[0.2em] text-[#5B6B7A] mb-1">{k}</div>
-                    <div className="text-[13px] font-bold text-[#0A2540] tabular-nums truncate">{v ?? "—"}</div>
-                  </div>
+                  ["تاريخ الإصدار", formatDate(inv.issueDate || inv.createdAt), false],
+                  ["تاريخ الاستحقاق", formatDate(inv.dueAt), false],
+                  ["المرجع", inv.requestRef ?? inv.invoiceNumber, true],
+                  ["العملة", `${inv.currency} · ريال سعودي`, false],
+                ].map(([k, v, ltr], i) => (
+                  <motion.div
+                    key={String(k)}
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.06 + i * 0.05 }}
+                    className="rounded-xl bg-[#F7F9FD] border border-[#DDE4F0] px-3 py-2.5"
+                  >
+                    <div className="text-[9.5px] font-bold tracking-[0.16em] text-[#5A6B85] mb-1">{k}</div>
+                    <div className={cn("text-[12.5px] font-bold text-[#0B1E3A] tabular-nums truncate", ltr && "text-right")} dir={ltr ? "ltr" : undefined}>
+                      {v ?? "—"}
+                    </div>
+                  </motion.div>
                 ))}
               </div>
 
-              {/* Bill To / From cards */}
-              <div className="mx-5 sm:mx-8 mb-4 grid grid-cols-1 sm:grid-cols-2 rounded border border-[#D8E1EC] overflow-hidden">
-                <div className="p-4 sm:p-5 bg-[#E6EEF7] sm:border-l sm:border-[#D8E1EC]">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <span className="w-[3px] h-3 bg-[#0E4C92]" />
-                    <span className="text-[9.5px] font-extrabold tracking-[0.24em] text-[#0E4C92]">فاتورة إلى · BILL TO</span>
-                  </div>
-                  <div className="text-[15px] font-extrabold text-[#0A2540]">{inv.client?.user?.name ?? inv.client?.company ?? "—"}</div>
-                  {inv.client?.company && inv.client?.user?.name && (
-                    <div className="text-[11.5px] text-[#5B6B7A] mt-0.5">{inv.client.company}</div>
+              {/* BILL TO / PROJECT */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 px-5 sm:px-8 pb-4">
+                <motion.div initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.18 }}
+                  className="rounded-xl border border-[#DDE4F0] p-4 bg-white">
+                  <div className="text-[9.5px] font-extrabold tracking-[0.2em] text-[#1D4ED8] mb-2">فاتورة إلى</div>
+                  <div className="text-[14px] font-extrabold text-[#0B1E3A]">{inv.client?.user?.name ?? inv.client?.company ?? "—"}</div>
+                  {inv.client?.company && inv.client?.user?.name && (<div className="text-[11.5px] text-[#5A6B85] mt-0.5">{inv.client.company}</div>)}
+                  {inv.client?.vatNumber && (
+                    <div className="text-[11.5px] text-[#5A6B85] mt-0.5">الرقم الضريبي: <span dir="ltr" className="text-[#0B1E3A] font-bold">{inv.client.vatNumber}</span></div>
                   )}
-                  {inv.client?.user?.email && <div className="text-[11.5px] text-[#5B6B7A]" dir="ltr">{inv.client.user.email}</div>}
-                  {inv.client?.user?.phone && <div className="text-[11.5px] text-[#5B6B7A]" dir="ltr">{inv.client.user.phone}</div>}
-                </div>
-                <div className="p-4 sm:p-5 bg-white">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <span className="w-[3px] h-3 bg-[#0A2540]" />
-                    <span className="text-[9.5px] font-extrabold tracking-[0.24em] text-[#0A2540]">من · FROM</span>
-                  </div>
-                  <div className="text-[15px] font-extrabold text-[#0A2540]">شركة علي صالح الشهري القابضة</div>
-                  <div className="text-[11.5px] text-[#5B6B7A]">الرياض · المملكة العربية السعودية</div>
-                  <div className="text-[11.5px] text-[#5B6B7A]">مرجع المشروع: <span dir="ltr" className="font-mono font-bold text-[#0A2540]">{inv.requestRef ?? "—"}</span></div>
-                  <div className="text-[11.5px] text-[#5B6B7A] truncate">{inv.linkedRequest?.title ?? inv.project?.title ?? "—"}</div>
-                </div>
+                  {inv.client?.user?.email && <div className="text-[11.5px] text-[#5A6B85]" dir="ltr">{inv.client.user.email}</div>}
+                  {inv.client?.user?.phone && <div className="text-[11.5px] text-[#5A6B85]" dir="ltr">{inv.client.user.phone}</div>}
+                </motion.div>
+                <motion.div initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.22 }}
+                  className="rounded-xl border border-[#DDE4F0] p-4"
+                  style={{ background: "linear-gradient(135deg,#F7F9FD,#EEF2FA)" }}>
+                  <div className="text-[9.5px] font-extrabold tracking-[0.2em] text-[#1D4ED8] mb-2">المشروع</div>
+                  <div className="text-[14px] font-extrabold text-[#0B1E3A] leading-snug">{inv.linkedRequest?.title ?? inv.project?.title ?? "خدمات مهنية"}</div>
+                  {inv.linkedRequest?.proposalDuration ? (
+                    <div className="text-[11.5px] text-[#5A6B85] mt-1">المدة المقترحة: <strong className="text-[#0B1E3A]">{inv.linkedRequest.proposalDuration} يوم</strong></div>
+                  ) : null}
+                  {inv.requestRef && (
+                    <div className="text-[11.5px] text-[#5A6B85] mt-0.5">مرجع الطلب: <span dir="ltr" className="text-[#0B1E3A] font-bold">{inv.requestRef}</span></div>
+                  )}
+                </motion.div>
               </div>
 
-              {/* Deep-navy project banner */}
-              <div className="mx-5 sm:mx-8 mb-4 rounded px-4 py-3 flex items-center justify-between gap-3 bg-[#0A2540] text-white">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-[9.5px] tracking-[0.24em] font-bold text-[#E6EEF7] pe-3 border-e border-white/20">المشروع</span>
-                  <span className="text-[13.5px] font-bold truncate">{inv.linkedRequest?.title ?? inv.project?.title ?? "خدمات مهنية"}</span>
-                </div>
-                {inv.linkedRequest?.proposalDuration ? (
-                  <div className="text-[11px] text-[#E6EEF7] shrink-0"><span className="opacity-70">المدة:</span> <strong className="text-white">{inv.linkedRequest.proposalDuration} يوم</strong></div>
-                ) : null}
-              </div>
-
-
-              {/* Items — desktop table + mobile card list */}
-              <div className="p-5">
-                <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-3">البنود</div>
-
-                {/* Desktop */}
-                <div className="hidden sm:block overflow-x-auto rounded-xl border border-border/60">
+              {/* ITEMS */}
+              <div className="px-5 sm:px-8 pb-4">
+                {/* Desktop table */}
+                <div className="hidden sm:block overflow-hidden rounded-xl border border-[#DDE4F0]">
                   <table className="w-full text-sm">
-                    <thead className="bg-muted/40 text-[11px] uppercase tracking-wider text-muted-foreground">
+                    <thead style={{ background: "#0B1E3A" }} className="text-white text-[10.5px] tracking-wider">
                       <tr>
-                        <th className="text-right py-2.5 px-3 font-semibold">البند</th>
-                        <th className="text-center py-2.5 px-3 font-semibold w-20">الكمية</th>
-                        <th className="text-center py-2.5 px-3 font-semibold w-32">سعر الوحدة</th>
-                        <th className="text-left py-2.5 px-3 font-semibold w-32">الإجمالي</th>
+                        <th className="text-start py-2.5 px-3 font-extrabold w-10">#</th>
+                        <th className="text-start py-2.5 px-3 font-extrabold">الوصف</th>
+                        <th className="text-center py-2.5 px-3 font-extrabold w-20">الكمية</th>
+                        <th className="text-end py-2.5 px-3 font-extrabold w-28">سعر الوحدة</th>
+                        <th className="text-end py-2.5 px-3 font-extrabold w-32">الإجمالي (SAR)</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -331,26 +346,29 @@ function ClientInvoiceDetail() {
                           key={it.id}
                           initial={{ opacity: 0, y: 6 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: 0.05 + i * 0.04 }}
-                          className="border-t border-border/50 hover:bg-primary/5 transition-colors"
+                          transition={{ delay: 0.28 + i * 0.04 }}
+                          className={cn("border-t border-[#DDE4F0] hover:bg-[#EEF2FA]/60 transition-colors", i % 2 && "bg-[#F7F9FD]")}
                         >
-                          <td className="py-2.5 px-3">
-                            <div className="font-semibold">{it.title}</div>
-                            {it.description && <div className="text-[11px] text-muted-foreground mt-0.5 whitespace-pre-wrap">{it.description}</div>}
+                          <td className="py-2.5 px-3 text-[10.5px] text-[#8A99B4] align-top tabular-nums" dir="ltr">{String(i + 1).padStart(2, "0")}</td>
+                          <td className="py-2.5 px-3 align-top">
+                            <div className="font-bold text-[12.5px] text-[#0B1E3A]">{it.title}</div>
+                            {it.description && it.description !== it.title && (
+                              <div className="text-[11px] text-[#5A6B85] mt-0.5 whitespace-pre-wrap leading-relaxed">{it.description}</div>
+                            )}
                           </td>
-                          <td className="py-2.5 px-3 text-center tabular-nums">{it.quantity}</td>
-                          <td className="py-2.5 px-3 text-center"><Money value={it.unitPrice} /></td>
-                          <td className="py-2.5 px-3 text-left font-bold"><Money value={it.total} /></td>
+                          <td className="py-2.5 px-3 text-center tabular-nums text-[#0B1E3A]">{it.quantity}</td>
+                          <td className="py-2.5 px-3 text-end tabular-nums text-[#0B1E3A]" dir="ltr"><Money value={it.unitPrice} /></td>
+                          <td className="py-2.5 px-3 text-end font-extrabold tabular-nums text-[#0B1E3A]" dir="ltr"><Money value={it.total} /></td>
                         </motion.tr>
                       ))}
                       {(!inv.items || inv.items.length === 0) && (
-                        <tr><td colSpan={4} className="text-center py-6 text-muted-foreground text-xs">لا توجد بنود</td></tr>
+                        <tr><td colSpan={5} className="text-center py-6 text-[#8A99B4] text-xs">لا توجد بنود</td></tr>
                       )}
                     </tbody>
                   </table>
                 </div>
 
-                {/* Mobile: card per item */}
+                {/* Mobile cards */}
                 <div className="sm:hidden space-y-2">
                   {(inv.items ?? []).map((it: any, i: number) => (
                     <motion.div
@@ -358,86 +376,154 @@ function ClientInvoiceDetail() {
                       initial={{ opacity: 0, y: 6 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.05 + i * 0.04 }}
-                      className="rounded-xl border border-border/60 bg-muted/20 p-3"
+                      className="rounded-xl border border-[#DDE4F0] bg-[#F7F9FD] p-3"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
-                          <div className="font-semibold text-sm">{it.title}</div>
-                          {it.description && <div className="text-[11px] text-muted-foreground mt-0.5">{it.description}</div>}
+                          <div className="font-bold text-sm text-[#0B1E3A]">{it.title}</div>
+                          {it.description && <div className="text-[11px] text-[#5A6B85] mt-0.5">{it.description}</div>}
                         </div>
-                        <div className="font-black text-sm shrink-0"><Money value={it.total} /></div>
+                        <div className="font-black text-sm shrink-0 text-[#0B1E3A]" dir="ltr"><Money value={it.total} /></div>
                       </div>
-                      <div className="mt-2 flex items-center justify-between text-[11px] text-muted-foreground">
-                        <span>الكمية: <span className="text-foreground font-semibold tabular-nums">{it.quantity}</span></span>
+                      <div className="mt-2 flex items-center justify-between text-[11px] text-[#5A6B85]">
+                        <span>الكمية: <span className="text-[#0B1E3A] font-bold tabular-nums">{it.quantity}</span></span>
                         <span>السعر: <Money value={it.unitPrice} /></span>
                       </div>
                     </motion.div>
                   ))}
-                  {(!inv.items || inv.items.length === 0) && (
-                    <p className="text-center py-6 text-muted-foreground text-xs">لا توجد بنود</p>
+                </div>
+              </div>
+
+              {/* AMOUNT IN WORDS + TOTALS */}
+              <div className="grid grid-cols-1 sm:grid-cols-[1fr_300px] gap-2.5 px-5 sm:px-8 pb-4">
+                <div className="rounded-xl border border-[#DDE4F0] bg-[#F7F9FD] p-4 flex flex-col justify-center">
+                  <div className="text-[9.5px] font-extrabold tracking-[0.2em] text-[#1D4ED8] mb-2">المبلغ كتابةً</div>
+                  <div className="text-[12.5px] font-bold text-[#0B1E3A] leading-relaxed">
+                    {(() => {
+                      const w = Math.floor(total);
+                      const h = Math.round((total - w) * 100);
+                      return `${new Intl.NumberFormat("ar-SA").format(w)} ريال${h ? ` و${h} هللة` : ""} فقط لا غير`;
+                    })()}
+                  </div>
+                </div>
+                <div className="rounded-xl border border-[#DDE4F0] overflow-hidden bg-white">
+                  <div className="flex items-center justify-between px-3 py-2 text-[11px] text-[#5A6B85] border-b border-[#DDE4F0]">
+                    <span>المبلغ الخاضع للضريبة</span>
+                    <span dir="ltr" className="tabular-nums font-bold text-[#0B1E3A]"><Money value={inv.subtotal} /></span>
+                  </div>
+                  {Number(inv.discount ?? 0) > 0 && (
+                    <div className="flex items-center justify-between px-3 py-2 text-[11px] text-[#5A6B85] border-b border-[#DDE4F0]">
+                      <span>الخصم</span>
+                      <span dir="ltr" className="tabular-nums font-bold text-rose-600">- <Money value={inv.discount ?? 0} /></span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between px-3 py-2 text-[11px] text-[#5A6B85] border-b border-[#DDE4F0]">
+                    <span>ضريبة القيمة المضافة ({Number(inv.taxRate ?? 15)}%)</span>
+                    <span dir="ltr" className="tabular-nums font-bold text-[#0B1E3A]"><Money value={inv.taxAmount} /></span>
+                  </div>
+                  <div className="px-4 py-3 text-white" style={{ background: "linear-gradient(135deg,#0B1E3A,#1D4ED8)" }}>
+                    <div className="text-[9.5px] tracking-[0.18em] font-extrabold text-[#EEF2FA] mb-0.5">الإجمالي المستحق</div>
+                    <div className="flex items-baseline justify-between">
+                      <span className="text-[10.5px] text-[#EEF2FA] opacity-90" dir="ltr">{inv.currency}</span>
+                      <motion.span dir="ltr" className="font-black text-[22px] tabular-nums tracking-tight">
+                        {totalRounded}
+                      </motion.span>
+                    </div>
+                  </div>
+                  {paidSum > 0 && !isPaid && (
+                    <div className="flex items-center justify-between bg-[#F7F9FD] border-t border-[#DDE4F0] px-3 py-2 text-[11px]">
+                      <span className="text-emerald-700 font-bold">المسدد</span>
+                      <span dir="ltr" className="tabular-nums font-bold text-emerald-700">{paidSum.toLocaleString("ar-SA", { minimumFractionDigits: 2 })}</span>
+                    </div>
+                  )}
+                  {remaining > 0 && (
+                    <div className="flex items-center justify-between bg-amber-500/10 border-t border-amber-500/30 px-3 py-2 text-[11px]">
+                      <span className="text-amber-700 font-extrabold">المتبقي</span>
+                      <span dir="ltr" className="tabular-nums font-extrabold text-amber-700">{remaining.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} {inv.currency}</span>
+                    </div>
+                  )}
+                  {isPaid && (
+                    <div className="flex items-center justify-center gap-1.5 bg-emerald-500/10 border-t border-emerald-500/30 px-3 py-2 text-emerald-700 text-[11px] font-extrabold">
+                      <BadgeCheck className="h-3.5 w-3.5" /> مسددة بالكامل
+                    </div>
                   )}
                 </div>
+              </div>
 
-                {/* Totals panel */}
-                <div className="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-4">
-                  {/* Notes / terms */}
-                  <div className="rounded-xl border border-dashed border-border/70 bg-muted/10 p-4">
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-2">ملاحظات وشروط الدفع</div>
-                    <p className="text-xs whitespace-pre-wrap text-muted-foreground leading-relaxed">
-                      {inv.notes || "السداد خلال المدة المحددة أعلاه. جميع المبالغ بالريال السعودي (SAR) وتشمل ضريبة القيمة المضافة حسب النسبة الموضحة."}
-                    </p>
-                    <div className="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground">
-                      <QrCode className="h-3.5 w-3.5" />
-                      <span>يمكن التحقق من صحة الفاتورة عبر رمز QR بعد السداد من صفحة الإيصال</span>
-                    </div>
-                  </div>
-
-                  {/* Totals */}
-                  <div className="w-full sm:w-72 rounded-xl border border-border/70 overflow-hidden">
-                    <TotalRow label="المبلغ الفرعي" value={<Money value={inv.subtotal} />} />
-                    {Number(inv.discount ?? 0) > 0 && (
-                      <TotalRow label="الخصم" value={<span className="text-rose-600">- <Money value={inv.discount ?? 0} /></span>} />
-                    )}
-                    <TotalRow label={`ضريبة القيمة المضافة (${Number(inv.taxRate ?? 15)}%)`} value={<Money value={inv.taxAmount} />} />
-                    <div className="flex items-center justify-between gap-2 bg-primary text-primary-foreground px-4 py-3">
-                      <span className="text-[11px] font-bold uppercase tracking-wider opacity-90">الإجمالي النهائي</span>
-                      <span className="font-black text-lg tabular-nums" dir="ltr">
-                        {total.toLocaleString("ar-SA", { minimumFractionDigits: 2 })}
-                        <span className="text-[10px] opacity-80 ms-1">{inv.currency}</span>
+              {/* DIGITAL SIGNATURE PANEL — real SHA-256 from live data */}
+              <motion.div
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.45 }}
+                className="mx-5 sm:mx-8 mb-4 rounded-xl border border-[#DDE4F0] overflow-hidden"
+                style={{ background: "linear-gradient(135deg,#FFFFFF,#F7F9FD)" }}
+              >
+                <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 p-4">
+                  <motion.div
+                    initial={{ scale: 0.6, rotate: -10 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    transition={{ type: "spring", stiffness: 240, damping: 14, delay: 0.55 }}
+                    className="relative grid h-12 w-12 place-items-center rounded-xl bg-emerald-500/12 border border-emerald-500/30"
+                  >
+                    <ShieldCheck className="h-6 w-6 text-emerald-600" />
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 12, delay: 0.85 }}
+                      className="absolute -bottom-1 -left-1 grid h-4 w-4 place-items-center rounded-full bg-emerald-500 text-white ring-2 ring-white"
+                    >
+                      <Check className="h-2.5 w-2.5" strokeWidth={3.5} />
+                    </motion.span>
+                  </motion.div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                      <span className="text-[12.5px] font-extrabold text-[#0B1E3A]">التوقيع الرقمي</span>
+                      <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-700 text-[9.5px] font-extrabold">
+                        <BadgeCheck className="h-3 w-3" /> تم التحقق
                       </span>
                     </div>
-                    {paidSum > 0 && (
-                      <TotalRow label="المسدد" value={<span className="text-emerald-600">- {paidSum.toLocaleString("ar-SA", { minimumFractionDigits: 2 })}</span>} muted />
-                    )}
-                    {remaining > 0 && (
-                      <div className="flex items-center justify-between gap-2 bg-amber-500/10 border-t border-amber-500/30 px-4 py-2.5">
-                        <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400">المبلغ المتبقي</span>
-                        <span className="font-black text-sm tabular-nums text-amber-700 dark:text-amber-400" dir="ltr">
-                          {remaining.toLocaleString("ar-SA", { minimumFractionDigits: 2 })} {inv.currency}
-                        </span>
-                      </div>
-                    )}
-                    {isPaid && (
-                      <div className="flex items-center justify-center gap-1.5 bg-emerald-500/10 border-t border-emerald-500/30 px-4 py-2.5 text-emerald-700 dark:text-emerald-400 text-[11px] font-bold">
-                        <BadgeCheck className="h-3.5 w-3.5" /> مسددة بالكامل
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {/* Signature / stamp footer */}
-                <div className="mt-6 grid grid-cols-2 gap-4 pt-4 border-t border-dashed border-border/60">
-                  <div className="text-center">
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-6">توقيع المُصدِر</div>
-                    <div className="mx-auto max-w-[180px] border-t border-border/70 pt-1 text-[10px] text-muted-foreground">ASH HOLDING</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-2">الختم</div>
-                    <div className="mx-auto grid h-14 w-14 place-items-center rounded-full border-2 border-primary/40 text-primary/60">
-                      <Stamp className="h-6 w-6" />
+                    <div className="text-[10.5px] text-[#5A6B85] leading-relaxed">
+                      موقّعة إلكترونياً بواسطة نظام <strong className="text-[#0B1E3A]">شركة آش القابضة</strong>
+                      {inv.paidAt && <> · {new Intl.DateTimeFormat("ar-SA-u-ca-gregory-nu-latn", { dateStyle: "long", timeStyle: "short" }).format(new Date(inv.paidAt))}</>}
                     </div>
+                    {sig && (
+                      <div className="text-[9.5px] text-[#5A6B85] mt-1 flex flex-wrap items-center gap-x-2 gap-y-0.5" dir="ltr">
+                        <button onClick={() => copy(sig.id, "sig")} className="inline-flex items-center gap-1 hover:text-[#1D4ED8] transition-colors">
+                          <span className="text-[#0B1E3A] font-bold font-mono">{sig.id}</span>
+                          {copied === "sig" ? <Check className="h-3 w-3 text-emerald-600" /> : <Copy className="h-3 w-3 opacity-50" />}
+                        </button>
+                        <span className="text-[#DDE4F0]">|</span>
+                        <span>SHA-256: <span className="font-mono text-[#0B1E3A]">{sig.hash.slice(0, 12)}…{sig.hash.slice(-6)}</span></span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="shrink-0 flex flex-col items-center gap-1">
+                    {sig ? (
+                      <motion.img
+                        initial={{ opacity: 0, scale: 0.85 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        src={sig.qr}
+                        alt="Verify"
+                        className="h-14 w-14 rounded-md border border-[#DDE4F0] bg-white p-1"
+                      />
+                    ) : (
+                      <Skeleton className="h-14 w-14 rounded-md" />
+                    )}
+                    <a
+                      href={`/verify?ref=${encodeURIComponent(inv.invoiceNumber ?? "")}`}
+                      target="_blank" rel="noreferrer"
+                      className="text-[9.5px] font-bold text-[#1D4ED8] hover:underline inline-flex items-center gap-1 print:hidden"
+                    >
+                      تحقّق <ExternalLink className="h-2.5 w-2.5" />
+                    </a>
                   </div>
                 </div>
+              </motion.div>
+
+              {/* FOOTER */}
+              <div className="px-5 sm:px-8 py-3 border-t border-[#DDE4F0] flex items-center justify-between gap-3 text-[10.5px] text-[#5A6B85]">
+                <span>فاتورة ضريبية إلكترونية صادرة وفق نظام هيئة الزكاة والضريبة والجمارك.</span>
+                <span dir="ltr" className="font-mono text-[#0B1E3A] font-bold">ash-holding.sa</span>
               </div>
             </motion.section>
 
