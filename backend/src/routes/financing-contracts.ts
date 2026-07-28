@@ -154,15 +154,182 @@ financingContractsRouter.post("/contracts/:id/sign", async (req, res, next) => {
     // Notify staff via WA (best-effort)
     WA.notify(
       process.env.ADMIN_WHATSAPP || null,
-      `✍️ تم توقيع عقد التمويل *${c.code}* من قبل العميل.\nبانتظار التفعيل وصرف الرصيد.`,
+      `✍️ تم توقيع عقد التمويل *${c.code}* من قبل العميل.\nيلزم إصدار السند التنفيذي لموافقة العميل تمهيداً لصرف الرصيد.`,
       { kind: "financing.contract.signed" },
+    );
+
+    // Notify client — signed → awaiting promissory
+    await notifyApplicant(
+      c.applicationId,
+      bankMessage("CONTRACT_SIGNED", { code: c.code }),
     );
 
     res.json(updated);
   } catch (e) { next(e); }
 });
 
-// ============= ACTIVATE (admin → wallet disburse) =============
+// ============= Promissory Note helpers =============
+type PromissoryMeta = {
+  sentAt?: string;
+  sentById?: string;
+  acceptedAt?: string;
+  acceptedIp?: string | null;
+};
+
+function readPromissory(c: { termsSnapshot: unknown }): PromissoryMeta {
+  const t = (c.termsSnapshot ?? {}) as Record<string, unknown>;
+  const p = (t.promissory ?? {}) as PromissoryMeta;
+  return p;
+}
+
+async function writePromissory(contractId: string, patch: PromissoryMeta) {
+  const c = await prisma.financingContract.findUnique({ where: { id: contractId } });
+  if (!c) throw new Error("not_found");
+  const t = (c.termsSnapshot ?? {}) as Record<string, unknown>;
+  const p = { ...(t.promissory ?? {}), ...patch };
+  return prisma.financingContract.update({
+    where: { id: contractId },
+    data: { termsSnapshot: { ...t, promissory: p } as Prisma.InputJsonValue },
+  });
+}
+
+// Shared disbursement/activation logic
+async function disburseAndActivate(contractId: string, actorId: string) {
+  const c = await prisma.financingContract.findUnique({ where: { id: contractId } });
+  if (!c) throw new Error("not_found");
+  if (c.status !== "SIGNED") throw new Error(`bad_status:${c.status}`);
+  if (!c.clientId) throw new Error("no_client_profile");
+
+  const settings = await prisma.financingSetting.findUnique({ where: { id: "default" } });
+  if (!settings?.productionEnabled) throw new Error("financing_sandbox_locked");
+
+  const wallet = await ensureWallet(c.clientId);
+  const disburseAmount = Number(c.financedAmount);
+
+  const result = await prisma.$transaction(async (tx) => {
+    const w = await tx.wallet.update({
+      where: { id: wallet.id },
+      data: { balance: { increment: disburseAmount } },
+    });
+    const twx = await tx.walletTransaction.create({
+      data: {
+        walletId: wallet.id,
+        type: "FINANCING_DISBURSE",
+        status: "APPROVED",
+        amount: disburseAmount,
+        balanceAfter: w.balance,
+        reference: c.code,
+        approvedById: actorId,
+        approvedAt: new Date(),
+        note: `صرف رصيد خدمات — عقد التمويل ${c.code}`,
+      },
+    });
+    const uc = await tx.financingContract.update({
+      where: { id: c.id },
+      data: {
+        status: "ACTIVE",
+        activatedAt: new Date(),
+        activatedById: actorId,
+        disbursedTxId: twx.id,
+      },
+    });
+    return { contract: uc, tx: twx, walletBalance: w.balance };
+  });
+
+  await appendEvent({
+    applicationId: c.applicationId,
+    actorId,
+    type: "contract_activated",
+    message: `تم صرف ${fmtMoney(disburseAmount)} ر.س لرصيد الخدمات — عقد ${c.code}.`,
+    metadata: { contractId: c.id, txId: result.tx.id },
+  });
+  await notifyApplicant(
+    c.applicationId,
+    bankMessage("ACTIVATED", { code: c.code, amount: disburseAmount }),
+  );
+  return result;
+}
+
+// ============= ADMIN → SEND PROMISSORY NOTE =============
+financingContractsRouter.post(
+  "/admin/contracts/:id/promissory/send",
+  requireRole(...(STAFF_ROLES as unknown as [string, ...string[]])),
+  async (req, res, next) => {
+    try {
+      const c = await prisma.financingContract.findUnique({ where: { id: req.params.id } });
+      if (!c) return res.status(404).json({ error: "not_found" });
+      if (c.status !== "SIGNED") return res.status(400).json({ error: "not_signed", status: c.status });
+      const p = readPromissory(c);
+      if (p.sentAt) return res.status(400).json({ error: "already_sent" });
+
+      const updated = await writePromissory(c.id, {
+        sentAt: new Date().toISOString(),
+        sentById: req.user!.sub,
+      });
+
+      await appendEvent({
+        applicationId: c.applicationId,
+        actorId: req.user!.sub,
+        type: "promissory_sent",
+        message: `تم إصدار السند التنفيذي للعقد ${c.code} وإرساله للعميل للموافقة.`,
+        metadata: { contractId: c.id },
+      });
+      await notifyApplicant(
+        c.applicationId,
+        bankMessage("PROMISSORY_SENT", { code: c.code, amount: Number(c.financedAmount) }),
+      );
+      await logAudit(req, "financing.promissory.send", "FinancingContract", c.id, {});
+
+      res.json(updated);
+    } catch (e) { next(e); }
+  },
+);
+
+// ============= CLIENT → ACCEPT PROMISSORY (auto-activates) =============
+financingContractsRouter.post("/contracts/:id/promissory/accept", async (req, res, next) => {
+  try {
+    const c = await prisma.financingContract.findUnique({ where: { id: req.params.id } });
+    if (!c) return res.status(404).json({ error: "not_found" });
+    if (c.applicantId !== req.user!.sub) return res.status(403).json({ error: "forbidden" });
+    if (c.status !== "SIGNED") return res.status(400).json({ error: "not_signed", status: c.status });
+    const p = readPromissory(c);
+    if (!p.sentAt) return res.status(400).json({ error: "promissory_not_sent" });
+    if (p.acceptedAt) return res.status(400).json({ error: "already_accepted" });
+
+    const ip = (req.headers["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.ip || null;
+    await writePromissory(c.id, { acceptedAt: new Date().toISOString(), acceptedIp: ip });
+
+    await appendEvent({
+      applicationId: c.applicationId,
+      actorId: req.user!.sub,
+      type: "promissory_accepted",
+      message: `وافق العميل على السند التنفيذي للعقد ${c.code}.`,
+      metadata: { contractId: c.id, ip },
+    });
+    await notifyApplicant(
+      c.applicationId,
+      bankMessage("PROMISSORY_ACCEPTED", { code: c.code }),
+    );
+    WA.notify(
+      process.env.ADMIN_WHATSAPP || null,
+      `📜 وافق العميل على السند التنفيذي للعقد *${c.code}* — جارٍ الصرف الفوري لرصيد الخدمات.`,
+      { kind: "financing.promissory.accepted" },
+    );
+    await logAudit(req, "financing.promissory.accept", "FinancingContract", c.id, {});
+
+    // Auto-disburse immediately upon acceptance
+    const result = await disburseAndActivate(c.id, req.user!.sub);
+    res.json({ accepted: true, ...result });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "error";
+    if (msg === "financing_sandbox_locked")
+      return res.status(423).json({ error: msg, message: "الصرف يتطلب تشغيل بيئة الإنتاج من الإدارة." });
+    next(e);
+  }
+});
+
+// ============= ADMIN OVERRIDE ACTIVATE =============
+// Kept for exceptional cases; requires either promissory accepted, or explicit override.
 financingContractsRouter.post(
   "/admin/contracts/:id/activate",
   requireRole(...(STAFF_ROLES as unknown as [string, ...string[]])),
@@ -170,67 +337,26 @@ financingContractsRouter.post(
     try {
       const c = await prisma.financingContract.findUnique({ where: { id: req.params.id } });
       if (!c) return res.status(404).json({ error: "not_found" });
-      if (c.status !== "SIGNED") return res.status(400).json({ error: "not_signed", status: c.status });
-      if (!c.clientId) return res.status(400).json({ error: "no_client_profile" });
-
-      // Ensure production is enabled
-      const settings = await prisma.financingSetting.findUnique({ where: { id: "default" } });
-      if (!settings?.productionEnabled) {
-        return res.status(423).json({ error: "financing_sandbox_locked", message: "التفعيل يتطلب تشغيل بيئة الإنتاج." });
+      const p = readPromissory(c);
+      const override = req.body?.override === true;
+      if (!p.acceptedAt && !override) {
+        return res.status(409).json({
+          error: "promissory_not_accepted",
+          message: "لا يمكن صرف الرصيد قبل موافقة العميل على السند التنفيذي. مرّر { override: true } للتفويض الاستثنائي.",
+        });
       }
-
-      const wallet = await ensureWallet(c.clientId);
-      const disburseAmount = Number(c.financedAmount);
-
-      const result = await prisma.$transaction(async (tx) => {
-        const w = await tx.wallet.update({
-          where: { id: wallet.id },
-          data: { balance: { increment: disburseAmount } },
-        });
-        const twx = await tx.walletTransaction.create({
-          data: {
-            walletId: wallet.id,
-            type: "FINANCING_DISBURSE",
-            status: "APPROVED",
-            amount: disburseAmount,
-            balanceAfter: w.balance,
-            reference: c.code,
-            approvedById: req.user!.sub,
-            approvedAt: new Date(),
-            note: `صرف رصيد خدمات — عقد التمويل ${c.code}`,
-          },
-        });
-        const uc = await tx.financingContract.update({
-          where: { id: c.id },
-          data: {
-            status: "ACTIVE",
-            activatedAt: new Date(),
-            activatedById: req.user!.sub,
-            disbursedTxId: twx.id,
-          },
-        });
-        return { contract: uc, tx: twx, walletBalance: w.balance };
-      });
-
-      await appendEvent({
-        applicationId: c.applicationId,
-        actorId: req.user!.sub,
-        type: "contract_activated",
-        message: `تم تفعيل العقد ${c.code} وإيداع ${fmtMoney(disburseAmount)} ر.س رصيد خدمات في المحفظة.`,
-        metadata: { contractId: c.id, txId: result.tx.id },
-      });
-      await notifyApplicant(
-        c.applicationId,
-        [
-          `✅ تم تفعيل عقد التمويل *${c.code}*`,
-          `تم إيداع *${fmtMoney(disburseAmount)} ر.س* رصيد خدمات في محفظتك.`,
-          `يمكنك الآن استخدامه لسداد أي فاتورة خدمات من ASH HOLDING.`,
-        ].join("\n"),
-      );
-      await logAudit(req, "financing.contract.activate", "FinancingContract", c.id, { txId: result.tx.id });
-
+      const result = await disburseAndActivate(c.id, req.user!.sub);
+      await logAudit(req, "financing.contract.activate", "FinancingContract", c.id, { override, txId: result.tx.id });
       res.json(result);
-    } catch (e) { next(e); }
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "error";
+      if (msg.startsWith("bad_status:"))
+        return res.status(400).json({ error: "not_signed", status: msg.split(":")[1] });
+      if (msg === "no_client_profile") return res.status(400).json({ error: msg });
+      if (msg === "financing_sandbox_locked")
+        return res.status(423).json({ error: msg, message: "التفعيل يتطلب تشغيل بيئة الإنتاج." });
+      next(e);
+    }
   },
 );
 
