@@ -32,6 +32,7 @@ import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedClientIndexRouteImport } from './routes/_authenticated/client.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
+import { Route as AuthenticatedClientWalletRouteImport } from './routes/_authenticated/client.wallet'
 import { Route as AuthenticatedClientSupportRouteImport } from './routes/_authenticated/client.support'
 import { Route as AuthenticatedClientServicesRouteImport } from './routes/_authenticated/client.services'
 import { Route as AuthenticatedClientProjectsRouteImport } from './routes/_authenticated/client.projects'
@@ -189,6 +190,12 @@ const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedAdminRoute,
 } as any)
+const AuthenticatedClientWalletRoute =
+  AuthenticatedClientWalletRouteImport.update({
+    id: '/wallet',
+    path: '/wallet',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
 const AuthenticatedClientSupportRoute =
   AuthenticatedClientSupportRouteImport.update({
     id: '/support',
@@ -476,6 +483,7 @@ export interface FileRoutesByFullPath {
   '/client/projects': typeof AuthenticatedClientProjectsRouteWithChildren
   '/client/services': typeof AuthenticatedClientServicesRouteWithChildren
   '/client/support': typeof AuthenticatedClientSupportRouteWithChildren
+  '/client/wallet': typeof AuthenticatedClientWalletRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/client/': typeof AuthenticatedClientIndexRoute
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
@@ -537,6 +545,7 @@ export interface FileRoutesByTo {
   '/client/profile': typeof AuthenticatedClientProfileRoute
   '/client/services': typeof AuthenticatedClientServicesRouteWithChildren
   '/client/support': typeof AuthenticatedClientSupportRouteWithChildren
+  '/client/wallet': typeof AuthenticatedClientWalletRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/client': typeof AuthenticatedClientIndexRoute
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
@@ -604,6 +613,7 @@ export interface FileRoutesById {
   '/_authenticated/client/projects': typeof AuthenticatedClientProjectsRouteWithChildren
   '/_authenticated/client/services': typeof AuthenticatedClientServicesRouteWithChildren
   '/_authenticated/client/support': typeof AuthenticatedClientSupportRouteWithChildren
+  '/_authenticated/client/wallet': typeof AuthenticatedClientWalletRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/client/': typeof AuthenticatedClientIndexRoute
   '/_authenticated/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
@@ -671,6 +681,7 @@ export interface FileRouteTypes {
     | '/client/projects'
     | '/client/services'
     | '/client/support'
+    | '/client/wallet'
     | '/admin/'
     | '/client/'
     | '/admin/clients/$id'
@@ -732,6 +743,7 @@ export interface FileRouteTypes {
     | '/client/profile'
     | '/client/services'
     | '/client/support'
+    | '/client/wallet'
     | '/admin'
     | '/client'
     | '/admin/clients/$id'
@@ -798,6 +810,7 @@ export interface FileRouteTypes {
     | '/_authenticated/client/projects'
     | '/_authenticated/client/services'
     | '/_authenticated/client/support'
+    | '/_authenticated/client/wallet'
     | '/_authenticated/admin/'
     | '/_authenticated/client/'
     | '/_authenticated/admin/clients/$id'
@@ -1005,6 +1018,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AuthenticatedAdminIndexRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/client/wallet': {
+      id: '/_authenticated/client/wallet'
+      path: '/wallet'
+      fullPath: '/client/wallet'
+      preLoaderRoute: typeof AuthenticatedClientWalletRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
     }
     '/_authenticated/client/support': {
       id: '/_authenticated/client/support'
@@ -1544,6 +1564,7 @@ interface AuthenticatedClientRouteChildren {
   AuthenticatedClientProjectsRoute: typeof AuthenticatedClientProjectsRouteWithChildren
   AuthenticatedClientServicesRoute: typeof AuthenticatedClientServicesRouteWithChildren
   AuthenticatedClientSupportRoute: typeof AuthenticatedClientSupportRouteWithChildren
+  AuthenticatedClientWalletRoute: typeof AuthenticatedClientWalletRoute
   AuthenticatedClientIndexRoute: typeof AuthenticatedClientIndexRoute
 }
 
@@ -1562,6 +1583,7 @@ const AuthenticatedClientRouteChildren: AuthenticatedClientRouteChildren = {
   AuthenticatedClientServicesRoute:
     AuthenticatedClientServicesRouteWithChildren,
   AuthenticatedClientSupportRoute: AuthenticatedClientSupportRouteWithChildren,
+  AuthenticatedClientWalletRoute: AuthenticatedClientWalletRoute,
   AuthenticatedClientIndexRoute: AuthenticatedClientIndexRoute,
 }
 
