@@ -207,11 +207,9 @@ affiliateAdminRouter.post("/affiliates/:id/approve", async (req, res, next) => {
       where: { id: req.params.id },
       data: { status: "ACTIVE", approvedAt: new Date(), approvedById: user.id, suspendedAt: null, suspendReason: null },
     });
-    if (a.application) {
-      await prisma.affiliateApplication.updateMany({
-        where: { affiliateId: a.id }, data: { status: "APPROVED", reviewedAt: new Date(), reviewedById: user.id },
-      });
-    }
+    await prisma.affiliateApplication.updateMany({
+      where: { affiliateId: a.id }, data: { status: "APPROVED", reviewedAt: new Date(), reviewedById: user.id },
+    });
     WA.notify(a.phone, `ASH HOLDING — تم اعتماد حسابك كمسوّق ✅\nكود الإحالة: ${a.code}\nمرحباً بك في برنامج الشراكة.`,
       { kind: "affiliate.approved", entityId: a.id });
     await prisma.affiliateNotification.create({
