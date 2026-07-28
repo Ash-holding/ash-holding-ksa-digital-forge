@@ -41,19 +41,36 @@ function demoLogin(email: string, password: string): AuthUser | null {
   return match ? match.user : null;
 }
 
+const USER_CACHE_KEY = "ash_user_cache";
+
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Hydrate synchronously from cache so protected pages render instantly
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    if (typeof window === "undefined") return null;
+    if (!localStorage.getItem("ash_access")) return null;
+    try {
+      const raw = localStorage.getItem(USER_CACHE_KEY);
+      return raw ? (JSON.parse(raw) as AuthUser) : null;
+    } catch { return null; }
+  });
+  const [loading, setLoading] = useState<boolean>(() => {
+    if (typeof window === "undefined") return true;
+    // If we have a cached user, don't block UI — refresh in background
+    if (!localStorage.getItem("ash_access")) return false;
+    return !localStorage.getItem(USER_CACHE_KEY);
+  });
 
   const load = useCallback(async () => {
     if (!getAccessToken()) { setUser(null); setLoading(false); return; }
-    // Demo mode fallback
     const demo = typeof window !== "undefined" ? localStorage.getItem("ash_demo_user") : null;
     if (demo) { try { setUser(JSON.parse(demo)); } catch { setUser(null); } setLoading(false); return; }
     try {
       const { data } = await api.get("/auth/me");
       setUser(data.user);
-    } catch { setUser(null); }
+      if (typeof window !== "undefined") localStorage.setItem(USER_CACHE_KEY, JSON.stringify(data.user));
+    } catch {
+      // Keep cached user if the network hiccups; only clear on explicit 401
+    }
     setLoading(false);
   }, []);
 
@@ -85,7 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     try { await api.post("/auth/logout", {}); } catch { /* ignore */ }
-    if (typeof window !== "undefined") localStorage.removeItem("ash_demo_user");
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("ash_demo_user");
+      localStorage.removeItem(USER_CACHE_KEY);
+    }
     setTokens(null, null);
     setUser(null);
   }, []);
