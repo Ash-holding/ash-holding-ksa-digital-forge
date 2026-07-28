@@ -165,6 +165,11 @@ function FinancingHome() {
 
       {isSandbox && <DisclaimerBar />}
 
+      {/* ZERO-FEES BANNER — animated */}
+      <ZeroFeesBanner />
+
+
+
       {/* PILLARS */}
       <section className="grid gap-5 md:grid-cols-3">
         {[
