@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Loader2, Calculator as CalcIcon, Info } from "lucide-react";
+import { Loader2, Calculator as CalcIcon, Info, ArrowLeft, FileCheck2 } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { api, apiError } from "@/lib/api";
 import { toast } from "sonner";
 
