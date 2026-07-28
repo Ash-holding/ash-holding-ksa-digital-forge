@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import {
@@ -10,14 +10,6 @@ import { api } from "@/lib/api";
 import { ClientPageHeader } from "@/components/client/ClientPageHeader";
 import { FinancingCalculator } from "@/components/financing/Calculator";
 import { CreditPreviewCard } from "@/components/financing/CreditPreviewCard";
-
-export const Route = createFileRoute("/_authenticated/client/financing")({
-  component: FinancingLayout,
-});
-
-function FinancingLayout() {
-  return <Outlet />;
-}
 
 type Row = {
   id: string;
@@ -37,7 +29,7 @@ const STATUS_TONE: Record<string, { chip: string; bar: string; label: string; st
   KYC_APPROVED:     { chip: "bg-blue-500/15 text-blue-200 ring-blue-500/30",         bar: "from-blue-500 to-indigo-500",       label: "اعتماد الهوية",      step: 3 },
   KYC_REJECTED:     { chip: "bg-rose-500/15 text-rose-300 ring-rose-500/30",         bar: "from-rose-600 to-rose-500",         label: "رفض التحقق",         step: 0 },
   CREDIT_REVIEW:    { chip: "bg-indigo-500/15 text-indigo-300 ring-indigo-500/30",   bar: "from-indigo-500 to-purple-500",     label: "دراسة ائتمانية",     step: 4 },
-  RISK_REVIEW:      { chip: "bg-purple-500/15 text-purple-300 ring-purple-500/30",   bar: "from-purple-500 to-fuchsia-500",    label: "مراجعة المخاطر",     step: 5 },
+  RISK_REVIEW:      { chip: "bg-purple-500/15 text-purple-300 ring-purple-500/30",   bar: "from-purple-500 to-fuchsia-500",    label: "مراجعة المخاطر",      step: 5 },
   COMMITTEE_REVIEW: { chip: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",bar: "from-fuchsia-500 to-pink-500",      label: "اللجنة الائتمانية",  step: 6 },
   PENDING_FINAL:    { chip: "bg-amber-500/15 text-amber-300 ring-amber-500/30",      bar: "from-amber-500 to-orange-500",      label: "اعتماد نهائي",       step: 7 },
   MORE_INFO:        { chip: "bg-amber-500/15 text-amber-200 ring-amber-500/30",      bar: "from-amber-500 to-yellow-500",      label: "معلومات إضافية",     step: 3 },
@@ -48,7 +40,7 @@ const STATUS_TONE: Record<string, { chip: string; bar: string; label: string; st
 };
 const TOTAL_STEPS = 8;
 
-function ClientFinancingPage() {
+export function ClientFinancingHub() {
   const { data, isLoading } = useQuery({
     queryKey: ["client-financing-applications"],
     queryFn: () => api.get<{ rows: Row[] }>("/financing/applications").then((r) => r.data),
@@ -69,24 +61,22 @@ function ClientFinancingPage() {
         actions={null}
       />
 
-      {/* KPI STRIP — bento */}
       <motion.section
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
       >
         <KpiCard icon={ClipboardList} label="إجمالي الطلبات" value={rows.length} tone="from-slate-500 to-slate-400" loading={isLoading} />
-        <KpiCard icon={FileText}      label="مسودات"         value={drafts}      tone="from-cyan-500 to-blue-500"   loading={isLoading} />
-        <KpiCard icon={Loader2}       label="قيد المراجعة"    value={active}      tone="from-indigo-500 to-purple-500" loading={isLoading} />
-        <KpiCard icon={CheckCircle2}  label="معتمدة"          value={approved}    tone="from-emerald-500 to-teal-500" loading={isLoading} />
+        <KpiCard icon={FileText} label="مسودات" value={drafts} tone="from-cyan-500 to-blue-500" loading={isLoading} />
+        <KpiCard icon={Loader2} label="قيد المراجعة" value={active} tone="from-indigo-500 to-purple-500" loading={isLoading} />
+        <KpiCard icon={CheckCircle2} label="معتمدة" value={approved} tone="from-emerald-500 to-teal-500" loading={isLoading} />
       </motion.section>
 
-      {/* Trust strip */}
       <section className="grid gap-3 sm:grid-cols-3">
         {[
           { icon: ShieldCheck, title: "تقييم داخلي معتمد", desc: "نظام نقاط ٣٠٠–٨٥٠ بمعايير قريبة من سمة" },
-          { icon: Sparkles,    title: "نتيجة فورية",       desc: "احصل على تقديرك خلال ثوانٍ" },
-          { icon: ClipboardList,title: "تدقيق يدوي",       desc: "لجنة ائتمان مستقلة قبل الاعتماد" },
+          { icon: Sparkles, title: "نتيجة فورية", desc: "احصل على تقديرك خلال ثوانٍ" },
+          { icon: ClipboardList, title: "تدقيق يدوي", desc: "لجنة ائتمان مستقلة قبل الاعتماد" },
         ].map((s) => (
           <div key={s.title} className="rounded-2xl border border-border bg-card/40 p-4">
             <div className="flex items-start gap-3">
@@ -102,10 +92,8 @@ function ClientFinancingPage() {
         ))}
       </section>
 
-      {/* Instant Credit Assessment */}
       <CreditPreviewCard />
 
-      {/* Calculator */}
       <section className="space-y-3">
         <div className="flex items-center gap-2 text-xs font-semibold text-electric">
           <CalcIcon className="h-4 w-4" /> حاسبة القسط وتقديم الطلب
@@ -115,7 +103,6 @@ function ClientFinancingPage() {
         </div>
       </section>
 
-      {/* Applications */}
       <section className="space-y-3">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
           <div className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold text-foreground">
