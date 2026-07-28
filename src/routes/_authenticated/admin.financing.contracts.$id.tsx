@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { FileText, Download, PlayCircle, Ban, Wallet } from "lucide-react";
+import { FileText, Download, PlayCircle, Ban, Wallet, ScrollText, Clock } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { Button } from "@/components/ui/button";
