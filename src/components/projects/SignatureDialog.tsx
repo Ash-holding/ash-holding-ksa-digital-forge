@@ -53,19 +53,19 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
   return (
     <AnimatePresence>
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" dir="rtl">
+        <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center sm:p-4" dir="rtl">
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
+            initial={{ opacity: 0, scale: 0.98, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            exit={{ opacity: 0, scale: 0.98, y: 20 }}
             transition={{ type: "spring", damping: 22 }}
-            className="relative z-10 w-full max-w-lg my-auto"
+            className="relative z-10 w-full sm:max-w-lg h-[100dvh] sm:h-auto sm:max-h-[90vh] flex"
           >
-            <div className="rounded-3xl border border-electric/30 bg-gradient-to-br from-card via-card to-electric/5 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
+            <div className="flex flex-col w-full sm:rounded-3xl border border-electric/30 bg-gradient-to-br from-card via-card to-electric/5 shadow-2xl overflow-hidden">
               {/* header */}
               <div className="relative p-5 border-b border-border/60 bg-gradient-to-l from-electric/15 to-transparent">
                 <button onClick={onClose} className="absolute end-3 top-3 h-8 w-8 grid place-items-center rounded-full hover:bg-muted/40">
