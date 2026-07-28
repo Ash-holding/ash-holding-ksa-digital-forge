@@ -7,6 +7,7 @@ import { logAudit } from "../lib/audit.js";
 import { WA } from "../lib/whatsapp.js";
 import { activateRequestIfInvoicePaid, ensureInvoiceForSignedRequest } from "./projects.js";
 import { awardCashback, ensureWallet } from "./wallet.js";
+import { generateCommissionForPayment } from "../lib/commission.js";
 
 async function clientPhone(clientId: string): Promise<string | null> {
   const c = await prisma.client.findUnique({
