@@ -141,6 +141,23 @@ enum PaymentMethod {
   PAYLINK
   CASH
   MANUAL
+  WALLET
+  ELECTRONIC
+}
+
+enum WalletTxType {
+  TOPUP
+  WITHDRAW
+  PAYMENT
+  REFUND
+  CASHBACK
+  ADJUSTMENT
+}
+
+enum WalletTxStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 enum NotificationType {
