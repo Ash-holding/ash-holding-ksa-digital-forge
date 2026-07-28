@@ -477,7 +477,7 @@ function DocumentsStep({ app, product, onChanged }: { app: Application; product:
     catch (e) { toast.error(apiError(e) || "تعذر الحذف"); }
   };
 
-  const uploadedLabels = new Set(app.documents.map((d) => d.labelAr));
+  const uploadedLabels = new Set((app.documents ?? []).map((d) => d.labelAr));
   const remaining = required.filter((r) => !uploadedLabels.has(r));
 
   const onDrop = (e: React.DragEvent) => {
