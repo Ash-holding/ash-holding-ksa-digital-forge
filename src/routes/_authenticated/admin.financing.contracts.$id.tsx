@@ -7,6 +7,7 @@ import { api, apiError } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { AmortizationTable } from "@/components/financing/AmortizationTable";
+import { AdminRiskPanel } from "@/components/financing/AdminRiskPanel";
 import { downloadFinancingContractPDF } from "@/lib/financing-contract-print";
 
 export const Route = createFileRoute("/_authenticated/admin/financing/contracts/$id")({
