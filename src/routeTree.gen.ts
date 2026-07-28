@@ -34,6 +34,7 @@ import { Route as AuthenticatedClientIndexRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as AuthenticatedClientSupportRouteImport } from './routes/_authenticated/client.support'
 import { Route as AuthenticatedClientServicesRouteImport } from './routes/_authenticated/client.services'
+import { Route as AuthenticatedClientProjectsRouteImport } from './routes/_authenticated/client.projects'
 import { Route as AuthenticatedClientProfileRouteImport } from './routes/_authenticated/client.profile'
 import { Route as AuthenticatedClientPaymentsRouteImport } from './routes/_authenticated/client.payments'
 import { Route as AuthenticatedClientNotificationsRouteImport } from './routes/_authenticated/client.notifications'
@@ -186,6 +187,12 @@ const AuthenticatedClientServicesRoute =
     path: '/services',
     getParentRoute: () => AuthenticatedClientRoute,
   } as any)
+const AuthenticatedClientProjectsRoute =
+  AuthenticatedClientProjectsRouteImport.update({
+    id: '/projects',
+    path: '/projects',
+    getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
 const AuthenticatedClientProfileRoute =
   AuthenticatedClientProfileRouteImport.update({
     id: '/profile',
@@ -294,9 +301,9 @@ const AuthenticatedAdminAuditLogRoute =
   } as any)
 const AuthenticatedClientProjectsIndexRoute =
   AuthenticatedClientProjectsIndexRouteImport.update({
-    id: '/projects/',
-    path: '/projects/',
-    getParentRoute: () => AuthenticatedClientRoute,
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedClientProjectsRoute,
   } as any)
 const AuthenticatedAdminClientsIndexRoute =
   AuthenticatedAdminClientsIndexRouteImport.update({
@@ -306,9 +313,9 @@ const AuthenticatedAdminClientsIndexRoute =
   } as any)
 const AuthenticatedClientProjectsNewRoute =
   AuthenticatedClientProjectsNewRouteImport.update({
-    id: '/projects/new',
-    path: '/projects/new',
-    getParentRoute: () => AuthenticatedClientRoute,
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedClientProjectsRoute,
   } as any)
 const AuthenticatedAdminClientsNewRoute =
   AuthenticatedAdminClientsNewRouteImport.update({
@@ -368,6 +375,7 @@ export interface FileRoutesByFullPath {
   '/client/notifications': typeof AuthenticatedClientNotificationsRoute
   '/client/payments': typeof AuthenticatedClientPaymentsRoute
   '/client/profile': typeof AuthenticatedClientProfileRoute
+  '/client/projects': typeof AuthenticatedClientProjectsRouteWithChildren
   '/client/services': typeof AuthenticatedClientServicesRoute
   '/client/support': typeof AuthenticatedClientSupportRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -468,6 +476,7 @@ export interface FileRoutesById {
   '/_authenticated/client/notifications': typeof AuthenticatedClientNotificationsRoute
   '/_authenticated/client/payments': typeof AuthenticatedClientPaymentsRoute
   '/_authenticated/client/profile': typeof AuthenticatedClientProfileRoute
+  '/_authenticated/client/projects': typeof AuthenticatedClientProjectsRouteWithChildren
   '/_authenticated/client/services': typeof AuthenticatedClientServicesRoute
   '/_authenticated/client/support': typeof AuthenticatedClientSupportRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -520,6 +529,7 @@ export interface FileRouteTypes {
     | '/client/notifications'
     | '/client/payments'
     | '/client/profile'
+    | '/client/projects'
     | '/client/services'
     | '/client/support'
     | '/admin/'
@@ -619,6 +629,7 @@ export interface FileRouteTypes {
     | '/_authenticated/client/notifications'
     | '/_authenticated/client/payments'
     | '/_authenticated/client/profile'
+    | '/_authenticated/client/projects'
     | '/_authenticated/client/services'
     | '/_authenticated/client/support'
     | '/_authenticated/admin/'
@@ -829,6 +840,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientServicesRouteImport
       parentRoute: typeof AuthenticatedClientRoute
     }
+    '/_authenticated/client/projects': {
+      id: '/_authenticated/client/projects'
+      path: '/projects'
+      fullPath: '/client/projects'
+      preLoaderRoute: typeof AuthenticatedClientProjectsRouteImport
+      parentRoute: typeof AuthenticatedClientRoute
+    }
     '/_authenticated/client/profile': {
       id: '/_authenticated/client/profile'
       path: '/profile'
@@ -957,10 +975,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/client/projects/': {
       id: '/_authenticated/client/projects/'
-      path: '/projects'
+      path: '/'
       fullPath: '/client/projects/'
       preLoaderRoute: typeof AuthenticatedClientProjectsIndexRouteImport
-      parentRoute: typeof AuthenticatedClientRoute
+      parentRoute: typeof AuthenticatedClientProjectsRoute
     }
     '/_authenticated/admin/clients/': {
       id: '/_authenticated/admin/clients/'
@@ -971,10 +989,10 @@ declare module '@tanstack/react-router' {
     }
     '/_authenticated/client/projects/new': {
       id: '/_authenticated/client/projects/new'
-      path: '/projects/new'
+      path: '/new'
       fullPath: '/client/projects/new'
       preLoaderRoute: typeof AuthenticatedClientProjectsNewRouteImport
-      parentRoute: typeof AuthenticatedClientRoute
+      parentRoute: typeof AuthenticatedClientProjectsRoute
     }
     '/_authenticated/admin/clients/new': {
       id: '/_authenticated/admin/clients/new'
@@ -1057,6 +1075,23 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedClientProjectsRouteChildren {
+  AuthenticatedClientProjectsNewRoute: typeof AuthenticatedClientProjectsNewRoute
+  AuthenticatedClientProjectsIndexRoute: typeof AuthenticatedClientProjectsIndexRoute
+}
+
+const AuthenticatedClientProjectsRouteChildren: AuthenticatedClientProjectsRouteChildren =
+  {
+    AuthenticatedClientProjectsNewRoute: AuthenticatedClientProjectsNewRoute,
+    AuthenticatedClientProjectsIndexRoute:
+      AuthenticatedClientProjectsIndexRoute,
+  }
+
+const AuthenticatedClientProjectsRouteWithChildren =
+  AuthenticatedClientProjectsRoute._addFileChildren(
+    AuthenticatedClientProjectsRouteChildren,
+  )
+
 interface AuthenticatedClientRouteChildren {
   AuthenticatedClientContractsRoute: typeof AuthenticatedClientContractsRoute
   AuthenticatedClientFilesRoute: typeof AuthenticatedClientFilesRoute
@@ -1064,11 +1099,10 @@ interface AuthenticatedClientRouteChildren {
   AuthenticatedClientNotificationsRoute: typeof AuthenticatedClientNotificationsRoute
   AuthenticatedClientPaymentsRoute: typeof AuthenticatedClientPaymentsRoute
   AuthenticatedClientProfileRoute: typeof AuthenticatedClientProfileRoute
+  AuthenticatedClientProjectsRoute: typeof AuthenticatedClientProjectsRouteWithChildren
   AuthenticatedClientServicesRoute: typeof AuthenticatedClientServicesRoute
   AuthenticatedClientSupportRoute: typeof AuthenticatedClientSupportRoute
   AuthenticatedClientIndexRoute: typeof AuthenticatedClientIndexRoute
-  AuthenticatedClientProjectsNewRoute: typeof AuthenticatedClientProjectsNewRoute
-  AuthenticatedClientProjectsIndexRoute: typeof AuthenticatedClientProjectsIndexRoute
 }
 
 const AuthenticatedClientRouteChildren: AuthenticatedClientRouteChildren = {
@@ -1078,11 +1112,11 @@ const AuthenticatedClientRouteChildren: AuthenticatedClientRouteChildren = {
   AuthenticatedClientNotificationsRoute: AuthenticatedClientNotificationsRoute,
   AuthenticatedClientPaymentsRoute: AuthenticatedClientPaymentsRoute,
   AuthenticatedClientProfileRoute: AuthenticatedClientProfileRoute,
+  AuthenticatedClientProjectsRoute:
+    AuthenticatedClientProjectsRouteWithChildren,
   AuthenticatedClientServicesRoute: AuthenticatedClientServicesRoute,
   AuthenticatedClientSupportRoute: AuthenticatedClientSupportRoute,
   AuthenticatedClientIndexRoute: AuthenticatedClientIndexRoute,
-  AuthenticatedClientProjectsNewRoute: AuthenticatedClientProjectsNewRoute,
-  AuthenticatedClientProjectsIndexRoute: AuthenticatedClientProjectsIndexRoute,
 }
 
 const AuthenticatedClientRouteWithChildren =
@@ -1137,3 +1171,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
