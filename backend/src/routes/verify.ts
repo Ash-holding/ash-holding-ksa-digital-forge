@@ -27,7 +27,7 @@ verifyRouter.get("/receipt/:code", async (req, res, next) => {
         client: { select: { companyName: true, user: { select: { name: true } } } },
         project: { select: { title: true } },
         payments: {
-          where: { status: "COMPLETED" },
+          where: { status: "SUCCESS" },
           orderBy: { paidAt: "desc" },
           select: { id: true, amount: true, method: true, paidAt: true, transactionRef: true },
           take: 1,
