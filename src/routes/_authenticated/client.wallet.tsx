@@ -64,11 +64,13 @@ function ClientWallet() {
     queryKey: ["wallet-me"],
     queryFn: async () => (await api.get("/wallet/me")).data,
     refetchInterval: 6000,
+    placeholderData: (prev) => prev ?? { wallet: WALLET_FALLBACK, transactions: [], bank: BANK_FALLBACK, cashbackRate: 0.0185 },
+    staleTime: 3000,
   });
 
-  const wallet = q.data?.wallet;
+  const wallet = q.data?.wallet ?? WALLET_FALLBACK;
   const transactions = q.data?.transactions ?? [];
-  const bank = q.data?.bank;
+  const bank = q.data?.bank ?? BANK_FALLBACK;
   const cashbackRate = q.data?.cashbackRate ?? 0.0185;
 
   const copy = async (val: string, key: string) => {
