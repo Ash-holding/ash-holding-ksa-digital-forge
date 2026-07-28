@@ -395,14 +395,6 @@ function RequestsView() {
                 </div>
               )}
 
-              {r.status === "PENDING" && (
-                <div className="mt-2 flex justify-end">
-                  <ConfirmDialog title="حذف الطلب" description="سيتم حذف هذا الطلب نهائياً."
-                    onConfirm={async () => { await del.mutateAsync(r.id); }}
-                    trigger={<Button size="sm" variant="ghost" className="h-7 text-rose-400 gap-1 text-[11px]"><Trash2 className="h-3 w-3" />حذف</Button>}
-                  />
-                </div>
-              )}
             </div>
           ))}
         </div>

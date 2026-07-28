@@ -25,23 +25,67 @@ function notifyAdmins(message: string, meta?: { kind?: string; entityId?: string
 }
 
 const REQUEST_STATUS_LABEL: Record<string, string> = {
-  PENDING: "قيد الانتظار",
-  UNDER_REVIEW: "قيد المراجعة",
-  APPROVED: "تمت الموافقة ✅",
-  REJECTED: "مرفوض ❌",
-  CONVERTED: "تم تحويله لمشروع 🚀",
+  PENDING: "⏳ قيد الانتظار",
+  UNDER_REVIEW: "🔍 قيد المراجعة",
+  APPROVED: "✅ تمت الموافقة",
+  REJECTED: "❌ مرفوض",
+  CONVERTED: "🚀 تم تحويله لمشروع رسمي",
 };
 
 const PROJECT_STATUS_LABEL: Record<string, string> = {
-  NEW: "جديد",
-  PLANNING: "تخطيط",
-  DESIGN: "تصميم",
-  DEVELOPMENT: "تطوير",
-  WAITING_CLIENT: "بانتظار العميل",
-  TESTING: "اختبار",
-  COMPLETED: "مكتمل ✅",
-  ON_HOLD: "متوقف مؤقتاً",
+  NEW: "🆕 جديد",
+  PLANNING: "🗂️ تخطيط",
+  DESIGN: "🎨 تصميم",
+  DEVELOPMENT: "💻 تطوير",
+  WAITING_CLIENT: "⏸️ بانتظار العميل",
+  TESTING: "🧪 اختبار",
+  COMPLETED: "✅ مكتمل",
+  ON_HOLD: "⏳ متوقف مؤقتاً",
 };
+
+const CATEGORY_LABEL: Record<string, string> = {
+  WEBSITE: "🌐 موقع إلكتروني",
+  MOBILE_APP: "📱 تطبيق جوال",
+  ADMIN_SYSTEM: "🗄️ نظام إداري",
+  HOSTING: "☁️ استضافة",
+  VPS: "🖥️ خادم VPS",
+  DEDICATED_SERVER: "🖥️ خادم مخصص",
+  SMTP: "✉️ خدمة SMTP",
+  MARKETING: "📣 تسويق رقمي",
+  DESIGN: "🎨 تصميم وهوية",
+  SUPPORT: "🛠️ دعم وصيانة",
+  OTHER: "📌 طلب مخصص",
+};
+
+const PRIORITY_LABEL: Record<string, string> = {
+  LOW: "🟢 منخفضة",
+  NORMAL: "🔵 عادية",
+  HIGH: "🟠 عالية",
+  URGENT: "🔴 عاجلة",
+};
+
+// Short human reference from UUID: REQ-XXXXXX / PRJ-XXXXXX
+function shortRef(prefix: string, id: string): string {
+  return `${prefix}-${id.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
+}
+
+function fmtMoney(n: unknown): string {
+  const v = Number(n);
+  if (!isFinite(v) || v <= 0) return "—";
+  return `${v.toLocaleString("en-US")} ر.س`;
+}
+
+function fmtDate(d: Date | string | null | undefined): string {
+  if (!d) return "—";
+  try {
+    return new Date(d).toLocaleDateString("ar-SA-u-ca-gregory", {
+      year: "numeric", month: "long", day: "numeric",
+    });
+  } catch { return String(d); }
+}
+
+const DIVIDER = "━━━━━━━━━━━━━━━━━━━━";
+const SIGNATURE = "\n\n🏢 *ASH HOLDING* — آش القابضة\n🌐 ash-holding.sa";
 
 export const projectsRouter = Router();
 projectsRouter.use(requireAuth);
@@ -122,11 +166,22 @@ projectsRouter.post("/", requireStaff, async (req, res, next) => {
     if (!data.clientId) return res.status(400).json({ error: "clientId مطلوب" });
     const created = await prisma.project.create({ data: data as never });
     await logAudit(req, "project.create", "Project", created.id);
-    // notify client
+    const ref = shortRef("PRJ", created.id);
     const phone = await clientPhone(created.clientId);
     WA.notify(
       phone,
-      `ASH HOLDING — تم إنشاء مشروع جديد 🎉\nالمشروع: ${created.title}\nالحالة: ${PROJECT_STATUS_LABEL[created.status] || created.status}\nتابع التفاصيل من بوابة العميل.`,
+      [
+        `🎉 *مشروع جديد بانتظارك*`,
+        DIVIDER,
+        `🔖 *الرقم المرجعي:* ${ref}`,
+        `📁 *المشروع:* ${created.title}`,
+        `📊 *الحالة:* ${PROJECT_STATUS_LABEL[created.status] || created.status}`,
+        `📅 *تاريخ الفتح:* ${fmtDate(created.createdAt)}`,
+        created.dueDate ? `⏰ *التسليم المتوقع:* ${fmtDate(created.dueDate)}` : "",
+        created.budget ? `💰 *الميزانية:* ${fmtMoney(created.budget)}` : "",
+        DIVIDER,
+        `يمكنك متابعة كل التفاصيل من بوابة العميل الرسمية.${SIGNATURE}`,
+      ].filter(Boolean).join("\n"),
       { kind: "project.create", entityId: created.id },
     );
     res.status(201).json({ project: created });
@@ -139,22 +194,30 @@ projectsRouter.patch("/:id", requireStaff, async (req, res, next) => {
     const before = await prisma.project.findUnique({ where: { id: req.params.id } });
     const updated = await prisma.project.update({ where: { id: req.params.id }, data: data as never });
     await logAudit(req, "project.update", "Project", updated.id);
-    // notify client on meaningful changes
     const changes: string[] = [];
     if (before && before.status !== updated.status) {
-      changes.push(`• الحالة: ${PROJECT_STATUS_LABEL[updated.status] || updated.status}`);
+      changes.push(`📊 *الحالة الجديدة:* ${PROJECT_STATUS_LABEL[updated.status] || updated.status}`);
     }
     if (before && before.progress !== updated.progress) {
-      changes.push(`• نسبة الإنجاز: ${updated.progress}%`);
+      changes.push(`📈 *نسبة الإنجاز:* ${updated.progress}%`);
     }
     if (before && (before.dueDate?.getTime() ?? 0) !== (updated.dueDate?.getTime() ?? 0) && updated.dueDate) {
-      changes.push(`• تاريخ التسليم: ${new Date(updated.dueDate).toLocaleDateString("ar-SA")}`);
+      changes.push(`⏰ *تاريخ التسليم:* ${fmtDate(updated.dueDate)}`);
     }
     if (changes.length) {
+      const ref = shortRef("PRJ", updated.id);
       const phone = await clientPhone(updated.clientId);
       WA.notify(
         phone,
-        `ASH HOLDING — تحديث على مشروعك 🛠️\nالمشروع: ${updated.title}\n${changes.join("\n")}\nراجع بوابة العميل للتفاصيل.`,
+        [
+          `🛠️ *تحديث على مشروعك*`,
+          DIVIDER,
+          `🔖 *الرقم المرجعي:* ${ref}`,
+          `📁 *المشروع:* ${updated.title}`,
+          ...changes,
+          DIVIDER,
+          `للاطلاع على التفاصيل الكاملة، تفضل بزيارة بوابة العميل.${SIGNATURE}`,
+        ].join("\n"),
         { kind: "project.update", entityId: updated.id },
       );
     }
@@ -289,23 +352,63 @@ projectsRouter.post("/requests", async (req, res, next) => {
     await logAudit(req, "project_request.create", "ProjectRequest", created.id);
 
     // ---------- WhatsApp notifications ----------
+    const ref = shortRef("REQ", created.id);
     const clientName = created.client?.user?.name || created.contactName || "عميل";
+    const clientEmail = created.client?.user?.email || "—";
     const clientContact = created.contactPhone || (await clientPhone(created.clientId));
     const budgetLine =
       created.budgetMin || created.budgetMax
-        ? `\nالميزانية: ${created.budgetMin ?? "?"} - ${created.budgetMax ?? "?"} ر.س`
-        : "";
+        ? `${fmtMoney(created.budgetMin)} – ${fmtMoney(created.budgetMax)}`
+        : "—";
+    const shortDesc = created.description
+      ? (created.description.length > 220 ? created.description.slice(0, 220) + "…" : created.description)
+      : "—";
 
-    // → notify admins
+    // → notify admins (full detail)
     notifyAdmins(
-      `ASH HOLDING — طلب مشروع جديد 🆕\nمن: ${clientName}\nالعنوان: ${created.title}\nالتصنيف: ${created.category}\nالأولوية: ${created.priority}${budgetLine}\nراجع لوحة الأدمن للتفاصيل.`,
+      [
+        `🆕 *طلب مشروع جديد*`,
+        DIVIDER,
+        `🔖 *رقم الطلب:* ${ref}`,
+        `👤 *العميل:* ${clientName}`,
+        `📧 *البريد:* ${clientEmail}`,
+        clientContact ? `📱 *الجوال:* ${clientContact}` : "",
+        DIVIDER,
+        `📁 *العنوان:* ${created.title}`,
+        `🏷️ *التصنيف:* ${CATEGORY_LABEL[created.category] || created.category}`,
+        `⚡ *الأولوية:* ${PRIORITY_LABEL[created.priority] || created.priority}`,
+        `📊 *الحالة:* ${REQUEST_STATUS_LABEL[created.status] || created.status}`,
+        `💰 *الميزانية:* ${budgetLine}`,
+        created.targetDate ? `⏰ *التاريخ المستهدف:* ${fmtDate(created.targetDate)}` : "",
+        `📅 *تاريخ الإرسال:* ${fmtDate(created.createdAt)}`,
+        DIVIDER,
+        `📝 *الوصف:*\n${shortDesc}`,
+        DIVIDER,
+        `👉 يُرجى مراجعة الطلب من لوحة الإدارة والرد خلال 24 ساعة عمل.${SIGNATURE}`,
+      ].filter(Boolean).join("\n"),
       { kind: "project_request.new", entityId: created.id },
     );
 
-    // → confirm to client
+    // → confirm to client (official receipt)
     WA.notify(
       clientContact,
-      `ASH HOLDING — تم استلام طلبك ✅\nالعنوان: ${created.title}\nالحالة: ${REQUEST_STATUS_LABEL[created.status] || created.status}\nسنراجع الطلب ونعود إليك قريباً.`,
+      [
+        `✅ *تم استلام طلبك بنجاح*`,
+        `عزيزنا العميل، شكراً لثقتك بـ *ASH HOLDING*.`,
+        DIVIDER,
+        `🔖 *رقم الطلب:* ${ref}`,
+        `📁 *العنوان:* ${created.title}`,
+        `🏷️ *التصنيف:* ${CATEGORY_LABEL[created.category] || created.category}`,
+        `⚡ *الأولوية:* ${PRIORITY_LABEL[created.priority] || created.priority}`,
+        `📊 *الحالة الحالية:* ${REQUEST_STATUS_LABEL[created.status] || created.status}`,
+        `💰 *الميزانية المقترحة:* ${budgetLine}`,
+        created.targetDate ? `⏰ *التاريخ المستهدف:* ${fmtDate(created.targetDate)}` : "",
+        `📅 *تاريخ الاستلام:* ${fmtDate(created.createdAt)}`,
+        DIVIDER,
+        `سيقوم فريقنا المختص بمراجعة طلبك والرد عليك خلال *24 ساعة عمل*.`,
+        `يمكنك متابعة حالة الطلب أولاً بأول من *بوابة العميل*.`,
+        `\n⚠️ يرجى الاحتفاظ بالرقم المرجعي للطلب لأي استفسار مستقبلي.${SIGNATURE}`,
+      ].filter(Boolean).join("\n"),
       { kind: "project_request.created", entityId: created.id },
     );
 
@@ -361,12 +464,24 @@ projectsRouter.patch("/requests/:id", requireStaff, async (req, res, next) => {
     const statusChanged = existing.status !== updated.status;
     const noteChanged = (existing.adminNote || "") !== (updated.adminNote || "") && !!updated.adminNote;
     if (statusChanged || noteChanged) {
+      const ref = shortRef("REQ", updated.id);
       const phone = updated.contactPhone || (await clientPhone(updated.clientId));
-      const lines = [`ASH HOLDING — تحديث على طلبك 📩`, `العنوان: ${updated.title}`];
-      if (statusChanged) lines.push(`الحالة الجديدة: ${REQUEST_STATUS_LABEL[updated.status] || updated.status}`);
-      if (noteChanged) lines.push(`ملاحظة الإدارة: ${updated.adminNote}`);
-      if (updated.status === "CONVERTED") lines.push(`تم فتح مشروع رسمي — يمكنك متابعته من قسم "مشاريعي".`);
-      lines.push(`للتفاصيل ادخل بوابة العميل.`);
+      const lines: string[] = [
+        `📩 *تحديث رسمي على طلبك*`,
+        DIVIDER,
+        `🔖 *رقم الطلب:* ${ref}`,
+        `📁 *العنوان:* ${updated.title}`,
+      ];
+      if (statusChanged) lines.push(`📊 *الحالة الجديدة:* ${REQUEST_STATUS_LABEL[updated.status] || updated.status}`);
+      if (noteChanged) lines.push(DIVIDER, `📝 *ملاحظة الإدارة:*\n${updated.adminNote}`);
+      if (updated.status === "CONVERTED") {
+        lines.push(DIVIDER, `🚀 *تم فتح مشروع رسمي* بناءً على هذا الطلب.`, `يمكنك متابعته من قسم *"مشاريعي"* في بوابة العميل.`);
+      } else if (updated.status === "APPROVED") {
+        lines.push(DIVIDER, `✅ تمت *الموافقة المبدئية* على طلبك، وسيتواصل معك فريقنا لاستكمال التفاصيل.`);
+      } else if (updated.status === "REJECTED") {
+        lines.push(DIVIDER, `❌ نأسف لإبلاغك بأن الطلب *غير مقبول* حالياً. يمكنك التواصل معنا لمزيد من التوضيح.`);
+      }
+      lines.push(DIVIDER, `للاطلاع على التفاصيل الكاملة، تفضل بزيارة بوابة العميل.${SIGNATURE}`);
       WA.notify(phone, lines.join("\n"), { kind: "project_request.status", entityId: updated.id });
     }
 
@@ -375,17 +490,11 @@ projectsRouter.patch("/requests/:id", requireStaff, async (req, res, next) => {
 });
 
 
-// DELETE — client can delete own PENDING; staff can delete any
-projectsRouter.delete("/requests/:id", async (req, res, next) => {
+// DELETE — STAFF ONLY (clients cannot delete requests to preserve audit trail)
+projectsRouter.delete("/requests/:id", requireStaff, async (req, res, next) => {
   try {
     const existing = await prisma.projectRequest.findUnique({ where: { id: req.params.id } });
     if (!existing) return res.status(404).json({ error: "غير موجود" });
-    if (!isStaff(req)) {
-      const cid = await currentClientId(req);
-      if (existing.clientId !== cid || existing.status !== "PENDING") {
-        return res.status(403).json({ error: "لا يمكن حذف هذا الطلب" });
-      }
-    }
     await prisma.projectRequest.delete({ where: { id: req.params.id } });
     await logAudit(req, "project_request.delete", "ProjectRequest", req.params.id);
     res.json({ ok: true });
