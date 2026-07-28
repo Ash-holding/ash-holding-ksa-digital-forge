@@ -12,6 +12,13 @@ export const Route = createFileRoute("/_authenticated/affiliate")({
 
 function AffiliateGate() {
   const { user } = useAuth();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  // Allow the apply page to render even without an active affiliate account
+  if (pathname.startsWith("/affiliate/apply")) {
+    return <Outlet />;
+  }
+
 
   const { data, isLoading } = useQuery({
     queryKey: ["affiliate-me"],
