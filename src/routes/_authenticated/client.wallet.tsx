@@ -7,7 +7,7 @@ import {
   Landmark, Sparkles, TrendingUp, Clock, CheckCircle2, XCircle, Zap,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import { PageHeader } from "@/components/dashboard/PageHeader";
+import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
