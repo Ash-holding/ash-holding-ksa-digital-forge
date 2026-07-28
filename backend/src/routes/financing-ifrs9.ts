@@ -60,7 +60,7 @@ async function computeEcl(opts: {
 
   const contracts = await prisma.financingContract.findMany({
     select: {
-      id: true, code: true, status: true, financedAmount: true, restructured: true,
+      id: true, code: true, status: true, financedAmount: true,
       installments: { select: { status: true, dueDate: true, principal: true, paidAmount: true, interest: true } },
     },
   });
