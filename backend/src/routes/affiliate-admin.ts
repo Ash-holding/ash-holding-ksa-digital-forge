@@ -511,6 +511,14 @@ affiliateAdminRouter.patch("/withdrawals/:id", async (req, res, next) => {
       },
     });
 
+    await logAudit(req, `withdrawal.${body.status.toLowerCase()}`, "WithdrawalRequest", updated.id, {
+      requestNumber: current.requestNumber,
+      amount: Number(current.amount),
+      previousStatus: current.status,
+      newStatus: body.status,
+      transferRef: body.transferRef ?? null,
+      rejectionReason: body.rejectionReason ?? null,
+    });
     res.json({ withdrawal: updated });
   } catch (e) { next(e); }
 });
