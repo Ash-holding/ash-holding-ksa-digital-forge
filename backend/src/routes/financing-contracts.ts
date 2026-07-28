@@ -8,7 +8,8 @@ import { ensureWallet } from "./wallet.js";
 import { WA } from "../lib/whatsapp.js";
 import { logAudit } from "../lib/audit.js";
 import { generateContractForApplication, computeSignatureHash } from "../lib/financing/contract.js";
-import { appendEvent, notifyApplicant } from "../lib/financing/lifecycle.js";
+import { appendEvent, notifyApplicant, bankMessage } from "../lib/financing/lifecycle.js";
+import type { Prisma } from "@prisma/client";
 
 export const financingContractsRouter = Router();
 financingContractsRouter.use(requireAuth);
