@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { toast } from "sonner";
-import { FileSignature, Trash2, User, Calendar, Send, StickyNote } from "lucide-react";
+import { FileSignature, Trash2, User, Calendar, Send, StickyNote, Download, ShieldCheck } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { DetailShell, DetailSection, KV } from "@/components/shared/DetailShell";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -13,6 +13,7 @@ import { Money } from "@/components/ui/money";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/dashboard/ConfirmDialog";
 import { formatDate } from "@/lib/format";
+import { downloadContractPDF } from "@/lib/contract-print";
 
 export const Route = createFileRoute("/_authenticated/admin/contracts/$id")({
   component: AdminContractDetail,
@@ -24,11 +25,13 @@ function AdminContractDetail() {
   const qc = useQueryClient();
   const q = useQuery({
     queryKey: ["contract", id],
-    queryFn: async () => (await api.get(`/contracts/${id}`)).data.contract,
+    queryFn: async () => (await api.get(`/contracts/${id}`)).data,
     refetchInterval: 5000,
     refetchOnWindowFocus: true,
   });
-  const c = q.data;
+  const c = q.data?.contract;
+  const linkedRequest = q.data?.linkedRequest ?? null;
+  const paidInvoice = q.data?.paidInvoice ?? null;
   const [title, setTitle] = useState<string>("");
   const [value, setValue] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
@@ -47,6 +50,12 @@ function AdminContractDetail() {
     onSuccess: () => toast.success("تم إرسال طلب التوقيع"),
   });
 
+  const handleDownload = async () => {
+    if (!c) return;
+    try { await downloadContractPDF(c, linkedRequest, paidInvoice); toast.success("تم تحميل العقد"); }
+    catch { toast.error("تعذّر إنشاء ملف PDF"); }
+  };
+
   return (
     <DetailShell
       backTo="/admin/contracts"
@@ -60,6 +69,9 @@ function AdminContractDetail() {
       refreshing={q.isFetching}
       actions={c && (
         <>
+          <Button size="sm" className="gap-1.5 bg-gradient-to-r from-electric to-plasma text-white" onClick={handleDownload}>
+            <Download className="h-4 w-4" /> تحميل PDF
+          </Button>
           <Button size="sm" variant="outline" className="gap-1.5" onClick={() => requestSign.mutate()}>
             <Send className="h-4 w-4" />طلب توقيع
           </Button>
@@ -68,6 +80,7 @@ function AdminContractDetail() {
         </>
       )}
     >
+
       {q.isLoading || !c ? (
         <Skeleton className="h-64" />
       ) : (
