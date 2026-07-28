@@ -84,6 +84,7 @@ app.use("/api/financing/applications", financingApplicationsRouter);
 app.use("/api/admin/financing/applications", financingApplicationsAdminRouter);
 app.use("/api/admin/financing", financingAdminRouter);
 app.use("/api/financing", financingContractsRouter);
+app.use("/api/financing", financingOpsRouter);
 
 app.use("/api", notFoundHandler);
 app.use(errorHandler);
