@@ -85,20 +85,20 @@ export async function appendEvent(input: {
 }
 
 export const STATUS_LABEL_AR: Record<FinancingApplicationStatus, string> = {
-  DRAFT: "مسودة",
-  SUBMITTED: "تم التقديم",
-  KYC_REVIEW: "قيد التحقق من الهوية",
-  KYC_APPROVED: "اعتماد الهوية",
-  KYC_REJECTED: "رفض التحقق",
-  CREDIT_REVIEW: "دراسة ائتمانية",
-  RISK_REVIEW: "مراجعة المخاطر",
-  COMMITTEE_REVIEW: "اللجنة الائتمانية",
-  PENDING_FINAL: "اعتماد نهائي",
-  MORE_INFO: "بحاجة لمعلومات إضافية",
-  APPROVED: "تمت الموافقة",
-  REJECTED: "مرفوض",
-  CANCELLED: "ملغى",
-  EXPIRED: "منتهي الصلاحية",
+  DRAFT: "مسودة قيد الإعداد",
+  SUBMITTED: "تم استلام الطلب رسمياً",
+  KYC_REVIEW: "قيد التحقق من الهوية والامتثال (KYC/AML)",
+  KYC_APPROVED: "اعتماد الهوية — إحالة للدراسة الائتمانية",
+  KYC_REJECTED: "تعذّر التحقق من الهوية",
+  CREDIT_REVIEW: "قيد الدراسة الائتمانية",
+  RISK_REVIEW: "قيد تقييم المخاطر",
+  COMMITTEE_REVIEW: "معروض على اللجنة الائتمانية",
+  PENDING_FINAL: "بانتظار الاعتماد النهائي",
+  MORE_INFO: "يتطلّب مستندات/معلومات إضافية",
+  APPROVED: "تمت الموافقة النهائية",
+  REJECTED: "اعتذار عن الطلب",
+  CANCELLED: "تم إلغاء الطلب",
+  EXPIRED: "انتهت صلاحية الطلب",
 };
 
 export async function notifyApplicant(applicationId: string, message: string) {
@@ -118,12 +118,7 @@ export async function notifyApplicant(applicationId: string, message: string) {
 }
 
 // ============================================================
-// Bank-style formal WhatsApp templates
-// Format mirrors Saudi bank & finance-company SMS notifications:
-//   [شركة آش القابضة | تمويل خدمي]
-//   نوع الإشعار
-//   تفاصيل بأسطر منظمة
-//   الوقت | المرجع | القناة
+// Bank-style formal WhatsApp templates — mimics Saudi bank SMS
 // ============================================================
 const NOW_AR = () =>
   new Intl.DateTimeFormat("ar-SA", {
@@ -131,8 +126,9 @@ const NOW_AR = () =>
   }).format(new Date());
 
 const HEADER = "🏛️ شركة آش القابضة | التمويل الخدمي الداخلي";
+const DIVIDER = "ــــــــــــــــــــــــــــــــــــ";
 const FOOTER = (code: string) =>
-  `\nـــــــــــــــــــــــــ\n📄 المرجع: ${code}\n🕘 ${NOW_AR()} (توقيت الرياض)\n📞 الدعم: 920000000 | ash-holding.sa`;
+  `\n${DIVIDER}\n📄 المرجع: ${code}\n🕘 ${NOW_AR()} (توقيت الرياض)\n📞 الدعم: 920000000 | ash-holding.sa\n© جميع الحقوق محفوظة — ASH HOLDING`;
 
 const fmtSAR = (n: number | string | null | undefined) => {
   const v = Number(n || 0);
@@ -142,7 +138,9 @@ const fmtSAR = (n: number | string | null | undefined) => {
 export type BankNoticeKind =
   | "RECEIVED" | "IN_REVIEW" | "MORE_INFO"
   | "APPROVED" | "REJECTED" | "STATUS_UPDATE"
-  | "CONTRACT_READY" | "CONTRACT_SIGNED" | "ACTIVATED"
+  | "CONTRACT_READY" | "CONTRACT_SIGNED"
+  | "PROMISSORY_SENT" | "PROMISSORY_ACCEPTED"
+  | "ACTIVATED"
   | "INSTALLMENT_DUE" | "INSTALLMENT_PAID" | "OVERDUE";
 
 export function bankMessage(
