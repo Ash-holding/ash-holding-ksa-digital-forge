@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import {
   Wallet, FileText, ArrowLeft, Calculator as CalcIcon,
   ShieldCheck, Sparkles, ClipboardList, Clock,
+  TrendingUp, CheckCircle2, Loader2, Zap,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { ClientPageHeader } from "@/components/client/ClientPageHeader";
@@ -31,31 +32,23 @@ type Row = {
   product: { nameAr: string; code: string } | null;
 };
 
-const STATUS_STYLES: Record<string, string> = {
-  DRAFT: "bg-slate-500/10 text-slate-300 ring-slate-500/20",
-  SUBMITTED: "bg-cyan-500/10 text-cyan-400 ring-cyan-500/20",
-  KYC_REVIEW: "bg-blue-500/10 text-blue-400 ring-blue-500/20",
-  KYC_APPROVED: "bg-blue-500/10 text-blue-300 ring-blue-500/20",
-  KYC_REJECTED: "bg-rose-500/10 text-rose-400 ring-rose-500/20",
-  CREDIT_REVIEW: "bg-indigo-500/10 text-indigo-400 ring-indigo-500/20",
-  RISK_REVIEW: "bg-purple-500/10 text-purple-400 ring-purple-500/20",
-  COMMITTEE_REVIEW: "bg-fuchsia-500/10 text-fuchsia-400 ring-fuchsia-500/20",
-  PENDING_FINAL: "bg-amber-500/10 text-amber-400 ring-amber-500/20",
-  MORE_INFO: "bg-amber-500/10 text-amber-300 ring-amber-500/20",
-  APPROVED: "bg-emerald-500/10 text-emerald-400 ring-emerald-500/20",
-  REJECTED: "bg-rose-500/10 text-rose-400 ring-rose-500/20",
-  CANCELLED: "bg-slate-500/10 text-slate-400 ring-slate-500/20",
-  EXPIRED: "bg-slate-500/10 text-slate-400 ring-slate-500/20",
+const STATUS_TONE: Record<string, { chip: string; bar: string; label: string; step: number }> = {
+  DRAFT:            { chip: "bg-slate-500/15 text-slate-300 ring-slate-500/30",      bar: "from-slate-500 to-slate-400",      label: "مسودة",              step: 0 },
+  SUBMITTED:        { chip: "bg-cyan-500/15 text-cyan-300 ring-cyan-500/30",         bar: "from-cyan-500 to-blue-500",         label: "تم التقديم",         step: 1 },
+  KYC_REVIEW:       { chip: "bg-blue-500/15 text-blue-300 ring-blue-500/30",         bar: "from-blue-500 to-indigo-500",       label: "تحقق الهوية",        step: 2 },
+  KYC_APPROVED:     { chip: "bg-blue-500/15 text-blue-200 ring-blue-500/30",         bar: "from-blue-500 to-indigo-500",       label: "اعتماد الهوية",      step: 3 },
+  KYC_REJECTED:     { chip: "bg-rose-500/15 text-rose-300 ring-rose-500/30",         bar: "from-rose-600 to-rose-500",         label: "رفض التحقق",         step: 0 },
+  CREDIT_REVIEW:    { chip: "bg-indigo-500/15 text-indigo-300 ring-indigo-500/30",   bar: "from-indigo-500 to-purple-500",     label: "دراسة ائتمانية",     step: 4 },
+  RISK_REVIEW:      { chip: "bg-purple-500/15 text-purple-300 ring-purple-500/30",   bar: "from-purple-500 to-fuchsia-500",    label: "مراجعة المخاطر",     step: 5 },
+  COMMITTEE_REVIEW: { chip: "bg-fuchsia-500/15 text-fuchsia-300 ring-fuchsia-500/30",bar: "from-fuchsia-500 to-pink-500",      label: "اللجنة الائتمانية",  step: 6 },
+  PENDING_FINAL:    { chip: "bg-amber-500/15 text-amber-300 ring-amber-500/30",      bar: "from-amber-500 to-orange-500",      label: "اعتماد نهائي",       step: 7 },
+  MORE_INFO:        { chip: "bg-amber-500/15 text-amber-200 ring-amber-500/30",      bar: "from-amber-500 to-yellow-500",      label: "معلومات إضافية",     step: 3 },
+  APPROVED:         { chip: "bg-emerald-500/15 text-emerald-300 ring-emerald-500/30",bar: "from-emerald-500 to-teal-500",      label: "معتمد",              step: 8 },
+  REJECTED:         { chip: "bg-rose-500/15 text-rose-300 ring-rose-500/30",         bar: "from-rose-600 to-rose-500",         label: "مرفوض",              step: 0 },
+  CANCELLED:        { chip: "bg-slate-500/15 text-slate-400 ring-slate-500/30",      bar: "from-slate-500 to-slate-400",       label: "ملغى",               step: 0 },
+  EXPIRED:          { chip: "bg-slate-500/15 text-slate-400 ring-slate-500/30",      bar: "from-slate-500 to-slate-400",       label: "منتهي",              step: 0 },
 };
-
-const STATUS_AR: Record<string, string> = {
-  DRAFT: "مسودة", SUBMITTED: "تم التقديم",
-  KYC_REVIEW: "تحقق الهوية", KYC_APPROVED: "اعتماد الهوية", KYC_REJECTED: "رفض التحقق",
-  CREDIT_REVIEW: "دراسة ائتمانية", RISK_REVIEW: "مراجعة المخاطر",
-  COMMITTEE_REVIEW: "اللجنة الائتمانية", PENDING_FINAL: "اعتماد نهائي",
-  MORE_INFO: "بحاجة لمعلومات إضافية", APPROVED: "معتمد", REJECTED: "مرفوض",
-  CANCELLED: "ملغى", EXPIRED: "منتهي",
-};
+const TOTAL_STEPS = 8;
 
 function ClientFinancingPage() {
   const { data, isLoading } = useQuery({
@@ -65,9 +58,12 @@ function ClientFinancingPage() {
   });
 
   const rows = data?.rows ?? [];
+  const drafts = rows.filter((r) => r.status === "DRAFT").length;
+  const active = rows.filter((r) => !["DRAFT", "APPROVED", "REJECTED", "CANCELLED", "EXPIRED"].includes(r.status)).length;
+  const approved = rows.filter((r) => r.status === "APPROVED").length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <ClientPageHeader
         icon={Wallet}
         title="تمويل خدمات ASH"
@@ -75,35 +71,43 @@ function ClientFinancingPage() {
         actions={null}
       />
 
-      {/* Trust strip */}
-      <motion.div
+      {/* KPI STRIP — bento */}
+      <motion.section
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        className="grid gap-3 sm:grid-cols-3"
+        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
       >
+        <KpiCard icon={ClipboardList} label="إجمالي الطلبات" value={rows.length} tone="from-slate-500 to-slate-400" loading={isLoading} />
+        <KpiCard icon={FileText}      label="مسودات"         value={drafts}      tone="from-cyan-500 to-blue-500"   loading={isLoading} />
+        <KpiCard icon={Loader2}       label="قيد المراجعة"    value={active}      tone="from-indigo-500 to-purple-500" loading={isLoading} />
+        <KpiCard icon={CheckCircle2}  label="معتمدة"          value={approved}    tone="from-emerald-500 to-teal-500" loading={isLoading} />
+      </motion.section>
+
+      {/* Trust strip */}
+      <section className="grid gap-3 sm:grid-cols-3">
         {[
-          { icon: ShieldCheck, title: "تقييم داخلي معتمد", desc: "نظام نقاط 300–850 شبيه بسمة" },
-          { icon: Sparkles, title: "نتيجة فورية", desc: "احصل على تقديرك خلال ثوانٍ" },
-          { icon: ClipboardList, title: "تدقيق يدوي", desc: "لجنة ائتمان مستقلة قبل الاعتماد" },
+          { icon: ShieldCheck, title: "تقييم داخلي معتمد", desc: "نظام نقاط ٣٠٠–٨٥٠ بمعايير قريبة من سمة" },
+          { icon: Sparkles,    title: "نتيجة فورية",       desc: "احصل على تقديرك خلال ثوانٍ" },
+          { icon: ClipboardList,title: "تدقيق يدوي",       desc: "لجنة ائتمان مستقلة قبل الاعتماد" },
         ].map((s) => (
           <div key={s.title} className="rounded-2xl border border-border bg-card/40 p-4">
             <div className="flex items-start gap-3">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-electric/20 to-indigo-500/10 text-electric">
+              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br from-electric/20 to-indigo-500/10 text-electric ring-1 ring-electric/20">
                 <s.icon className="h-4 w-4" />
               </div>
               <div className="min-w-0">
                 <div className="text-sm font-bold text-foreground">{s.title}</div>
-                <div className="text-[11px] text-muted-foreground">{s.desc}</div>
+                <div className="text-[11px] leading-6 text-muted-foreground">{s.desc}</div>
               </div>
             </div>
           </div>
         ))}
-      </motion.div>
+      </section>
 
-      {/* Instant Credit Assessment — the star of the show */}
+      {/* Instant Credit Assessment */}
       <CreditPreviewCard />
 
-      {/* Calculator + Products */}
+      {/* Calculator */}
       <section className="space-y-3">
         <div className="flex items-center gap-2 text-xs font-semibold text-electric">
           <CalcIcon className="h-4 w-4" /> حاسبة القسط وتقديم الطلب
@@ -115,66 +119,106 @@ function ClientFinancingPage() {
 
       {/* Applications */}
       <section className="space-y-3">
-        <div className="flex items-center justify-between">
-          <div className="inline-flex items-center gap-2 text-sm font-semibold text-foreground">
-            <Clock className="h-4 w-4 text-muted-foreground" /> طلباتي
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3">
+          <div className="inline-flex min-w-0 items-center gap-2 text-sm font-semibold text-foreground">
+            <Clock className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <span className="truncate">طلباتي</span>
           </div>
           {rows.length > 0 && (
-            <span className="text-[11px] text-muted-foreground">
-              {rows.length} طلب • تحديث تلقائي كل 15 ثانية
+            <span className="shrink-0 text-[11px] text-muted-foreground">
+              {rows.length} طلب • تحديث كل ١٥ث
             </span>
           )}
         </div>
 
-        <div className="rounded-3xl border border-border bg-card/40 overflow-hidden">
-          {isLoading ? (
-            <div className="divide-y divide-border">
-              {[0, 1, 2].map((i) => (
-                <div key={i} className="px-4 py-4">
-                  <div className="h-3 w-24 animate-pulse rounded bg-muted/40" />
-                  <div className="mt-2 h-4 w-56 animate-pulse rounded bg-muted/30" />
-                  <div className="mt-2 h-3 w-40 animate-pulse rounded bg-muted/20" />
-                </div>
-              ))}
+        {isLoading ? (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="h-32 animate-pulse rounded-2xl bg-card/40 ring-1 ring-border" />
+            ))}
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="rounded-3xl border border-dashed border-border bg-card/40 p-12 text-center space-y-4">
+            <div className="mx-auto grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-electric/20 to-purple-accent/10 text-electric">
+              <Zap className="h-6 w-6" />
             </div>
-          ) : rows.length === 0 ? (
-            <div className="p-12 text-center space-y-3">
-              <FileText className="h-10 w-10 mx-auto text-muted-foreground" />
-              <p className="text-sm text-muted-foreground">لا توجد طلبات تمويل بعد.</p>
-              <div className="text-xs text-muted-foreground inline-flex items-center gap-2">
-                استخدم الحاسبة أعلاه لاختيار المنتج ثم اضغط «تقديم الطلب» <ArrowLeft className="h-4 w-4" />
-              </div>
+            <p className="text-sm text-muted-foreground">لا توجد طلبات تمويل بعد.</p>
+            <div className="text-xs text-muted-foreground inline-flex items-center gap-2">
+              استخدم الحاسبة أعلاه لاختيار المنتج ثم اضغط «تقديم الطلب» <ArrowLeft className="h-4 w-4" />
             </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {rows.map((r) => (
+          </div>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {rows.map((r) => {
+              const tone = STATUS_TONE[r.status] ?? STATUS_TONE.DRAFT;
+              const pct = Math.round((tone.step / TOTAL_STEPS) * 100);
+              return (
                 <Link
                   key={r.id}
                   to="/client/financing/$id"
                   params={{ id: r.id }}
-                  className="block px-4 py-3 hover:bg-white/5 transition"
+                  className="group relative overflow-hidden rounded-2xl border border-border bg-card/50 p-4 transition hover:-translate-y-0.5 hover:border-electric/40 hover:shadow-[0_20px_40px_-25px_rgba(59,130,246,0.4)]"
                 >
-                  <div className="flex items-center justify-between gap-3">
+                  <div aria-hidden className={`pointer-events-none absolute -right-16 -top-16 h-40 w-40 rounded-full bg-gradient-to-br ${tone.bar} opacity-[0.08] blur-2xl transition group-hover:opacity-[0.16]`} />
+                  <div className="relative grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                     <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-xs text-electric">{r.code}</span>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full ring-1 ${STATUS_STYLES[r.status] || "bg-slate-500/10 ring-slate-500/20"}`}>
-                          {STATUS_AR[r.status] || r.status}
-                        </span>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-xs font-semibold text-electric">{r.code}</span>
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ring-1 ${tone.chip}`}>{tone.label}</span>
                       </div>
-                      <div className="mt-1 text-sm truncate">{r.product?.nameAr ?? "—"}</div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="mt-1.5 truncate text-sm font-bold text-foreground">{r.product?.nameAr ?? "—"}</div>
+                      <div className="text-[11px] text-muted-foreground tabular-nums">
                         {new Intl.NumberFormat("ar-SA").format(Number(r.amount))} ر.س • {r.termMonths} شهر
                       </div>
                     </div>
-                    <ArrowLeft className="h-4 w-4 text-muted-foreground" />
+                    <ArrowLeft className="mt-1 h-4 w-4 shrink-0 text-muted-foreground transition group-hover:-translate-x-1 group-hover:text-electric" />
                   </div>
+                  <div className="relative mt-4">
+                    <div className="mb-1 flex items-center justify-between text-[10px] text-muted-foreground">
+                      <span>تقدم الطلب</span>
+                      <span className="tabular-nums">{pct}%</span>
+                    </div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-white/5">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 0.6, ease: "easeOut" }}
+                        className={`h-full rounded-full bg-gradient-to-r ${tone.bar}`}
+                      />
+                    </div>
+                  </div>
+                  {r.status === "APPROVED" && (
+                    <div className="relative mt-3 inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-1 text-[10px] font-semibold text-emerald-300 ring-1 ring-emerald-500/30">
+                      <TrendingUp className="h-3 w-3" /> جاهز للتوقيع
+                    </div>
+                  )}
                 </Link>
-              ))}
-            </div>
-          )}
-        </div>
+              );
+            })}
+          </div>
+        )}
       </section>
+    </div>
+  );
+}
+
+function KpiCard({
+  icon: Icon, label, value, tone, loading,
+}: { icon: typeof Wallet; label: string; value: number; tone: string; loading?: boolean }) {
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-card/50 p-4">
+      <div aria-hidden className={`pointer-events-none absolute -right-10 -top-10 h-28 w-28 rounded-full bg-gradient-to-br ${tone} opacity-15 blur-2xl`} />
+      <div className="relative flex items-center gap-3">
+        <div className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-gradient-to-br ${tone} text-white shadow-lg`}>
+          <Icon className="h-4 w-4" />
+        </div>
+        <div className="min-w-0">
+          <div className="text-[11px] text-muted-foreground">{label}</div>
+          <div className="text-2xl font-black tabular-nums text-foreground">
+            {loading ? <span className="inline-block h-6 w-10 animate-pulse rounded bg-muted/30" /> : value}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
