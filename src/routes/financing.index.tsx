@@ -132,14 +132,15 @@ function FinancingHome() {
             transition={{ delay: 0.15 }}
             className="lg:col-span-6 relative"
           >
-            <div className="relative overflow-hidden rounded-3xl ring-1 ring-white/10 shadow-2xl">
+            <div className="relative aspect-[4/3] lg:aspect-auto lg:h-full overflow-hidden rounded-3xl ring-1 ring-white/10 shadow-2xl">
               <img
                 src={heroImg.url}
                 alt="لوحة محفظة التمويل الداخلي"
                 width={1600}
                 height={1200}
-                className="h-full w-full object-cover"
+                className="absolute inset-0 h-full w-full object-cover"
               />
+
               <div aria-hidden className="absolute inset-0 bg-gradient-to-tl from-slate-950/70 via-transparent to-transparent" />
               {/* floating stat card */}
               <motion.div
@@ -208,15 +209,16 @@ function FinancingHome() {
             كل قرار يصدر عن مختصين لدى ASH — بلا قرارات آلية.
             جميع الإفصاحات والرسوم تظهر لك قبل التوقيع، وتصلك إشعارات رسمية على الواتساب في كل مرحلة.
           </p>
-          <div className="relative overflow-hidden rounded-3xl ring-1 ring-slate-200 shadow-xl">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-3xl ring-1 ring-slate-200 shadow-xl">
             <img
               src={journeyImg.url}
               alt="مراجعة طلب التمويل"
               width={1400}
               height={1000}
               loading="lazy"
-              className="h-full w-full object-cover"
+              className="absolute inset-0 h-full w-full object-cover"
             />
+
             <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent" />
             <div className="absolute bottom-4 right-4 left-4 flex items-center gap-3 rounded-2xl bg-white/95 p-3 backdrop-blur-xl ring-1 ring-white/50">
               <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-blue-600 text-white">
@@ -252,7 +254,7 @@ function FinancingHome() {
       </section>
 
       {/* TRUST BANNER — real image */}
-      <section className="relative overflow-hidden rounded-[2rem] ring-1 ring-slate-200 shadow-xl">
+      <section className="relative min-h-[520px] md:min-h-[440px] overflow-hidden rounded-[2rem] ring-1 ring-slate-200 shadow-xl">
         <img
           src={trustImg.url}
           alt="مقر آش القابضة"
@@ -315,7 +317,7 @@ function FinancingHome() {
             desc="بإمكانك سداد التمويل مبكراً بدون رسوم إضافية، ويُخفَّض إجمالي التكلفة تلقائياً."
           />
         </div>
-        <div className="relative overflow-hidden rounded-3xl bg-slate-950 p-6 ring-1 ring-white/10 text-white">
+        <div className="relative min-h-[280px] overflow-hidden rounded-3xl bg-slate-950 p-6 ring-1 ring-white/10 text-white">
           <img
             src={shieldImg.url}
             alt=""
