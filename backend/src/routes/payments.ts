@@ -94,8 +94,15 @@ paymentsRouter.patch("/:id", requireStaff, async (req, res, next) => {
   try {
     const data = paymentSchema.partial().parse(req.body);
     if (data.status === "SUCCESS" && !data.paidAt) data.paidAt = new Date();
+    const before = await prisma.payment.findUnique({ where: { id: req.params.id }, select: { status: true } });
     const updated = await prisma.payment.update({ where: { id: req.params.id }, data: data as never });
     await logAudit(req, "payment.update", "Payment", updated.id);
+    if (before?.status !== "SUCCESS" && updated.status === "SUCCESS") {
+      generateCommissionForPayment(updated.id).catch((e) => console.error("[commission]", e));
+    }
+    if (before?.status === "SUCCESS" && (updated.status === "REFUNDED" || updated.status === "FAILED")) {
+      reverseCommissionsForPayment(updated.id, updated.status).catch((e) => console.error("[commission]", e));
+    }
     res.json({ payment: updated });
   } catch (e) { next(e); }
 });
