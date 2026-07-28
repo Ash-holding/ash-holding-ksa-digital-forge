@@ -92,6 +92,9 @@ function AdminContractDetail() {
   const isSigned = data.status === "SIGNED";
   const isActive = data.status === "ACTIVE";
   const isFinal = ["COMPLETED", "CANCELLED"].includes(data.status);
+  const promissory = data.termsSnapshot?.promissory;
+  const promissorySent = !!promissory?.sentAt;
+  const promissoryAccepted = !!promissory?.acceptedAt;
 
   return (
     <div className="space-y-6">
@@ -100,18 +103,43 @@ function AdminContractDetail() {
         description={`${data.product?.nameAr || ""} • ${data.application?.fullNameAr || data.application?.businessName || "—"} • الحالة: ${STATUS_AR[data.status] || data.status}`}
         icon={FileText}
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="outline" onClick={() => downloadFinancingContractPDF(data)} className="gap-1">
               <Download className="h-4 w-4" /> تحميل PDF
             </Button>
-            {isSigned && (
+            {isSigned && !promissorySent && (
+              <Button size="sm" onClick={() => sendPromissory.mutate()} disabled={sendPromissory.isPending} className="gap-1 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold">
+                <ScrollText className="h-4 w-4" /> إرسال السند التنفيذي
+              </Button>
+            )}
+            {isSigned && promissoryAccepted && (
               <Button size="sm" onClick={() => activate.mutate()} disabled={activate.isPending} className="gap-1 bg-emerald-500 hover:bg-emerald-600">
-                <PlayCircle className="h-4 w-4" /> تفعيل وصرف الرصيد
+                <PlayCircle className="h-4 w-4" /> صرف الرصيد الآن
               </Button>
             )}
           </div>
         }
       />
+
+      {/* Promissory pipeline banner */}
+      {isSigned && (
+        <div className="rounded-2xl border border-amber-500/25 bg-gradient-to-br from-amber-500/10 via-transparent to-transparent p-4 text-sm space-y-2">
+          <div className="flex items-center gap-2 font-bold text-amber-200">
+            <ScrollText className="h-5 w-5" /> السند التنفيذي — المرحلة الأخيرة قبل الصرف
+          </div>
+          <ol className="grid gap-2 md:grid-cols-3 text-xs">
+            <li className={`rounded-lg border p-2 ${promissorySent ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-100" : "border-white/10 bg-white/5 text-slate-300"}`}>
+              1. إصدار وإرسال السند {promissorySent ? `✓ ${new Date(promissory!.sentAt!).toLocaleString("ar-SA")}` : "— لم يُرسل بعد"}
+            </li>
+            <li className={`rounded-lg border p-2 ${promissoryAccepted ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-100" : promissorySent ? "border-amber-500/40 bg-amber-500/10 text-amber-100" : "border-white/10 bg-white/5 text-slate-400"}`}>
+              2. موافقة العميل {promissoryAccepted ? `✓ ${new Date(promissory!.acceptedAt!).toLocaleString("ar-SA")}` : promissorySent ? "— بانتظار الموافقة" : "—"}
+            </li>
+            <li className="rounded-lg border border-white/10 bg-white/5 p-2 text-slate-300 flex items-center gap-1">
+              <Clock className="h-3 w-3" /> 3. صرف فوري تلقائياً عند الموافقة
+            </li>
+          </ol>
+        </div>
+      )}
 
       {isActive && data.disbursedTxId && (
         <div className="rounded-2xl border border-emerald-500/30 bg-emerald-500/5 p-4 text-sm flex items-center gap-3">
@@ -121,6 +149,7 @@ function AdminContractDetail() {
           </div>
         </div>
       )}
+
 
       {/* Party info */}
       <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm space-y-1">
