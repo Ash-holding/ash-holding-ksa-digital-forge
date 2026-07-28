@@ -83,12 +83,81 @@ invoicesRouter.get("/", async (req, res, next) => {
     const [rows, total] = await Promise.all([
       prisma.invoice.findMany({
         where,
-        include: { client: { include: { user: { select: { name: true, email: true } } } }, project: { select: { title: true } } },
+        include: {
+          client: { include: { user: { select: { name: true, email: true, phone: true } } } },
+          project: { select: { id: true, title: true, status: true } },
+          payments: { select: { id: true, status: true, amount: true, method: true, paidAt: true } },
+          _count: { select: { items: true } },
+        },
         orderBy: { createdAt: "desc" }, skip, take,
       }),
       prisma.invoice.count({ where }),
     ]);
-    res.json({ rows, total, page, pageSize });
+
+    // Attach linkedRequest + contract + service in one round-trip each
+    const invIds = rows.map(r => r.id);
+    const projIds = Array.from(new Set(rows.map(r => r.projectId).filter(Boolean) as string[]));
+    const [requests, contracts, services] = await Promise.all([
+      invIds.length
+        ? prisma.projectRequest.findMany({
+            where: { linkedInvoiceId: { in: invIds } },
+            select: { id: true, title: true, category: true, status: true, linkedInvoiceId: true },
+          })
+        : Promise.resolve([]),
+      projIds.length
+        ? prisma.contract.findMany({
+            where: { projectId: { in: projIds } },
+            select: { id: true, contractNumber: true, title: true, status: true, projectId: true },
+          })
+        : Promise.resolve([]),
+      projIds.length
+        ? prisma.clientService.findMany({
+            where: { projectId: { in: projIds } },
+            select: { id: true, name: true, type: true, status: true, projectId: true },
+          })
+        : Promise.resolve([]),
+    ]);
+    const reqByInv = new Map(requests.map(r => [r.linkedInvoiceId!, r]));
+    const contractByProj = new Map(contracts.map(c => [c.projectId!, c]));
+    const serviceByProj = new Map(services.map(s => [s.projectId!, s]));
+    const enriched = rows.map(r => {
+      const lr = reqByInv.get(r.id) || null;
+      return {
+        ...r,
+        linkedRequest: lr,
+        requestRef: lr ? `REQ-${lr.id.replace(/-/g, "").slice(0, 6).toUpperCase()}` : null,
+        contract: r.projectId ? contractByProj.get(r.projectId) ?? null : null,
+        service: r.projectId ? serviceByProj.get(r.projectId) ?? null : null,
+      };
+    });
+
+    // Admin-only aggregate stats across the full scope (not just current page)
+    let stats: Record<string, number> | undefined;
+    if (isStaff(req)) {
+      const grouped = await prisma.invoice.groupBy({
+        by: ["status"],
+        where,
+        _count: { _all: true },
+        _sum: { total: true },
+      });
+      const now = new Date();
+      const overdueAgg = await prisma.invoice.aggregate({
+        where: { ...where, status: { notIn: ["PAID", "CANCELLED"] as never }, dueAt: { lt: now } },
+        _count: { _all: true },
+        _sum: { total: true },
+      });
+      const get = (s: string) => grouped.find(g => g.status === s);
+      stats = {
+        total: grouped.reduce((s, g) => s + g._count._all, 0),
+        paid:   get("PAID")?._count._all ?? 0,
+        unpaid: (get("UNPAID")?._count._all ?? 0) + (get("DRAFT")?._count._all ?? 0),
+        overdue: overdueAgg._count._all ?? 0,
+        paidAmount:    Number(get("PAID")?._sum.total ?? 0),
+        unpaidAmount:  Number(get("UNPAID")?._sum.total ?? 0) + Number(get("DRAFT")?._sum.total ?? 0),
+        overdueAmount: Number(overdueAgg._sum.total ?? 0),
+      };
+    }
+    res.json({ rows: enriched, total, page, pageSize, stats });
   } catch (e) { next(e); }
 });
 

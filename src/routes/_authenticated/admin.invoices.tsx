@@ -1,8 +1,8 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { FileText, Plus, Trash2, CheckCircle, Clock, AlertTriangle, TrendingUp, FileWarning } from "lucide-react";
+import { FileText, Plus, Trash2, CheckCircle, Clock, AlertTriangle, TrendingUp, FileWarning, Briefcase, Handshake, Sparkles, ExternalLink } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { DataTable, type Column } from "@/components/dashboard/DataTable";
@@ -59,9 +59,27 @@ function InvoicesPage() {
   const tax = +(taxable * (taxRate / 100)).toFixed(2);
   const total = +(taxable + tax).toFixed(2);
 
-  const columns: Column<Row>[] = [
-    { key: "number", header: "الرقم", render: (r) => <span dir="ltr" className="font-mono text-sm">{r.invoiceNumber}</span> },
-    { key: "client", header: "العميل", render: (r) => r.client.user.name },
+  const columns: Column<Row & { linkedRequest?: any; contract?: any; service?: any; requestRef?: string | null }>[] = [
+    { key: "number", header: "الفاتورة", render: (r) => (
+      <div className="min-w-0">
+        <div dir="ltr" className="font-mono text-sm font-bold text-foreground">{r.invoiceNumber}</div>
+        <div className="text-[10px] text-muted-foreground truncate">{r.client.user.name}</div>
+      </div>
+    ) },
+    { key: "links", header: "المرتبطات", hideOnMobile: true, render: (r) => (
+      <div className="flex flex-wrap items-center gap-1" onClick={(e) => e.stopPropagation()}>
+        {r.project && (
+          <LinkPill to="/admin/projects/$id" params={{ id: (r.project as any).id ?? "" }} icon={Briefcase} label={r.project.title} tone="blue" />
+        )}
+        {r.contract && (
+          <LinkPill to="/admin/contracts/$id" params={{ id: r.contract.id }} icon={Handshake} label={r.contract.contractNumber} tone="violet" mono />
+        )}
+        {r.linkedRequest && (
+          <LinkPill to="/admin/project-requests/$id" params={{ id: r.linkedRequest.id }} icon={Sparkles} label={r.requestRef ?? "طلب"} tone="amber" mono />
+        )}
+        {!r.project && !r.contract && !r.linkedRequest && <span className="text-[10.5px] text-muted-foreground">—</span>}
+      </div>
+    ) },
     { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
     { key: "total", header: "الإجمالي", render: (r) => <Money value={r.total} className="font-bold" /> },
     { key: "due", header: "الاستحقاق", render: (r) => formatDate(r.dueAt), hideOnMobile: true },
@@ -160,5 +178,22 @@ function InvoicesPage() {
         </div>
       </FormSheet>
     </>
+  );
+}
+
+function LinkPill({ to, params, icon: Icon, label, tone, mono }: { to: string; params: Record<string, string>; icon: any; label: string; tone: "blue" | "violet" | "amber"; mono?: boolean }) {
+  const cls = {
+    blue:   "border-sky-500/30 bg-sky-500/10 text-sky-600 hover:bg-sky-500/15",
+    violet: "border-violet-500/30 bg-violet-500/10 text-violet-600 hover:bg-violet-500/15",
+    amber:  "border-amber-500/30 bg-amber-500/10 text-amber-600 hover:bg-amber-500/15",
+  }[tone];
+  return (
+    <Link to={to as any} params={params as any}
+      className={`inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10.5px] font-bold transition-colors max-w-[160px] ${cls}`}
+    >
+      <Icon className="h-3 w-3 shrink-0" />
+      <span className={`truncate ${mono ? "font-mono" : ""}`} dir={mono ? "ltr" : undefined}>{label}</span>
+      <ExternalLink className="h-2.5 w-2.5 opacity-60 shrink-0" />
+    </Link>
   );
 }
