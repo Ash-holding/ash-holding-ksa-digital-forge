@@ -10,9 +10,14 @@ export const Route = createFileRoute("/_authenticated")({
 function AuthGate() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  // Token in storage means a login just occurred; treat as loading until user hydrates
   const hasToken = typeof window !== "undefined" && !!getAccessToken();
-  const pending = loading || (hasToken && !user);
+  const [timedOut, setTimedOut] = useState(false);
+  const pending = !timedOut && (loading || (hasToken && !user));
+
+  useEffect(() => {
+    const t = setTimeout(() => setTimedOut(true), 6000);
+    return () => clearTimeout(t);
+  }, []);
 
   useEffect(() => {
     if (!pending && !user) {
