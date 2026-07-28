@@ -76,6 +76,7 @@ import { Route as AuthenticatedAdminContractsRouteImport } from './routes/_authe
 import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authenticated/admin.audit-log'
 import { Route as AuthenticatedAdminAffiliateRouteImport } from './routes/_authenticated/admin.affiliate'
 import { Route as AuthenticatedClientProjectsIndexRouteImport } from './routes/_authenticated/client.projects.index'
+import { Route as AuthenticatedClientFinancingIndexRouteImport } from './routes/_authenticated/client.financing.index'
 import { Route as AuthenticatedAdminProjectRequestsIndexRouteImport } from './routes/_authenticated/admin.project-requests.index'
 import { Route as AuthenticatedAdminClientsIndexRouteImport } from './routes/_authenticated/admin.clients.index'
 import { Route as AuthenticatedClientSupportIdRouteImport } from './routes/_authenticated/client.support.$id'
@@ -475,6 +476,12 @@ const AuthenticatedClientProjectsIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedClientProjectsRoute,
   } as any)
+const AuthenticatedClientFinancingIndexRoute =
+  AuthenticatedClientFinancingIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedClientFinancingRoute,
+  } as any)
 const AuthenticatedAdminProjectRequestsIndexRoute =
   AuthenticatedAdminProjectRequestsIndexRouteImport.update({
     id: '/',
@@ -733,6 +740,7 @@ export interface FileRoutesByFullPath {
   '/client/support/$id': typeof AuthenticatedClientSupportIdRoute
   '/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
   '/admin/project-requests/': typeof AuthenticatedAdminProjectRequestsIndexRoute
+  '/client/financing/': typeof AuthenticatedClientFinancingIndexRoute
   '/client/projects/': typeof AuthenticatedClientProjectsIndexRoute
   '/admin/clients/$id/edit': typeof AuthenticatedAdminClientsIdEditRoute
   '/admin/financing/contracts/$id': typeof AuthenticatedAdminFinancingContractsIdRoute
@@ -788,7 +796,6 @@ export interface FileRoutesByTo {
   '/affiliate/wallet': typeof AuthenticatedAffiliateWalletRoute
   '/client/contracts': typeof AuthenticatedClientContractsRouteWithChildren
   '/client/files': typeof AuthenticatedClientFilesRoute
-  '/client/financing': typeof AuthenticatedClientFinancingRouteWithChildren
   '/client/invoices': typeof AuthenticatedClientInvoicesRouteWithChildren
   '/client/notifications': typeof AuthenticatedClientNotificationsRoute
   '/client/payments': typeof AuthenticatedClientPaymentsRouteWithChildren
@@ -823,6 +830,7 @@ export interface FileRoutesByTo {
   '/client/support/$id': typeof AuthenticatedClientSupportIdRoute
   '/admin/clients': typeof AuthenticatedAdminClientsIndexRoute
   '/admin/project-requests': typeof AuthenticatedAdminProjectRequestsIndexRoute
+  '/client/financing': typeof AuthenticatedClientFinancingIndexRoute
   '/client/projects': typeof AuthenticatedClientProjectsIndexRoute
   '/admin/clients/$id/edit': typeof AuthenticatedAdminClientsIdEditRoute
   '/admin/financing/contracts/$id': typeof AuthenticatedAdminFinancingContractsIdRoute
@@ -921,6 +929,7 @@ export interface FileRoutesById {
   '/_authenticated/client/support/$id': typeof AuthenticatedClientSupportIdRoute
   '/_authenticated/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
   '/_authenticated/admin/project-requests/': typeof AuthenticatedAdminProjectRequestsIndexRoute
+  '/_authenticated/client/financing/': typeof AuthenticatedClientFinancingIndexRoute
   '/_authenticated/client/projects/': typeof AuthenticatedClientProjectsIndexRoute
   '/_authenticated/admin/clients/$id/edit': typeof AuthenticatedAdminClientsIdEditRoute
   '/_authenticated/admin/financing/contracts/$id': typeof AuthenticatedAdminFinancingContractsIdRoute
@@ -1019,6 +1028,7 @@ export interface FileRouteTypes {
     | '/client/support/$id'
     | '/admin/clients/'
     | '/admin/project-requests/'
+    | '/client/financing/'
     | '/client/projects/'
     | '/admin/clients/$id/edit'
     | '/admin/financing/contracts/$id'
@@ -1074,7 +1084,6 @@ export interface FileRouteTypes {
     | '/affiliate/wallet'
     | '/client/contracts'
     | '/client/files'
-    | '/client/financing'
     | '/client/invoices'
     | '/client/notifications'
     | '/client/payments'
@@ -1109,6 +1118,7 @@ export interface FileRouteTypes {
     | '/client/support/$id'
     | '/admin/clients'
     | '/admin/project-requests'
+    | '/client/financing'
     | '/client/projects'
     | '/admin/clients/$id/edit'
     | '/admin/financing/contracts/$id'
@@ -1206,6 +1216,7 @@ export interface FileRouteTypes {
     | '/_authenticated/client/support/$id'
     | '/_authenticated/admin/clients/'
     | '/_authenticated/admin/project-requests/'
+    | '/_authenticated/client/financing/'
     | '/_authenticated/client/projects/'
     | '/_authenticated/admin/clients/$id/edit'
     | '/_authenticated/admin/financing/contracts/$id'
@@ -1709,6 +1720,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientProjectsIndexRouteImport
       parentRoute: typeof AuthenticatedClientProjectsRoute
     }
+    '/_authenticated/client/financing/': {
+      id: '/_authenticated/client/financing/'
+      path: '/'
+      fullPath: '/client/financing/'
+      preLoaderRoute: typeof AuthenticatedClientFinancingIndexRouteImport
+      parentRoute: typeof AuthenticatedClientFinancingRoute
+    }
     '/_authenticated/admin/project-requests/': {
       id: '/_authenticated/admin/project-requests/'
       path: '/'
@@ -2139,6 +2157,7 @@ const AuthenticatedClientContractsRouteWithChildren =
 
 interface AuthenticatedClientFinancingRouteChildren {
   AuthenticatedClientFinancingIdRoute: typeof AuthenticatedClientFinancingIdRoute
+  AuthenticatedClientFinancingIndexRoute: typeof AuthenticatedClientFinancingIndexRoute
   AuthenticatedClientFinancingApplyProductIdRoute: typeof AuthenticatedClientFinancingApplyProductIdRoute
   AuthenticatedClientFinancingContractsIdRoute: typeof AuthenticatedClientFinancingContractsIdRoute
 }
@@ -2146,6 +2165,8 @@ interface AuthenticatedClientFinancingRouteChildren {
 const AuthenticatedClientFinancingRouteChildren: AuthenticatedClientFinancingRouteChildren =
   {
     AuthenticatedClientFinancingIdRoute: AuthenticatedClientFinancingIdRoute,
+    AuthenticatedClientFinancingIndexRoute:
+      AuthenticatedClientFinancingIndexRoute,
     AuthenticatedClientFinancingApplyProductIdRoute:
       AuthenticatedClientFinancingApplyProductIdRoute,
     AuthenticatedClientFinancingContractsIdRoute:
