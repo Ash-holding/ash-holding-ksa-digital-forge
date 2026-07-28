@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/format";
 import { LiveBadge } from "@/components/client/LiveBadge";
 
-export const Route = createFileRoute("/_authenticated/admin/project-requests")({
+export const Route = createFileRoute("/_authenticated/admin/project-requests/")({
   component: ProjectRequestsPage,
 });
 
