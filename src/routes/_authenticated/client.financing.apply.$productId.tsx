@@ -62,12 +62,15 @@ function FinancingWizardPage() {
   const qc = useQueryClient();
   const [step, setStep] = useState(0);
   const [appId, setAppId] = useState<string | undefined>(search.id);
+  const [createErr, setCreateErr] = useState<string | null>(null);
+  const [creating, setCreating] = useState(false);
   const created = useRef(false);
 
   // fetch product
   const productQ = useQuery({
     queryKey: ["financing-product", productId],
     queryFn: () => api.get<{ items: Product[] }>("/financing/products").then((r) => r.data.items.find((p) => p.id === productId)),
+    retry: 1,
   });
   const product = productQ.data;
 
@@ -79,18 +82,37 @@ function FinancingWizardPage() {
   });
   const app = appQ.data;
 
+  const createApp = async () => {
+    if (!product) return;
+    setCreating(true);
+    setCreateErr(null);
+    try {
+      const amount = search.amount ?? product.minAmount;
+      const term = search.term ?? product.minTermMonths;
+      const down = search.down ?? Math.ceil((product.minDownPaymentPct / 100) * amount);
+      const r = await api.post<Application>("/financing/applications", {
+        productId: product.id, amount, downPayment: down, termMonths: term,
+      });
+      setAppId(r.data.id);
+      navigate({
+        to: "/client/financing/apply/$productId",
+        params: { productId },
+        search: { ...search, id: r.data.id },
+        replace: true,
+      });
+    } catch (e) {
+      setCreateErr(apiError(e) || "تعذر إنشاء الطلب");
+    } finally {
+      setCreating(false);
+    }
+  };
+
   useEffect(() => {
     if (created.current || appId || !product) return;
     created.current = true;
-    const amount = search.amount ?? product.minAmount;
-    const term = search.term ?? product.minTermMonths;
-    const down = search.down ?? Math.ceil((product.minDownPaymentPct / 100) * amount);
-    api.post<Application>("/financing/applications", {
-      productId: product.id, amount, downPayment: down, termMonths: term,
-    })
-      .then((r) => setAppId(r.data.id))
-      .catch((e) => toast.error((apiError(e) || "تعذر إنشاء الطلب")));
-  }, [product, appId, search]);
+    void createApp();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [product, appId]);
 
   const save = useMutation({
     mutationFn: (data: Record<string, unknown>) => api.patch<Application>(`/financing/applications/${appId}`, data),
@@ -121,15 +143,47 @@ function FinancingWizardPage() {
     return true;
   }, [app, step, isBusiness]);
 
-  if (productQ.isLoading || !app) {
+  if (productQ.isLoading) {
     return (
       <div className="space-y-6">
-        <ClientPageHeader icon={Wallet} title="طلب تمويل جديد" description="جاري تجهيز المعالج…" />
+        <ClientPageHeader icon={Wallet} title="طلب تمويل جديد" description="جاري تحميل بيانات المنتج…" />
         <div className="rounded-2xl border border-border bg-card/50 p-8 text-center text-sm text-muted-foreground">…</div>
       </div>
     );
   }
-  if (!product) return <div className="p-8 text-sm text-rose-400">المنتج غير متاح.</div>;
+  if (productQ.isError || !product) {
+    return (
+      <div className="space-y-6">
+        <ClientPageHeader icon={Wallet} title="طلب تمويل جديد" description="تعذر تحميل بيانات المنتج" />
+        <div className="rounded-2xl border border-rose-500/30 bg-rose-500/5 p-6 text-center">
+          <p className="text-sm text-rose-300">المنتج غير متاح أو تم إيقافه.</p>
+          <Link to="/client/financing" className="mt-3 inline-block text-xs text-electric underline">العودة لصفحة التمويل</Link>
+        </div>
+      </div>
+    );
+  }
+  if (!app) {
+    return (
+      <div className="space-y-6">
+        <ClientPageHeader icon={Wallet} title={`طلب تمويل — ${product.nameAr}`} description={creating ? "جاري إنشاء مسودة الطلب…" : (createErr ?? "جاري تجهيز المعالج…")} />
+        <div className="rounded-2xl border border-border bg-card/50 p-8 text-center">
+          {createErr ? (
+            <>
+              <p className="text-sm text-rose-300 mb-4">{createErr}</p>
+              <Button onClick={() => { created.current = true; void createApp(); }} disabled={creating} className="bg-gradient-to-r from-electric to-purple-accent">
+                {creating ? "جاري المحاولة…" : "إعادة المحاولة"}
+              </Button>
+              <div className="mt-3">
+                <Link to="/client/financing" className="text-xs text-muted-foreground hover:text-electric">العودة</Link>
+              </div>
+            </>
+          ) : (
+            <div className="text-sm text-muted-foreground">…</div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
