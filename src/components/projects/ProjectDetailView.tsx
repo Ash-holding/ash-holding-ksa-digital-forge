@@ -145,54 +145,88 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
       {project.isLoading ? (
         <Skeleton className="h-52 rounded-3xl" />
       ) : p ? (
-        <div className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={springIn}
+          className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
+        >
           {/* subtle decorative gradient */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_oklab,var(--electric)_10%,transparent),transparent_60%)]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,color-mix(in_oklab,var(--cyan-accent)_8%,transparent),transparent_55%)]" />
+          <motion.div
+            className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,color-mix(in_oklab,var(--electric)_14%,transparent),transparent_60%)]"
+            animate={{ opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <motion.div
+            className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,color-mix(in_oklab,var(--cyan-accent)_10%,transparent),transparent_55%)]"
+            animate={{ opacity: [1, 0.55, 1] }}
+            transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+          />
 
           <div className="relative p-6 md:p-8">
             <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-6">
               <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 flex-wrap mb-3">
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+                  className="flex items-center gap-2 flex-wrap mb-3"
+                >
                   <Badge variant="outline" className="gap-1.5 bg-background/60 backdrop-blur">
                     <Layers className="h-3 w-3" />
                     <span className="font-mono text-[10px]">#{p.id.slice(0, 6).toUpperCase()}</span>
                   </Badge>
                   <StatusBadge value={p.status} />
-                </div>
+                </motion.div>
 
-                <h1 className="text-2xl md:text-4xl font-bold tracking-tight text-foreground">
+                <motion.h1
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.12, ...springIn }}
+                  className="text-2xl md:text-4xl font-bold tracking-tight text-foreground"
+                >
                   {p.title}
-                </h1>
+                </motion.h1>
 
                 {p.description && (
-                  <p className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl leading-relaxed line-clamp-3">
+                  <motion.p
+                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+                    className="mt-3 text-sm md:text-base text-muted-foreground max-w-2xl leading-relaxed line-clamp-3"
+                  >
                     {p.description}
-                  </p>
+                  </motion.p>
                 )}
 
-                <div className="mt-5 flex flex-wrap gap-2">
+                <motion.div
+                  initial="hidden" animate="show"
+                  variants={{ hidden: {}, show: { transition: { staggerChildren: 0.06, delayChildren: 0.25 } } }}
+                  className="mt-5 flex flex-wrap gap-2"
+                >
                   <MetaPill icon={UserIcon} label={p.client.user.name} />
                   {p.dueDate && <MetaPill icon={Calendar} label={`التسليم ${formatDate(p.dueDate)}`} />}
                   {p.budget && (
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/70 backdrop-blur px-3 py-1.5 text-xs font-medium">
+                    <motion.div
+                      variants={{ hidden: { opacity: 0, y: 6 }, show: { opacity: 1, y: 0 } }}
+                      className="inline-flex items-center gap-1.5 rounded-full border border-border bg-background/70 backdrop-blur px-3 py-1.5 text-xs font-medium"
+                    >
                       <Wallet className="h-3.5 w-3.5 text-electric" />
                       <Money value={p.budget} />
-                    </div>
+                    </motion.div>
                   )}
-                </div>
+                </motion.div>
               </div>
 
               {/* progress card */}
-              <div className="lg:w-72 shrink-0 rounded-2xl border border-border bg-background/80 backdrop-blur p-5">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 8 }} animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: 0.15, ...springIn }}
+                className="lg:w-72 shrink-0 rounded-2xl border border-border bg-background/80 backdrop-blur p-5"
+              >
                 <div className="flex items-center justify-between mb-3">
                   <div className="text-xs font-medium text-muted-foreground">التقدم الإجمالي</div>
                   <TrendingUp className="h-4 w-4 text-electric" />
                 </div>
                 <div className="flex items-baseline gap-1">
-                  <span className="text-4xl font-bold tabular-nums bg-gradient-to-l from-electric to-cyan-accent bg-clip-text text-transparent">
-                    {p.progress}
-                  </span>
+                  <AnimatedNumber
+                    value={p.progress}
+                    className="text-4xl font-bold tabular-nums bg-gradient-to-l from-electric to-cyan-accent bg-clip-text text-transparent"
+                  />
                   <span className="text-lg font-semibold text-muted-foreground">%</span>
                 </div>
                 <Progress value={p.progress} className="h-2 mt-3" />
@@ -202,17 +236,20 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
                   <MiniStat label="نشطة" value={activeCount} tone="text-electric" />
                   <MiniStat label="مكتملة" value={doneCount} tone="text-emerald-600" />
                 </div>
-              </div>
+              </motion.div>
             </div>
           </div>
-        </div>
+        </motion.div>
       ) : null}
 
       {/* BENTO: Stages + Chat */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* STAGES */}
         <section className="lg:col-span-3 space-y-4">
-          <div className="flex items-center justify-between">
+          <motion.div
+            initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+            className="flex items-center justify-between"
+          >
             <div>
               <h2 className="text-lg font-bold flex items-center gap-2">
                 <span className="inline-flex h-8 w-8 items-center justify-center rounded-lg bg-electric/10 text-electric">
@@ -224,6 +261,7 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
                 تتبّع كل مرحلة على حدة — التقدم يُحتسب تلقائياً وفق وزن كل مرحلة.
               </p>
             </div>
+
             {isAdmin && (
               <Button size="sm" onClick={() => { setEditStage(null); setStageOpen(true); }} className="gap-1.5 shrink-0">
                 <Plus className="h-4 w-4" /> مرحلة
