@@ -68,7 +68,7 @@ function AdminAffiliateHub() {
 }
 
 // ─────────────────────────── OVERVIEW ───────────────────────────
-function OverviewPane() {
+function OverviewPane({ onGoApplications }: { onGoApplications?: () => void }) {
   const qc = useQueryClient();
   const { data, isLoading } = useQuery({
     queryKey: ["admin", "affiliate", "overview"],
