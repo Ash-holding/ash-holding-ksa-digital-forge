@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { api, setTokens, getAccessToken, apiError } from "./api";
 import { bindAffiliate } from "./affiliate-tracker";
 
-export type Role = "SUPER_ADMIN" | "ADMIN" | "SUPPORT" | "ACCOUNTANT" | "CLIENT";
+export type Role = "SUPER_ADMIN" | "ADMIN" | "SUPPORT" | "ACCOUNTANT" | "CLIENT" | "AFFILIATE" | "AFFILIATE_MANAGER" | "FINANCE_REVIEWER";
 
 export type AuthUser = {
   id: string;
@@ -130,6 +130,9 @@ export function useAuth() {
 
 export function landingFor(role: Role): string {
   if (role === "CLIENT") return "/client";
+  if (role === "AFFILIATE") return "/affiliate";
+  if (role === "AFFILIATE_MANAGER") return "/admin";
+  if (role === "FINANCE_REVIEWER") return "/admin/invoices";
   if (role === "SUPPORT") return "/admin/support";
   if (role === "ACCOUNTANT") return "/admin/invoices";
   return "/admin";

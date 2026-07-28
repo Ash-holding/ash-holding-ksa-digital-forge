@@ -22,6 +22,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as ForgotPasswordRouteImport } from './routes/forgot-password'
 import { Route as FaqRouteImport } from './routes/faq'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as AffiliateProgramRouteImport } from './routes/affiliate-program'
 import { Route as AcceptableUseRouteImport } from './routes/acceptable-use'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
@@ -30,8 +31,10 @@ import { Route as ServicesIndexRouteImport } from './routes/services.index'
 import { Route as ServicesSlugRouteImport } from './routes/services.$slug'
 import { Route as PortfolioSlugRouteImport } from './routes/portfolio.$slug'
 import { Route as AuthenticatedClientRouteImport } from './routes/_authenticated/client'
+import { Route as AuthenticatedAffiliateRouteImport } from './routes/_authenticated/affiliate'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 import { Route as AuthenticatedClientIndexRouteImport } from './routes/_authenticated/client.index'
+import { Route as AuthenticatedAffiliateIndexRouteImport } from './routes/_authenticated/affiliate.index'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated/admin.index'
 import { Route as VerifyReceiptCodeRouteImport } from './routes/verify.receipt.$code'
 import { Route as AuthenticatedClientWalletRouteImport } from './routes/_authenticated/client.wallet'
@@ -44,6 +47,15 @@ import { Route as AuthenticatedClientNotificationsRouteImport } from './routes/_
 import { Route as AuthenticatedClientInvoicesRouteImport } from './routes/_authenticated/client.invoices'
 import { Route as AuthenticatedClientFilesRouteImport } from './routes/_authenticated/client.files'
 import { Route as AuthenticatedClientContractsRouteImport } from './routes/_authenticated/client.contracts'
+import { Route as AuthenticatedAffiliateWalletRouteImport } from './routes/_authenticated/affiliate.wallet'
+import { Route as AuthenticatedAffiliateProfileRouteImport } from './routes/_authenticated/affiliate.profile'
+import { Route as AuthenticatedAffiliateNotificationsRouteImport } from './routes/_authenticated/affiliate.notifications'
+import { Route as AuthenticatedAffiliateMarketingRouteImport } from './routes/_authenticated/affiliate.marketing'
+import { Route as AuthenticatedAffiliateLinksRouteImport } from './routes/_authenticated/affiliate.links'
+import { Route as AuthenticatedAffiliateCustomersRouteImport } from './routes/_authenticated/affiliate.customers'
+import { Route as AuthenticatedAffiliateCommissionsRouteImport } from './routes/_authenticated/affiliate.commissions'
+import { Route as AuthenticatedAffiliateCampaignsRouteImport } from './routes/_authenticated/affiliate.campaigns'
+import { Route as AuthenticatedAffiliateApplyRouteImport } from './routes/_authenticated/affiliate.apply'
 import { Route as AuthenticatedAdminWalletRouteImport } from './routes/_authenticated/admin.wallet'
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated/admin.users'
 import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin.support'
@@ -143,6 +155,11 @@ const ContactRoute = ContactRouteImport.update({
   path: '/contact',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AffiliateProgramRoute = AffiliateProgramRouteImport.update({
+  id: '/affiliate-program',
+  path: '/affiliate-program',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AcceptableUseRoute = AcceptableUseRouteImport.update({
   id: '/acceptable-use',
   path: '/acceptable-use',
@@ -182,6 +199,11 @@ const AuthenticatedClientRoute = AuthenticatedClientRouteImport.update({
   path: '/client',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedAffiliateRoute = AuthenticatedAffiliateRouteImport.update({
+  id: '/affiliate',
+  path: '/affiliate',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -192,6 +214,12 @@ const AuthenticatedClientIndexRoute =
     id: '/',
     path: '/',
     getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
+const AuthenticatedAffiliateIndexRoute =
+  AuthenticatedAffiliateIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAffiliateRoute,
   } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
   id: '/',
@@ -262,6 +290,60 @@ const AuthenticatedClientContractsRoute =
     id: '/contracts',
     path: '/contracts',
     getParentRoute: () => AuthenticatedClientRoute,
+  } as any)
+const AuthenticatedAffiliateWalletRoute =
+  AuthenticatedAffiliateWalletRouteImport.update({
+    id: '/wallet',
+    path: '/wallet',
+    getParentRoute: () => AuthenticatedAffiliateRoute,
+  } as any)
+const AuthenticatedAffiliateProfileRoute =
+  AuthenticatedAffiliateProfileRouteImport.update({
+    id: '/profile',
+    path: '/profile',
+    getParentRoute: () => AuthenticatedAffiliateRoute,
+  } as any)
+const AuthenticatedAffiliateNotificationsRoute =
+  AuthenticatedAffiliateNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedAffiliateRoute,
+  } as any)
+const AuthenticatedAffiliateMarketingRoute =
+  AuthenticatedAffiliateMarketingRouteImport.update({
+    id: '/marketing',
+    path: '/marketing',
+    getParentRoute: () => AuthenticatedAffiliateRoute,
+  } as any)
+const AuthenticatedAffiliateLinksRoute =
+  AuthenticatedAffiliateLinksRouteImport.update({
+    id: '/links',
+    path: '/links',
+    getParentRoute: () => AuthenticatedAffiliateRoute,
+  } as any)
+const AuthenticatedAffiliateCustomersRoute =
+  AuthenticatedAffiliateCustomersRouteImport.update({
+    id: '/customers',
+    path: '/customers',
+    getParentRoute: () => AuthenticatedAffiliateRoute,
+  } as any)
+const AuthenticatedAffiliateCommissionsRoute =
+  AuthenticatedAffiliateCommissionsRouteImport.update({
+    id: '/commissions',
+    path: '/commissions',
+    getParentRoute: () => AuthenticatedAffiliateRoute,
+  } as any)
+const AuthenticatedAffiliateCampaignsRoute =
+  AuthenticatedAffiliateCampaignsRouteImport.update({
+    id: '/campaigns',
+    path: '/campaigns',
+    getParentRoute: () => AuthenticatedAffiliateRoute,
+  } as any)
+const AuthenticatedAffiliateApplyRoute =
+  AuthenticatedAffiliateApplyRouteImport.update({
+    id: '/apply',
+    path: '/apply',
+    getParentRoute: () => AuthenticatedAffiliateRoute,
   } as any)
 const AuthenticatedAdminWalletRoute =
   AuthenticatedAdminWalletRouteImport.update({
@@ -464,6 +546,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/acceptable-use': typeof AcceptableUseRoute
+  '/affiliate-program': typeof AffiliateProgramRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -478,6 +561,7 @@ export interface FileRoutesByFullPath {
   '/verify': typeof VerifyRouteWithChildren
   '/why': typeof WhyRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/affiliate': typeof AuthenticatedAffiliateRouteWithChildren
   '/client': typeof AuthenticatedClientRouteWithChildren
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -495,6 +579,15 @@ export interface FileRoutesByFullPath {
   '/admin/support': typeof AuthenticatedAdminSupportRouteWithChildren
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/wallet': typeof AuthenticatedAdminWalletRoute
+  '/affiliate/apply': typeof AuthenticatedAffiliateApplyRoute
+  '/affiliate/campaigns': typeof AuthenticatedAffiliateCampaignsRoute
+  '/affiliate/commissions': typeof AuthenticatedAffiliateCommissionsRoute
+  '/affiliate/customers': typeof AuthenticatedAffiliateCustomersRoute
+  '/affiliate/links': typeof AuthenticatedAffiliateLinksRoute
+  '/affiliate/marketing': typeof AuthenticatedAffiliateMarketingRoute
+  '/affiliate/notifications': typeof AuthenticatedAffiliateNotificationsRoute
+  '/affiliate/profile': typeof AuthenticatedAffiliateProfileRoute
+  '/affiliate/wallet': typeof AuthenticatedAffiliateWalletRoute
   '/client/contracts': typeof AuthenticatedClientContractsRouteWithChildren
   '/client/files': typeof AuthenticatedClientFilesRoute
   '/client/invoices': typeof AuthenticatedClientInvoicesRouteWithChildren
@@ -507,6 +600,7 @@ export interface FileRoutesByFullPath {
   '/client/wallet': typeof AuthenticatedClientWalletRoute
   '/verify/receipt/$code': typeof VerifyReceiptCodeRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
+  '/affiliate/': typeof AuthenticatedAffiliateIndexRoute
   '/client/': typeof AuthenticatedClientIndexRoute
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
   '/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
@@ -533,6 +627,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/acceptable-use': typeof AcceptableUseRoute
+  '/affiliate-program': typeof AffiliateProgramRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -561,6 +656,15 @@ export interface FileRoutesByTo {
   '/admin/support': typeof AuthenticatedAdminSupportRouteWithChildren
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/admin/wallet': typeof AuthenticatedAdminWalletRoute
+  '/affiliate/apply': typeof AuthenticatedAffiliateApplyRoute
+  '/affiliate/campaigns': typeof AuthenticatedAffiliateCampaignsRoute
+  '/affiliate/commissions': typeof AuthenticatedAffiliateCommissionsRoute
+  '/affiliate/customers': typeof AuthenticatedAffiliateCustomersRoute
+  '/affiliate/links': typeof AuthenticatedAffiliateLinksRoute
+  '/affiliate/marketing': typeof AuthenticatedAffiliateMarketingRoute
+  '/affiliate/notifications': typeof AuthenticatedAffiliateNotificationsRoute
+  '/affiliate/profile': typeof AuthenticatedAffiliateProfileRoute
+  '/affiliate/wallet': typeof AuthenticatedAffiliateWalletRoute
   '/client/contracts': typeof AuthenticatedClientContractsRouteWithChildren
   '/client/files': typeof AuthenticatedClientFilesRoute
   '/client/invoices': typeof AuthenticatedClientInvoicesRouteWithChildren
@@ -572,6 +676,7 @@ export interface FileRoutesByTo {
   '/client/wallet': typeof AuthenticatedClientWalletRoute
   '/verify/receipt/$code': typeof VerifyReceiptCodeRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
+  '/affiliate': typeof AuthenticatedAffiliateIndexRoute
   '/client': typeof AuthenticatedClientIndexRoute
   '/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
   '/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
@@ -600,6 +705,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/about': typeof AboutRoute
   '/acceptable-use': typeof AcceptableUseRoute
+  '/affiliate-program': typeof AffiliateProgramRoute
   '/contact': typeof ContactRoute
   '/faq': typeof FaqRoute
   '/forgot-password': typeof ForgotPasswordRoute
@@ -614,6 +720,7 @@ export interface FileRoutesById {
   '/verify': typeof VerifyRouteWithChildren
   '/why': typeof WhyRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/affiliate': typeof AuthenticatedAffiliateRouteWithChildren
   '/_authenticated/client': typeof AuthenticatedClientRouteWithChildren
   '/portfolio/$slug': typeof PortfolioSlugRoute
   '/services/$slug': typeof ServicesSlugRoute
@@ -631,6 +738,15 @@ export interface FileRoutesById {
   '/_authenticated/admin/support': typeof AuthenticatedAdminSupportRouteWithChildren
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/admin/wallet': typeof AuthenticatedAdminWalletRoute
+  '/_authenticated/affiliate/apply': typeof AuthenticatedAffiliateApplyRoute
+  '/_authenticated/affiliate/campaigns': typeof AuthenticatedAffiliateCampaignsRoute
+  '/_authenticated/affiliate/commissions': typeof AuthenticatedAffiliateCommissionsRoute
+  '/_authenticated/affiliate/customers': typeof AuthenticatedAffiliateCustomersRoute
+  '/_authenticated/affiliate/links': typeof AuthenticatedAffiliateLinksRoute
+  '/_authenticated/affiliate/marketing': typeof AuthenticatedAffiliateMarketingRoute
+  '/_authenticated/affiliate/notifications': typeof AuthenticatedAffiliateNotificationsRoute
+  '/_authenticated/affiliate/profile': typeof AuthenticatedAffiliateProfileRoute
+  '/_authenticated/affiliate/wallet': typeof AuthenticatedAffiliateWalletRoute
   '/_authenticated/client/contracts': typeof AuthenticatedClientContractsRouteWithChildren
   '/_authenticated/client/files': typeof AuthenticatedClientFilesRoute
   '/_authenticated/client/invoices': typeof AuthenticatedClientInvoicesRouteWithChildren
@@ -643,6 +759,7 @@ export interface FileRoutesById {
   '/_authenticated/client/wallet': typeof AuthenticatedClientWalletRoute
   '/verify/receipt/$code': typeof VerifyReceiptCodeRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
+  '/_authenticated/affiliate/': typeof AuthenticatedAffiliateIndexRoute
   '/_authenticated/client/': typeof AuthenticatedClientIndexRoute
   '/_authenticated/admin/clients/$id': typeof AuthenticatedAdminClientsIdRouteWithChildren
   '/_authenticated/admin/clients/new': typeof AuthenticatedAdminClientsNewRoute
@@ -671,6 +788,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/acceptable-use'
+    | '/affiliate-program'
     | '/contact'
     | '/faq'
     | '/forgot-password'
@@ -685,6 +803,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/why'
     | '/admin'
+    | '/affiliate'
     | '/client'
     | '/portfolio/$slug'
     | '/services/$slug'
@@ -702,6 +821,15 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/users'
     | '/admin/wallet'
+    | '/affiliate/apply'
+    | '/affiliate/campaigns'
+    | '/affiliate/commissions'
+    | '/affiliate/customers'
+    | '/affiliate/links'
+    | '/affiliate/marketing'
+    | '/affiliate/notifications'
+    | '/affiliate/profile'
+    | '/affiliate/wallet'
     | '/client/contracts'
     | '/client/files'
     | '/client/invoices'
@@ -714,6 +842,7 @@ export interface FileRouteTypes {
     | '/client/wallet'
     | '/verify/receipt/$code'
     | '/admin/'
+    | '/affiliate/'
     | '/client/'
     | '/admin/clients/$id'
     | '/admin/clients/new'
@@ -740,6 +869,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/acceptable-use'
+    | '/affiliate-program'
     | '/contact'
     | '/faq'
     | '/forgot-password'
@@ -768,6 +898,15 @@ export interface FileRouteTypes {
     | '/admin/support'
     | '/admin/users'
     | '/admin/wallet'
+    | '/affiliate/apply'
+    | '/affiliate/campaigns'
+    | '/affiliate/commissions'
+    | '/affiliate/customers'
+    | '/affiliate/links'
+    | '/affiliate/marketing'
+    | '/affiliate/notifications'
+    | '/affiliate/profile'
+    | '/affiliate/wallet'
     | '/client/contracts'
     | '/client/files'
     | '/client/invoices'
@@ -779,6 +918,7 @@ export interface FileRouteTypes {
     | '/client/wallet'
     | '/verify/receipt/$code'
     | '/admin'
+    | '/affiliate'
     | '/client'
     | '/admin/clients/$id'
     | '/admin/clients/new'
@@ -806,6 +946,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/about'
     | '/acceptable-use'
+    | '/affiliate-program'
     | '/contact'
     | '/faq'
     | '/forgot-password'
@@ -820,6 +961,7 @@ export interface FileRouteTypes {
     | '/verify'
     | '/why'
     | '/_authenticated/admin'
+    | '/_authenticated/affiliate'
     | '/_authenticated/client'
     | '/portfolio/$slug'
     | '/services/$slug'
@@ -837,6 +979,15 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/support'
     | '/_authenticated/admin/users'
     | '/_authenticated/admin/wallet'
+    | '/_authenticated/affiliate/apply'
+    | '/_authenticated/affiliate/campaigns'
+    | '/_authenticated/affiliate/commissions'
+    | '/_authenticated/affiliate/customers'
+    | '/_authenticated/affiliate/links'
+    | '/_authenticated/affiliate/marketing'
+    | '/_authenticated/affiliate/notifications'
+    | '/_authenticated/affiliate/profile'
+    | '/_authenticated/affiliate/wallet'
     | '/_authenticated/client/contracts'
     | '/_authenticated/client/files'
     | '/_authenticated/client/invoices'
@@ -849,6 +1000,7 @@ export interface FileRouteTypes {
     | '/_authenticated/client/wallet'
     | '/verify/receipt/$code'
     | '/_authenticated/admin/'
+    | '/_authenticated/affiliate/'
     | '/_authenticated/client/'
     | '/_authenticated/admin/clients/$id'
     | '/_authenticated/admin/clients/new'
@@ -877,6 +1029,7 @@ export interface RootRouteChildren {
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
   AboutRoute: typeof AboutRoute
   AcceptableUseRoute: typeof AcceptableUseRoute
+  AffiliateProgramRoute: typeof AffiliateProgramRoute
   ContactRoute: typeof ContactRoute
   FaqRoute: typeof FaqRoute
   ForgotPasswordRoute: typeof ForgotPasswordRoute
@@ -987,6 +1140,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ContactRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/affiliate-program': {
+      id: '/affiliate-program'
+      path: '/affiliate-program'
+      fullPath: '/affiliate-program'
+      preLoaderRoute: typeof AffiliateProgramRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/acceptable-use': {
       id: '/acceptable-use'
       path: '/acceptable-use'
@@ -1043,6 +1203,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/affiliate': {
+      id: '/_authenticated/affiliate'
+      path: '/affiliate'
+      fullPath: '/affiliate'
+      preLoaderRoute: typeof AuthenticatedAffiliateRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/admin': {
       id: '/_authenticated/admin'
       path: '/admin'
@@ -1056,6 +1223,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/client/'
       preLoaderRoute: typeof AuthenticatedClientIndexRouteImport
       parentRoute: typeof AuthenticatedClientRoute
+    }
+    '/_authenticated/affiliate/': {
+      id: '/_authenticated/affiliate/'
+      path: '/'
+      fullPath: '/affiliate/'
+      preLoaderRoute: typeof AuthenticatedAffiliateIndexRouteImport
+      parentRoute: typeof AuthenticatedAffiliateRoute
     }
     '/_authenticated/admin/': {
       id: '/_authenticated/admin/'
@@ -1140,6 +1314,69 @@ declare module '@tanstack/react-router' {
       fullPath: '/client/contracts'
       preLoaderRoute: typeof AuthenticatedClientContractsRouteImport
       parentRoute: typeof AuthenticatedClientRoute
+    }
+    '/_authenticated/affiliate/wallet': {
+      id: '/_authenticated/affiliate/wallet'
+      path: '/wallet'
+      fullPath: '/affiliate/wallet'
+      preLoaderRoute: typeof AuthenticatedAffiliateWalletRouteImport
+      parentRoute: typeof AuthenticatedAffiliateRoute
+    }
+    '/_authenticated/affiliate/profile': {
+      id: '/_authenticated/affiliate/profile'
+      path: '/profile'
+      fullPath: '/affiliate/profile'
+      preLoaderRoute: typeof AuthenticatedAffiliateProfileRouteImport
+      parentRoute: typeof AuthenticatedAffiliateRoute
+    }
+    '/_authenticated/affiliate/notifications': {
+      id: '/_authenticated/affiliate/notifications'
+      path: '/notifications'
+      fullPath: '/affiliate/notifications'
+      preLoaderRoute: typeof AuthenticatedAffiliateNotificationsRouteImport
+      parentRoute: typeof AuthenticatedAffiliateRoute
+    }
+    '/_authenticated/affiliate/marketing': {
+      id: '/_authenticated/affiliate/marketing'
+      path: '/marketing'
+      fullPath: '/affiliate/marketing'
+      preLoaderRoute: typeof AuthenticatedAffiliateMarketingRouteImport
+      parentRoute: typeof AuthenticatedAffiliateRoute
+    }
+    '/_authenticated/affiliate/links': {
+      id: '/_authenticated/affiliate/links'
+      path: '/links'
+      fullPath: '/affiliate/links'
+      preLoaderRoute: typeof AuthenticatedAffiliateLinksRouteImport
+      parentRoute: typeof AuthenticatedAffiliateRoute
+    }
+    '/_authenticated/affiliate/customers': {
+      id: '/_authenticated/affiliate/customers'
+      path: '/customers'
+      fullPath: '/affiliate/customers'
+      preLoaderRoute: typeof AuthenticatedAffiliateCustomersRouteImport
+      parentRoute: typeof AuthenticatedAffiliateRoute
+    }
+    '/_authenticated/affiliate/commissions': {
+      id: '/_authenticated/affiliate/commissions'
+      path: '/commissions'
+      fullPath: '/affiliate/commissions'
+      preLoaderRoute: typeof AuthenticatedAffiliateCommissionsRouteImport
+      parentRoute: typeof AuthenticatedAffiliateRoute
+    }
+    '/_authenticated/affiliate/campaigns': {
+      id: '/_authenticated/affiliate/campaigns'
+      path: '/campaigns'
+      fullPath: '/affiliate/campaigns'
+      preLoaderRoute: typeof AuthenticatedAffiliateCampaignsRouteImport
+      parentRoute: typeof AuthenticatedAffiliateRoute
+    }
+    '/_authenticated/affiliate/apply': {
+      id: '/_authenticated/affiliate/apply'
+      path: '/apply'
+      fullPath: '/affiliate/apply'
+      preLoaderRoute: typeof AuthenticatedAffiliateApplyRouteImport
+      parentRoute: typeof AuthenticatedAffiliateRoute
     }
     '/_authenticated/admin/wallet': {
       id: '/_authenticated/admin/wallet'
@@ -1523,6 +1760,40 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
 const AuthenticatedAdminRouteWithChildren =
   AuthenticatedAdminRoute._addFileChildren(AuthenticatedAdminRouteChildren)
 
+interface AuthenticatedAffiliateRouteChildren {
+  AuthenticatedAffiliateApplyRoute: typeof AuthenticatedAffiliateApplyRoute
+  AuthenticatedAffiliateCampaignsRoute: typeof AuthenticatedAffiliateCampaignsRoute
+  AuthenticatedAffiliateCommissionsRoute: typeof AuthenticatedAffiliateCommissionsRoute
+  AuthenticatedAffiliateCustomersRoute: typeof AuthenticatedAffiliateCustomersRoute
+  AuthenticatedAffiliateLinksRoute: typeof AuthenticatedAffiliateLinksRoute
+  AuthenticatedAffiliateMarketingRoute: typeof AuthenticatedAffiliateMarketingRoute
+  AuthenticatedAffiliateNotificationsRoute: typeof AuthenticatedAffiliateNotificationsRoute
+  AuthenticatedAffiliateProfileRoute: typeof AuthenticatedAffiliateProfileRoute
+  AuthenticatedAffiliateWalletRoute: typeof AuthenticatedAffiliateWalletRoute
+  AuthenticatedAffiliateIndexRoute: typeof AuthenticatedAffiliateIndexRoute
+}
+
+const AuthenticatedAffiliateRouteChildren: AuthenticatedAffiliateRouteChildren =
+  {
+    AuthenticatedAffiliateApplyRoute: AuthenticatedAffiliateApplyRoute,
+    AuthenticatedAffiliateCampaignsRoute: AuthenticatedAffiliateCampaignsRoute,
+    AuthenticatedAffiliateCommissionsRoute:
+      AuthenticatedAffiliateCommissionsRoute,
+    AuthenticatedAffiliateCustomersRoute: AuthenticatedAffiliateCustomersRoute,
+    AuthenticatedAffiliateLinksRoute: AuthenticatedAffiliateLinksRoute,
+    AuthenticatedAffiliateMarketingRoute: AuthenticatedAffiliateMarketingRoute,
+    AuthenticatedAffiliateNotificationsRoute:
+      AuthenticatedAffiliateNotificationsRoute,
+    AuthenticatedAffiliateProfileRoute: AuthenticatedAffiliateProfileRoute,
+    AuthenticatedAffiliateWalletRoute: AuthenticatedAffiliateWalletRoute,
+    AuthenticatedAffiliateIndexRoute: AuthenticatedAffiliateIndexRoute,
+  }
+
+const AuthenticatedAffiliateRouteWithChildren =
+  AuthenticatedAffiliateRoute._addFileChildren(
+    AuthenticatedAffiliateRouteChildren,
+  )
+
 interface AuthenticatedClientContractsRouteChildren {
   AuthenticatedClientContractsIdRoute: typeof AuthenticatedClientContractsIdRoute
 }
@@ -1653,11 +1924,13 @@ const AuthenticatedClientRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedAffiliateRoute: typeof AuthenticatedAffiliateRouteWithChildren
   AuthenticatedClientRoute: typeof AuthenticatedClientRouteWithChildren
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedAffiliateRoute: AuthenticatedAffiliateRouteWithChildren,
   AuthenticatedClientRoute: AuthenticatedClientRouteWithChildren,
 }
 
@@ -1693,6 +1966,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   AboutRoute: AboutRoute,
   AcceptableUseRoute: AcceptableUseRoute,
+  AffiliateProgramRoute: AffiliateProgramRoute,
   ContactRoute: ContactRoute,
   FaqRoute: FaqRoute,
   ForgotPasswordRoute: ForgotPasswordRoute,

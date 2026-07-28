@@ -24,6 +24,7 @@ import { notificationsRouter } from "./routes/notifications.js";
 import { whatsappRouter } from "./routes/whatsapp.js";
 import { walletRouter } from "./routes/wallet.js";
 import { trackRouter } from "./routes/track.js";
+import { affiliateRouter } from "./routes/affiliate.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rate-limit.js";
 
@@ -68,6 +69,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/notifications", notificationsRouter);
 app.use("/api/wallet", walletRouter);
+app.use("/api/affiliate", affiliateRouter);
 
 app.use("/api", notFoundHandler);
 app.use(errorHandler);
