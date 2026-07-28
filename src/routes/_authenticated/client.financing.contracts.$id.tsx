@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { AmortizationTable } from "@/components/financing/AmortizationTable";
+import { EarlySettlementPanel } from "@/components/financing/EarlySettlementPanel";
 import { downloadFinancingContractPDF } from "@/lib/financing-contract-print";
 
 export const Route = createFileRoute("/_authenticated/client/financing/contracts/$id")({
