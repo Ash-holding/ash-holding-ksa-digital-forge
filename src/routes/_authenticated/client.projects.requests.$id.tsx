@@ -106,13 +106,24 @@ function ClientRequestDetailPage() {
             <ArrowRight className="h-4 w-4" /> عودة لطلباتي
           </Link>
         </Button>
-        {r.project?.id && (
-          <Button asChild size="sm" className="gap-1.5 bg-gradient-to-r from-electric to-purple-accent">
-            <Link to="/client/projects/$id" params={{ id: r.project.id }}>
-              فتح المشروع <ExternalLink className="h-3.5 w-3.5" />
-            </Link>
+        <div className="flex items-center gap-2">
+          {r.updatedAt && (
+            <span className="hidden sm:inline-flex items-center gap-1 rounded-full bg-muted/40 px-2.5 py-1 text-[10px] font-bold text-muted-foreground">
+              <Clock className="h-3 w-3" /> آخر تحديث {formatDate(r.updatedAt)}
+            </span>
+          )}
+          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => q.refetch()} disabled={q.isFetching}>
+            <RefreshCw className={cn("h-3.5 w-3.5", q.isFetching && "animate-spin")} />
+            تحديث
           </Button>
-        )}
+          {r.project?.id && (
+            <Button asChild size="sm" className="gap-1.5 bg-gradient-to-r from-electric to-purple-accent">
+              <Link to="/client/projects/$id" params={{ id: r.project.id }}>
+                فتح المشروع <ExternalLink className="h-3.5 w-3.5" />
+              </Link>
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Cinematic Hero */}
