@@ -143,7 +143,7 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
               )}
             </div>
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>
   );
