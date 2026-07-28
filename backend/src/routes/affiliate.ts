@@ -44,10 +44,14 @@ async function currentAffiliate(userId: string) {
     },
   });
 }
-async function requireAffiliate(userId: string) {
+type RequireAffiliateResult =
+  | { error: string; status: 403 | 404; data?: NonNullable<Awaited<ReturnType<typeof currentAffiliate>>> }
+  | { data: NonNullable<Awaited<ReturnType<typeof currentAffiliate>>> };
+
+async function requireAffiliate(userId: string): Promise<RequireAffiliateResult> {
   const a = await currentAffiliate(userId);
-  if (!a) return { error: "لا يوجد حساب مسوّق مرتبط", status: 404 as const };
-  if (a.status !== "ACTIVE") return { error: "حسابك غير مفعّل بعد", status: 403 as const, data: a };
+  if (!a) return { error: "لا يوجد حساب مسوّق مرتبط", status: 404 };
+  if (a.status !== "ACTIVE") return { error: "حسابك غير مفعّل بعد", status: 403, data: a };
   return { data: a };
 }
 function sumDecimal<T extends { amount: unknown }>(rows: T[]): number {
