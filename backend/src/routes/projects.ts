@@ -682,7 +682,7 @@ projectsRouter.get("/requests/list", async (req, res, next) => {
 });
 
 function emptyRequestStats() {
-  return { total: 0, pending: 0, underReview: 0, approved: 0, rejected: 0, urgent: 0, last24h: 0 };
+  return { total: 0, pending: 0, underReview: 0, proposal: 0, running: 0, approved: 0, rejected: 0, urgent: 0, last24h: 0 };
 }
 
 // CREATE
