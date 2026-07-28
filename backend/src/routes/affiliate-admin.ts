@@ -293,7 +293,7 @@ async function approveAffiliateApplication(req: Request, applicationId: string) 
     else if (byPhone?.id) userId = byPhone.id;
     else {
       const created = await prisma.user.create({
-        data: { email: app.email, phone: app.phone, name: app.fullName, role: "CLIENT" },
+        data: { email: app.email, phone: app.phone, name: app.fullName, role: "CLIENT", passwordHash: randomBytes(24).toString("hex") },
         select: { id: true },
       });
       userId = created.id;
