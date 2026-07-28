@@ -53,20 +53,19 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
   return (
     <AnimatePresence>
       {open && (
-        <>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 overflow-y-auto" dir="rtl">
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm" onClick={onClose}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", damping: 22 }}
-            className="fixed inset-x-4 top-1/2 -translate-y-1/2 md:inset-x-auto md:start-1/2 md:-translate-x-1/2 z-50 max-w-lg mx-auto md:mx-0"
-            dir="rtl"
+            className="relative z-10 w-full max-w-lg my-auto"
           >
-            <div className="rounded-3xl border border-electric/30 bg-gradient-to-br from-card via-card to-electric/5 shadow-2xl overflow-hidden">
+            <div className="rounded-3xl border border-electric/30 bg-gradient-to-br from-card via-card to-electric/5 shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto">
               {/* header */}
               <div className="relative p-5 border-b border-border/60 bg-gradient-to-l from-electric/15 to-transparent">
                 <button onClick={onClose} className="absolute end-3 top-3 h-8 w-8 grid place-items-center rounded-full hover:bg-muted/40">
@@ -144,7 +143,7 @@ export function SignatureDialog({ open, onClose, requestId, reference, title, am
               )}
             </div>
           </motion.div>
-        </>
+        </div>
       )}
     </AnimatePresence>
   );
