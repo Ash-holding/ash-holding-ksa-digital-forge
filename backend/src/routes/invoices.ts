@@ -5,6 +5,7 @@ import { requireAuth, requireStaff } from "../middleware/auth.js";
 import { currentClientId, isStaff, paging } from "../lib/scope.js";
 import { logAudit } from "../lib/audit.js";
 import { WA } from "../lib/whatsapp.js";
+import { activateRequestIfInvoicePaid } from "./projects.js";
 
 async function clientPhone(clientId: string): Promise<string | null> {
   const c = await prisma.client.findUnique({
@@ -130,6 +131,9 @@ invoicesRouter.patch("/:id", requireStaff, async (req, res, next) => {
     if (body.status === "PAID" && !body.paidAt) body.paidAt = new Date();
     const updated = await prisma.invoice.update({ where: { id: req.params.id }, data: body });
     await logAudit(req, "invoice.update", "Invoice", updated.id, body as never);
+    if (body.status === "PAID") {
+      activateRequestIfInvoicePaid(updated.id).catch((e) => console.error("[activate-request]", e));
+    }
     res.json({ invoice: updated });
   } catch (e) { next(e); }
 });
@@ -147,6 +151,7 @@ invoicesRouter.post("/:id/mark-paid", requireStaff, async (req, res, next) => {
       `ASH HOLDING — تم استلام الدفع ✅\nفاتورة: ${inv.invoiceNumber}\nالمبلغ: ${inv.total} ${inv.currency}\nشكراً لتعاملكم معنا.`,
       { kind: "invoice.paid", entityId: inv.id },
     );
+    activateRequestIfInvoicePaid(inv.id).catch((e) => console.error("[activate-request]", e));
     res.json({ invoice: inv });
   } catch (e) { next(e); }
 });
