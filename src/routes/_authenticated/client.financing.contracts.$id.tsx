@@ -137,6 +137,52 @@ function ClientContractDetail() {
         </motion.div>
       )}
 
+      {/* Promissory pending — awaiting admin issue */}
+      {promissoryPending && (
+        <div className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm flex items-center gap-3">
+          <ScrollText className="h-5 w-5 text-slate-300" />
+          <div>
+            <div className="font-bold">جارٍ إعداد السند التنفيذي</div>
+            <div className="text-xs text-muted-foreground mt-1">
+              تم استلام توقيعك على العقد. سيتم إشعارك فور إصدار السند التنفيذي من إدارة التمويل.
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Promissory acceptance card */}
+      {canAcceptPromissory && (
+        <motion.div
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+          className="rounded-2xl border border-amber-500/40 bg-gradient-to-br from-amber-500/15 via-amber-500/5 to-transparent p-5 space-y-4"
+        >
+          <div className="flex items-center gap-2 font-bold text-amber-200">
+            <ScrollText className="h-5 w-5" /> السند التنفيذي جاهز للموافقة
+          </div>
+          <div className="text-xs text-slate-200 leading-relaxed">
+            بموجب هذا السند التنفيذي، تُقرّ بموافقتك على الالتزام بسداد المبلغ الممول <b>{money(data.financedAmount)} ر.س</b> وفق جدول الأقساط
+            المعتمد في العقد رقم <b>{data.code}</b>. يُعدّ هذا السند مستنداً رسمياً قابلاً للتنفيذ عبر الجهات المختصة عند الإخلال بالسداد.
+            <br />
+            <b className="text-amber-300">فور موافقتك يتم صرف رصيد الخدمات إلى محفظتك مباشرة.</b>
+          </div>
+          <label className="flex items-start gap-2 text-xs cursor-pointer">
+            <Checkbox checked={pAck} onCheckedChange={(v) => setPAck(v === true)} />
+            <span>أُقر بقبول السند التنفيذي والتزامي بجميع بنوده وجدول السداد المرفق.</span>
+          </label>
+          <Button
+            className="w-full gap-2 bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold"
+            disabled={!pAck || acceptPromissory.isPending}
+            onClick={() => acceptPromissory.mutate()}
+          >
+            <ShieldCheck className="h-4 w-4" />
+            {acceptPromissory.isPending ? "جارٍ التوثيق…" : "أوافق على السند وأستلم الرصيد فوراً"}
+          </Button>
+          <div className="text-[10px] text-slate-400 text-center">
+            تم إصدار السند بتاريخ {new Date(promissory!.sentAt!).toLocaleString("ar-SA")}
+          </div>
+        </motion.div>
+      )}
+
       {/* Autopay toggle (only when contract is ACTIVE) */}
       {data.status === "ACTIVE" && (
         <div className="rounded-2xl border border-white/10 bg-white/5 p-4 flex items-center justify-between gap-3">
