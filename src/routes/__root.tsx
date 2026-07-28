@@ -43,9 +43,12 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
 
+  const message = (error && (error.message || String(error))) || "خطأ غير معروف";
+  const stack = (error && (error.stack || "")) as string;
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10" dir="rtl">
+      <div className="w-full max-w-2xl text-center">
         <h1 className="text-xl font-semibold">حدث خطأ غير متوقع</h1>
         <p className="mt-2 text-sm text-muted-foreground">حاول تحديث الصفحة أو العودة للرئيسية.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
@@ -59,10 +62,22 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             الرئيسية
           </a>
         </div>
+        <details className="mt-6 text-start rounded-lg border border-border/60 bg-muted/30 p-3">
+          <summary className="cursor-pointer text-xs font-semibold text-muted-foreground">تفاصيل الخطأ (للدعم الفني)</summary>
+          <div className="mt-2 text-xs font-mono text-destructive break-words whitespace-pre-wrap" dir="ltr">
+            {message}
+          </div>
+          {stack && (
+            <pre className="mt-2 text-[10px] font-mono text-muted-foreground overflow-auto max-h-64" dir="ltr">
+              {stack}
+            </pre>
+          )}
+        </details>
       </div>
     </div>
   );
 }
+
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
