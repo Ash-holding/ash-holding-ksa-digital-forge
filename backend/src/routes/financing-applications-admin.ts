@@ -10,7 +10,7 @@ import {
 } from "../middleware/financing.js";
 import {
   STAGE_ROLES, NEXT_ON_APPROVE, STAGE_FOR_STATUS,
-  appendEvent, notifyApplicant, STATUS_LABEL_AR,
+  appendEvent, notifyApplicant, STATUS_LABEL_AR, bankMessage,
 } from "../lib/financing/lifecycle.js";
 import type { FinancingApplicationStatus, FinancingDecisionStage } from "@prisma/client";
 
