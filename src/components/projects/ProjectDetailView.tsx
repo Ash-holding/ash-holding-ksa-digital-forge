@@ -450,7 +450,18 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
         </section>
       </div>
 
+      {/* Invoices linked to this project */}
+      <InvoicesPanel
+        projectId={projectId}
+        projectRef={projectRef}
+        requestRef={requestRef ?? null}
+        invoices={invoicesList}
+        isAdmin={isAdmin}
+        defaultAmount={p?.budget ? Number(p.budget) : 0}
+      />
+
       {/* Stage form sheet */}
+
       <FormSheet
         open={stageOpen} onOpenChange={(v) => { setStageOpen(v); if (!v) setEditStage(null); }}
         title={editStage ? "تعديل المرحلة" : "مرحلة جديدة"}
