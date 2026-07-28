@@ -191,7 +191,7 @@ function ClientDetail() {
         </Card>
       </div>
 
-      <Tabs defaultValue="projects" className="w-full">
+      <Tabs dir="rtl" defaultValue="projects" className="w-full">
         <TabsList dir="rtl" className="flex flex-wrap gap-1 h-auto justify-start bg-transparent p-0">
           {[
             ["projects", "المشاريع", c.projects?.length],
