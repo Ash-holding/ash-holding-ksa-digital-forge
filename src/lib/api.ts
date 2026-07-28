@@ -31,7 +31,7 @@ export function setTokens(access: string | null, refresh: string | null) {
   window.dispatchEvent(new Event("ash-auth-change"));
 }
 
-export const api = axios.create({ baseURL: BASE, withCredentials: false });
+export const api = axios.create({ baseURL: BASE, withCredentials: false, timeout: 15000 });
 
 api.interceptors.request.use((config) => {
   const t = getAccessToken();
