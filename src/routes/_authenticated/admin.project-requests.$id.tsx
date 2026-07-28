@@ -238,6 +238,14 @@ function RequestDetailPage() {
         </div>
       </motion.div>
 
+      {/* Approval stepper */}
+      <ApprovalStepper status={form.status as never} revisionCount={r.revisionCount ?? 0} />
+
+      {/* Countdown for in-progress requests */}
+      {form.status === "IN_PROGRESS" && r.executionDueAt && (
+        <CountdownTimer startAt={r.executionStartAt} dueAt={r.executionDueAt} />
+      )}
+
       {/* Quick actions */}
       <div className="flex flex-wrap gap-2">
         <Button size="sm" variant="outline" className="gap-1.5" onClick={() => quickStatus("UNDER_REVIEW")}>
@@ -251,6 +259,14 @@ function RequestDetailPage() {
           onClick={() => quickStatus("REJECTED")}>
           <XCircle className="h-3.5 w-3.5" /> رفض
         </Button>
+        {r.proposalAmount && !["SIGNED","IN_PROGRESS","DELIVERED","COMPLETED"].includes(form.status) && (
+          <Button size="sm" className="gap-1.5 bg-gradient-to-r from-amber-500 to-orange-500"
+            onClick={() => api.post(`/projects/requests/${id}/request-signature`)
+              .then(() => { toast.success("تم إرسال رمز التوقيع للعميل"); qc.invalidateQueries({ queryKey: ["project-request", id] }); })
+              .catch((e) => toast.error(apiError(e)))}>
+            <PenLine className="h-3.5 w-3.5" /> طلب توقيع العميل
+          </Button>
+        )}
         {!r.project?.id && (
           <Button size="sm" className="gap-1.5 bg-gradient-to-r from-electric to-purple-accent ms-auto" onClick={convert}>
             <Rocket className="h-3.5 w-3.5" /> تحويل لمشروع رسمي
