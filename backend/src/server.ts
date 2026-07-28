@@ -33,6 +33,7 @@ import { financingApplicationsAdminRouter } from "./routes/financing-application
 import { financingContractsRouter } from "./routes/financing-contracts.js";
 import { financingOpsRouter, financingOpsPublicRouter } from "./routes/financing-ops.js";
 import { financingClosureRouter, financingDisclosuresPublicRouter } from "./routes/financing-closure.js";
+import { financingReportsRouter } from "./routes/financing-reports.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rate-limit.js";
 
