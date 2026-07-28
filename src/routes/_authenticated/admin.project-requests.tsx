@@ -19,9 +19,7 @@ export const Route = createFileRoute("/_authenticated/admin/project-requests")({
 
 
 function ProjectRequestsPage() {
-  const qc = useQueryClient();
   const [status, setStatus] = useState<string | null>(null);
-  const [selected, setSelected] = useState<any | null>(null);
 
   const list = useQuery({
     queryKey: ["project-requests", status],
@@ -32,21 +30,15 @@ function ProjectRequestsPage() {
     retry: 1,
   });
 
-
   const rows = (list.data?.rows ?? []) as any[];
   const stats = list.data?.stats ?? { total: 0, pending: 0, underReview: 0, approved: 0, rejected: 0, urgent: 0, last24h: 0 };
-
-  const del = useMutation({
-    mutationFn: (id: string) => api.delete(`/projects/requests/${id}`),
-    onSuccess: () => { toast.success("تم الحذف"); qc.invalidateQueries({ queryKey: ["project-requests"] }); },
-    onError: (e) => toast.error(apiError(e)),
-  });
 
   const grouped = useMemo(() => {
     const g: Record<string, any[]> = { PENDING: [], UNDER_REVIEW: [], APPROVED: [], CONVERTED: [], REJECTED: [] };
     rows.forEach((r) => { (g[r.status] ??= []).push(r); });
     return g;
   }, [rows]);
+
 
   return (
     <>
