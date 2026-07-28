@@ -15,6 +15,7 @@ const ITEMS = [
   { to: "/client/services", label: "الخدمات", icon: Boxes },
   { to: "/client/invoices", label: "الفواتير", icon: FileText },
   { to: "/client/wallet", label: "المحفظة الرقمية", icon: Wallet },
+  { to: "/client/financing", label: "تمويل الخدمات", icon: Wallet },
   { to: "/client/contracts", label: "العقود", icon: ScrollText },
   { to: "/affiliate", label: "الإحالات", icon: Megaphone },
   { to: "/client/support", label: "الدعم", icon: LifeBuoy },

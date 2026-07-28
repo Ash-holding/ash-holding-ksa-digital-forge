@@ -226,12 +226,12 @@ export function FinancingCalculator() {
           {quote?.disclaimerAr ??
             "النتيجة تقديرية ولا تمثل موافقة. يخضع القرار النهائي لدراسة ائتمانية داخلية."}
         </div>
-        <button
-          onClick={() => toast.info("تقديم طلب التمويل سيكون متاحًا بعد استكمال بوابة الامتثال.")}
-          className="w-full rounded-2xl bg-white/10 py-3 text-sm font-semibold ring-1 ring-white/15 transition hover:bg-white/15"
+        <a
+          href={product ? `/client/financing/apply/${product.id}?amount=${amount}&down=${downPayment}&term=${term}` : "#"}
+          className={`block w-full rounded-2xl py-3 text-center text-sm font-semibold ring-1 transition ${product ? "bg-white text-slate-900 ring-white hover:bg-white/90" : "bg-white/10 text-slate-400 ring-white/15 pointer-events-none"}`}
         >
           تقديم طلب تمويل
-        </button>
+        </a>
       </motion.aside>
     </div>
   );
