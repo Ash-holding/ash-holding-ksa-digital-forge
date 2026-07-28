@@ -1477,6 +1477,9 @@ enum FinancingContractStatus {
   COMPLETED
   DEFAULTED
   CANCELLED
+  EARLY_SETTLED
+  RESTRUCTURED
+  WRITTEN_OFF
 }
 
 enum FinancingInstallmentStatus {
