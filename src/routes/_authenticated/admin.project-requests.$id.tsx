@@ -7,6 +7,7 @@ import {
   ArrowRight, Trash2, Save, Rocket, Eye, XCircle, Copy, ExternalLink,
   Wallet, Calendar, Phone, User as UserIcon, Mail, Tag, Sparkles, Clock,
   MessageSquare, Building2, Hash, FileText, AlertTriangle, CheckCircle2,
+  PenLine, Send, Receipt,
 } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -17,6 +18,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { ApprovalStepper } from "@/components/projects/ApprovalStepper";
+import { CountdownTimer } from "@/components/projects/CountdownTimer";
 
 export const Route = createFileRoute("/_authenticated/admin/project-requests/$id")({
   component: RequestDetailPage,
