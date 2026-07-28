@@ -424,7 +424,9 @@ html,body{margin:0;padding:0;background:#fff;font-family:"IBM Plex Sans Arabic",
       useCORS: true,
       logging: false,
       windowWidth: 820,
-      windowHeight: node.scrollHeight,
+      windowHeight: 1160,
+      width: 794,
+      height: 1123,
     });
 
     // ── Fit into ONE A4 page (contain)
