@@ -80,7 +80,7 @@ function validateEmployment(app: Application, isBusiness: boolean): string[] {
   return m;
 }
 function validateDocuments(app: Application): string[] {
-  return app.documents.length === 0 ? ["مستند واحد على الأقل"] : [];
+  return (app.documents?.length ?? 0) === 0 ? ["مستند واحد على الأقل"] : [];
 }
 function validateReview(app: Application): string[] {
   const m: string[] = [];
