@@ -25,6 +25,15 @@ export const Route = createFileRoute("/_authenticated/client/wallet")({
 
 const CURRENCY = "ر.س";
 
+const BANK_FALLBACK = {
+  beneficiary: "شركة علي صالح الشهري القابضة",
+  bank: "بنك ساب (SAB)",
+  iban: "SA3745000000262359391001",
+  currency: "SAR",
+};
+
+const WALLET_FALLBACK = { balance: 0, cashbackBalance: 0 };
+
 function fmtSar(n: number | string | null | undefined) {
   const v = Number(n ?? 0);
   return v.toLocaleString("ar-SA", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
