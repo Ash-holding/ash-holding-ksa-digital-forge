@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
 import {
   MessageSquare, Send, Plus, Trash2, Layers, Calendar, Wallet,
   CheckCircle2, Clock, Ban, PlayCircle, Pencil, Lock, User as UserIcon,
@@ -21,6 +22,18 @@ import { FormSheet } from "@/components/dashboard/FormSheet";
 import { Money } from "@/components/ui/money";
 import { formatDate } from "@/lib/format";
 import { cn } from "@/lib/utils";
+
+const springIn = { type: "spring" as const, stiffness: 260, damping: 26 };
+
+function AnimatedNumber({ value, className }: { value: number; className?: string }) {
+  const mv = useMotionValue(0);
+  const rounded = useTransform(mv, (v) => Math.round(v).toString());
+  useEffect(() => {
+    const controls = animate(mv, value, { duration: 0.9, ease: [0.22, 1, 0.36, 1] });
+    return controls.stop;
+  }, [value, mv]);
+  return <motion.span className={className}>{rounded}</motion.span>;
+}
 
 type Stage = {
   id: string; title: string; description?: string | null;
