@@ -169,6 +169,7 @@ model User {
   notifications   Notification[]
   auditLogs       AuditLog[]
   projectNotes    ProjectNote[]
+  projectMessages ProjectMessage[]
   verifiedClients Client[]        @relation("VerifiedBy")
 
 
