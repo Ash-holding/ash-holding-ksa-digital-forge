@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { motion } from "framer-motion";
 import {
   Boxes, Activity, PauseCircle, RefreshCw, Wallet, Layers, Search, AlertTriangle,
   Globe, Smartphone, Server, Mail, Megaphone, Palette, LifeBuoy, HardDrive, Package,
+  Clock,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { ClientPageHeader } from "@/components/client/ClientPageHeader";
@@ -15,6 +17,7 @@ import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
 import { Money } from "@/components/ui/money";
+import { ServiceCatalog } from "@/components/client/ServiceCatalog";
 
 const TYPE_AR: Record<string, string> = { WEBSITE:"موقع", MOBILE_APP:"تطبيق", ADMIN_SYSTEM:"نظام", HOSTING:"استضافة", VPS:"VPS", DEDICATED_SERVER:"سيرفر", SMTP:"SMTP", MARKETING:"تسويق", DESIGN:"تصميم", SUPPORT:"دعم", OTHER:"أخرى" };
 const TYPE_ICON: Record<string, any> = { WEBSITE: Globe, MOBILE_APP: Smartphone, ADMIN_SYSTEM: Server, HOSTING: HardDrive, VPS: Server, DEDICATED_SERVER: Server, SMTP: Mail, MARKETING: Megaphone, DESIGN: Palette, SUPPORT: LifeBuoy, OTHER: Package };
