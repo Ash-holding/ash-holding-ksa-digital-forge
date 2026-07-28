@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Handshake, Users, Percent, Banknote, Megaphone, Clock, RefreshCw, CheckCircle2, XCircle, PauseCircle, Play, TrendingUp, ExternalLink } from "lucide-react";
+import { Handshake, Users, Percent, Banknote, Megaphone, Clock, RefreshCw, CheckCircle2, XCircle, PauseCircle, Play, TrendingUp, ExternalLink, ShieldAlert } from "lucide-react";
 import { api } from "@/lib/api";
 import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,7 +32,7 @@ const money = (n: number | string) =>
   new Intl.NumberFormat("ar-SA", { maximumFractionDigits: 2 }).format(Number(n || 0)) + " ر.س";
 
 function AdminAffiliateHub() {
-  const [tab, setTab] = useState<"overview" | "affiliates" | "commissions" | "withdrawals" | "rules" | "marketing">("overview");
+  const [tab, setTab] = useState<"overview" | "affiliates" | "commissions" | "withdrawals" | "rules" | "marketing" | "fraud">("overview");
 
   return (
     <div className="space-y-6">
@@ -43,13 +43,14 @@ function AdminAffiliateHub() {
       />
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
-        <TabsList className="grid grid-cols-3 md:grid-cols-6 gap-1 h-auto p-1 bg-muted/40">
+        <TabsList className="grid grid-cols-3 md:grid-cols-7 gap-1 h-auto p-1 bg-muted/40">
           <TabsTrigger value="overview" className="gap-2"><TrendingUp className="w-4 h-4"/>نظرة عامة</TabsTrigger>
           <TabsTrigger value="affiliates" className="gap-2"><Users className="w-4 h-4"/>المسوّقون</TabsTrigger>
           <TabsTrigger value="commissions" className="gap-2"><Percent className="w-4 h-4"/>العمولات</TabsTrigger>
           <TabsTrigger value="withdrawals" className="gap-2"><Banknote className="w-4 h-4"/>طلبات السحب</TabsTrigger>
           <TabsTrigger value="rules" className="gap-2"><Percent className="w-4 h-4"/>القواعد</TabsTrigger>
           <TabsTrigger value="marketing" className="gap-2"><Megaphone className="w-4 h-4"/>المواد التسويقية</TabsTrigger>
+          <TabsTrigger value="fraud" className="gap-2"><ShieldAlert className="w-4 h-4"/>الأمن والاحتيال</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="mt-4"><OverviewPane/></TabsContent>
@@ -58,6 +59,7 @@ function AdminAffiliateHub() {
         <TabsContent value="withdrawals" className="mt-4"><WithdrawalsPane/></TabsContent>
         <TabsContent value="rules" className="mt-4"><RulesPane/></TabsContent>
         <TabsContent value="marketing" className="mt-4"><MarketingPane/></TabsContent>
+        <TabsContent value="fraud" className="mt-4"><FraudPane/></TabsContent>
       </Tabs>
     </div>
   );
