@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import {
   ArrowRight, Hash, Copy, ExternalLink, Sparkles, CheckCircle2, XCircle,
   MessageSquare, PenLine, Receipt, Clock, Wallet, Calendar, FileText,
-  AlertTriangle, ShieldCheck, User as UserIcon,
+  AlertTriangle, ShieldCheck, User as UserIcon, RefreshCw, StickyNote,
 } from "lucide-react";
 import { api, apiError } from "@/lib/api";
 import { Button } from "@/components/ui/button";
