@@ -51,7 +51,7 @@ const DEFAULTS: Seed[] = [
     minAmount: 30000, maxAmount: 500000, minDownPaymentPct: 20,
     minTermMonths: 6, maxTermMonths: 36, allowedTermsMonths: [6, 12, 18, 24, 36],
     ratePct: 9.5, adminFeePct: 1.25, adminFeeFlat: 250,
-    requiredDocsAr: ["السجل التجاري", "شهادة ضريبة القيمة المضافة", "قوائم مالية (سنة)", "كشف حساب المنشأة (6 أشهر)"],
+    requiredDocsAr: ["السجل التجاري", "شهادة ضريبة القيمة المضافة", "قوائم مالية (سنة)", "كشف حساب المنشأة (آخر 6 أشهر)", "تقرير سمة تجاري (SIMAH Corporate)"],
     eligibilityNoteAr: "منشأة نشطة وسارية، وإيرادات سنوية لا تقل عن 500,000 ﷼.",
   },
 ];
