@@ -50,7 +50,7 @@ function ClientProjectsPage() {
       <ClientPageHeader
         icon={FolderKanban}
         title="مشاريعي"
-        description="متابعة حية لمشاريعك وطلباتك — تحديث لحظي مع فريق الإدارة."
+        description="مركز إدارة مشاريعك وطلباتك — تتبع حالة كل مشروع، تابع تقدم التنفيذ، وأرسل طلباتك الجديدة بكل سهولة."
         actions={
           <div className="flex items-center gap-2">
             <LiveBadge interval={15} />
