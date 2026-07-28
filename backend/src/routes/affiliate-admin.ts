@@ -409,7 +409,7 @@ affiliateAdminRouter.patch("/withdrawals/:id", async (req, res, next) => {
       transferRef: body.transferRef ?? current.transferRef,
       rejectionReason: body.rejectionReason ?? current.rejectionReason,
       reviewedAt: now,
-      reviewedBy: { connect: { id: user.id } },
+      reviewedById: user.id,
     };
     if (body.status === "PAID" && !current.paidAt) data.paidAt = now;
 
