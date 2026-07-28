@@ -82,7 +82,7 @@ contractsRouter.get("/:id", async (req, res, next) => {
         select: {
           id: true, title: true, description: true, proposalScope: true, proposalDuration: true,
           proposalAmount: true, signedAt: true, signatureHash: true, signatureIp: true,
-          signatureUserAgent: true, contactPhone: true, contactEmail: true, linkedInvoiceId: true,
+          signatureUserAgent: true, contactPhone: true, linkedInvoiceId: true,
         },
       });
       linkedRequest = r;
