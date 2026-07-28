@@ -10,7 +10,8 @@ import { prisma } from "../lib/prisma.js";
 import { requireAuth } from "../middleware/auth.js";
 import { currentClientId, isStaff } from "../lib/scope.js";
 import { computeQuote } from "../lib/financing/calculator.js";
-import { appendEvent, computeInternalScore, notifyApplicant, STATUS_LABEL_AR } from "../lib/financing/lifecycle.js";
+import { appendEvent, computeInternalScore, notifyApplicant, STATUS_LABEL_AR, bankMessage } from "../lib/financing/lifecycle.js";
+import { computeInternalCreditReport } from "../lib/financing/credit-report.js";
 
 export const financingApplicationsRouter = Router();
 financingApplicationsRouter.use(requireAuth);
