@@ -12,6 +12,7 @@ import { clientsRouter } from "./routes/clients.js";
 import { projectsRouter } from "./routes/projects.js";
 import { servicesRouter } from "./routes/services.js";
 import { invoicesRouter } from "./routes/invoices.js";
+import { verifyRouter } from "./routes/verify.js";
 import { contractsRouter } from "./routes/contracts.js";
 import { supportRouter } from "./routes/support.js";
 import { paymentsRouter } from "./routes/payments.js";
@@ -47,6 +48,7 @@ app.get("/health", (_req, res) => res.json({ ok: true, service: "ash-holding-api
 // Public + auth
 app.use("/api/auth", authRouter);
 app.use("/api/whatsapp", whatsappRouter);
+app.use("/api/verify", verifyRouter); // public — receipt/invoice verification
 
 // General API rate limit for everything below
 app.use("/api", apiLimiter);
