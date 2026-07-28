@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 import { api, setTokens, getAccessToken, apiError } from "./api";
+import { bindAffiliate } from "./affiliate-tracker";
 
 export type Role = "SUPER_ADMIN" | "ADMIN" | "SUPPORT" | "ACCOUNTANT" | "CLIENT";
 
@@ -55,6 +56,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const { data } = await api.get("/auth/me");
       setUser(data.user);
       if (typeof window !== "undefined") localStorage.setItem(USER_CACHE_KEY, JSON.stringify(data.user));
+      if (data.user?.client?.id) void bindAffiliate(data.user.client.id);
     } catch {
       // If we have no cached user, the stored token is unusable — clear it
       // so the AuthGate can redirect to /login instead of hanging forever.

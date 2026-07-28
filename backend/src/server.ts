@@ -23,6 +23,7 @@ import { settingsRouter } from "./routes/settings.js";
 import { notificationsRouter } from "./routes/notifications.js";
 import { whatsappRouter } from "./routes/whatsapp.js";
 import { walletRouter } from "./routes/wallet.js";
+import { trackRouter } from "./routes/track.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rate-limit.js";
 
@@ -49,6 +50,7 @@ app.get("/health", (_req, res) => res.json({ ok: true, service: "ash-holding-api
 app.use("/api/auth", authRouter);
 app.use("/api/whatsapp", whatsappRouter);
 app.use("/api/verify", verifyRouter); // public — receipt/invoice verification
+app.use("/api/track", trackRouter);   // public — affiliate click/attribution tracking
 
 // General API rate limit for everything below
 app.use("/api", apiLimiter);
