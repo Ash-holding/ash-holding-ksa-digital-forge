@@ -696,6 +696,25 @@ function MethodCard({ active, onClick, icon: Icon, title, subtitle, badge, badge
   );
 }
 
+function MetaCell({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="px-4 py-3">
+      <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80">{label}</div>
+      <div className="mt-1 text-sm font-semibold truncate">{value ?? "—"}</div>
+    </div>
+  );
+}
+
+function TotalRow({ label, value, muted }: { label: string; value: React.ReactNode; muted?: boolean }) {
+  return (
+    <div className={cn("flex items-center justify-between gap-2 px-4 py-2 text-xs border-b border-border/50 last:border-0", muted && "bg-muted/30")}>
+      <span className="text-muted-foreground">{label}</span>
+      <span className="font-semibold tabular-nums" dir="ltr">{value}</span>
+    </div>
+  );
+}
+
+
 function BankLine({ k, v, mono, onCopy, copied }: { k: string; v: string; mono?: boolean; onCopy: (v: string) => void; copied: boolean }) {
   return (
     <div className="flex items-center justify-between gap-2 py-1 border-b border-border/40 last:border-0">
