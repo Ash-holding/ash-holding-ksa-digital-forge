@@ -13,9 +13,9 @@ type ContractLike = {
   ratePct: number | string;
   installmentAmount: number | string;
   totalInterest: number | string;
-  totalFees: number | string;
+  totalFees?: number | string;
   totalPayable: number | string;
-  aprPct: number | string;
+  aprPct?: number | string;
   firstDueDate?: string | null;
   lastDueDate?: string | null;
   clientSignedAt?: string | null;
