@@ -25,6 +25,7 @@ import { whatsappRouter } from "./routes/whatsapp.js";
 import { walletRouter } from "./routes/wallet.js";
 import { trackRouter } from "./routes/track.js";
 import { affiliateRouter } from "./routes/affiliate.js";
+import { affiliateAdminRouter } from "./routes/affiliate-admin.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rate-limit.js";
 
