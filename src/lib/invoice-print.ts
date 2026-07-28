@@ -192,180 +192,192 @@ async function buildInvoiceNode(inv: InvoiceLike): Promise<HTMLDivElement> {
     const desc = (it.description ?? "").toString().trim();
     const zebra = i % 2 === 1 ? C.soft : C.white;
     const label = itemLabel(it, projectTitle);
+    const showDesc = desc && desc !== label && desc !== projectTitle && !label.includes(desc);
     return `
       <tr style="background:${zebra}">
-        <td style="padding:7px 10px;border-bottom:1px solid ${C.line};color:${C.dim};font-size:10px;vertical-align:top;width:32px" dir="ltr">${String(i + 1).padStart(2,"0")}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid ${C.line};vertical-align:top;unicode-bidi:plaintext">
-          <div style="font-weight:700;font-size:10.5px;color:${C.ink};line-height:1.5">${label}</div>
-          ${desc && desc !== label ? `<div style="font-size:9px;color:${C.muted};line-height:1.6;margin-top:2px;font-weight:400">${desc}</div>` : ""}
+        <td style="padding:10px 12px;border-bottom:1px solid ${C.line};color:${C.dim};font-size:11px;vertical-align:top;width:36px" dir="ltr">${String(i + 1).padStart(2,"0")}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid ${C.line};vertical-align:top;unicode-bidi:plaintext">
+          <div style="font-weight:700;font-size:12px;color:${C.ink};line-height:1.55">${label}</div>
+          ${showDesc ? `<div style="font-size:10.5px;color:${C.muted};line-height:1.65;margin-top:3px;font-weight:400">${desc}</div>` : ""}
         </td>
-        <td style="padding:7px 10px;border-bottom:1px solid ${C.line};text-align:center;color:${C.ink};font-size:10px;font-variant-numeric:tabular-nums;width:44px">${qty}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid ${C.line};text-align:end;color:${C.ink};font-size:10px;font-variant-numeric:tabular-nums;width:80px" dir="ltr">${fmtSAR(unit)}</td>
-        <td style="padding:7px 10px;border-bottom:1px solid ${C.line};text-align:end;color:${C.ink};font-size:10.5px;font-weight:800;font-variant-numeric:tabular-nums;width:90px" dir="ltr">${fmtSAR(line)}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid ${C.line};text-align:center;color:${C.ink};font-size:11.5px;font-variant-numeric:tabular-nums;width:56px">${qty}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid ${C.line};text-align:end;color:${C.ink};font-size:11.5px;font-variant-numeric:tabular-nums;width:100px" dir="ltr">${fmtSAR(unit)}</td>
+        <td style="padding:10px 12px;border-bottom:1px solid ${C.line};text-align:end;color:${C.ink};font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;width:110px" dir="ltr">${fmtSAR(line)}</td>
       </tr>`;
   }).join("");
 
   const notes = inv.notes ?? "يُرجى تحويل المبلغ إلى الحساب البنكي أدناه أو السداد الفوري عبر المحفظة الرقمية في بوابة العميل.";
 
-  // 794px width ≈ A4 at 96dpi. Target inner height ≤ 1123px for single-page fit.
+  // A4 at 96dpi ≈ 794 × 1123 px. Force wrapper to full A4 dimensions so
+  // contain-fit uses the entire sheet with balanced vertical distribution.
+  const PAD_X = 34; // ~9mm side margins
+  const PAD_Y = 30; // ~8mm top/bottom margins
   const wrapper = document.createElement("div");
   wrapper.setAttribute("dir", "rtl");
   wrapper.setAttribute("lang", "ar");
-  wrapper.style.cssText = `position:fixed;left:-10000px;top:0;width:794px;background:${C.white};color:${C.ink};direction:rtl;box-sizing:border-box;font-family:'IBM Plex Sans Arabic','Noto Sans Arabic','Segoe UI',Tahoma,sans-serif;overflow:hidden;unicode-bidi:plaintext;text-align:right`;
+  wrapper.style.cssText = `position:fixed;left:-10000px;top:0;width:794px;height:1123px;background:${C.white};color:${C.ink};direction:rtl;box-sizing:border-box;font-family:'IBM Plex Sans Arabic','Noto Sans Arabic','Segoe UI',Tahoma,sans-serif;overflow:hidden;unicode-bidi:plaintext;text-align:right;display:flex;flex-direction:column`;
 
   wrapper.innerHTML = `
-    <div style="position:relative;background:${C.white}">
-      <div style="height:4px;background:${C.blue}"></div>
+    <div style="height:6px;background:${C.blue};flex-shrink:0"></div>
 
-      <!-- HERO -->
-      <div style="padding:18px 28px 12px 28px;display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center">
-        <div>
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-            <div style="width:36px;height:36px;border-radius:6px;background:${C.blue};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:${C.white}">ش</div>
+    <!-- PAGE TITLE -->
+    <div style="padding:${PAD_Y - 6}px ${PAD_X}px 0 ${PAD_X}px;flex-shrink:0">
+      <div style="text-align:center;padding-bottom:14px;border-bottom:1px solid ${C.line}">
+        <div style="font-size:22px;font-weight:800;color:${C.ink};letter-spacing:.5px">فاتورة ضريبية</div>
+        <div style="font-size:10.5px;color:${C.muted};margin-top:4px;letter-spacing:2px;font-weight:600" dir="ltr">TAX INVOICE · ZATCA COMPLIANT</div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT: flex-grow with space-between to fill A4 -->
+    <div style="flex:1;display:flex;flex-direction:column;justify-content:space-between;padding:18px ${PAD_X}px ${PAD_Y}px ${PAD_X}px">
+
+      <!-- TOP GROUP -->
+      <div>
+        <!-- HERO ROW: right = seller, left = invoice number -->
+        <div style="display:grid;grid-template-columns:1fr auto;gap:24px;align-items:flex-start">
+          <div>
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:10px">
+              <div style="width:46px;height:46px;border-radius:8px;background:${C.blue};display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;color:${C.white}">ش</div>
+              <div>
+                <div style="font-size:15px;font-weight:800;color:${C.ink};line-height:1.35">${SELLER.name}</div>
+                <div style="font-size:11px;color:${C.muted};margin-top:3px">${SELLER.address}</div>
+              </div>
+            </div>
+            <div style="font-size:11px;color:${C.muted};line-height:1.85">
+              <div>الرقم الضريبي: <span dir="ltr" style="color:${C.ink};font-weight:700">${SELLER.vat}</span></div>
+              <div dir="ltr" style="text-align:right;color:${C.ink};font-weight:600">${SELLER.email}</div>
+            </div>
+          </div>
+          <div style="text-align:left;min-width:210px">
+            <div style="font-size:10px;color:${C.muted};font-weight:800;letter-spacing:2px;margin-bottom:4px">رقم الفاتورة</div>
+            <div style="font-size:20px;font-weight:800;color:${C.ink};line-height:1.1;letter-spacing:-.3px" dir="ltr">${invNo}</div>
+            <div style="margin-top:10px">
+              <span style="display:inline-block;padding:5px 14px;border-radius:3px;font-weight:800;font-size:11px;background:${st.bg};color:${st.color};border:1px solid ${st.border}">${st.label}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- META STRIP -->
+        <div style="margin-top:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:14px 16px;background:${C.soft};border-radius:6px">
+          ${[
+            ["تاريخ الإصدار", issueDate, false],
+            ["تاريخ الاستحقاق", dueDate, false],
+            ["المرجع", reqRef || invNo, true],
+            ["العملة", "ريال سعودي (SAR)", false],
+          ].map(([k,v,ltr]) => `
+            <div style="border-inline-start:2px solid ${C.blue};padding-inline-start:10px">
+              <div style="font-size:9.5px;color:${C.muted};font-weight:700;letter-spacing:1.5px;margin-bottom:4px">${k}</div>
+              <div ${ltr ? 'dir="ltr" style="text-align:right;' : 'style="'}font-size:12px;font-weight:700;color:${C.ink};font-variant-numeric:tabular-nums;line-height:1.4">${v}</div>
+            </div>`).join("")}
+        </div>
+
+        <!-- BILL TO -->
+        <div style="margin-top:16px;border:1px solid ${C.line};border-radius:6px;overflow:hidden">
+          <div style="padding:10px 14px;background:${C.white};border-bottom:1px solid ${C.line};display:flex;align-items:center;gap:8px">
+            <span style="width:4px;height:14px;background:${C.blue}"></span>
+            <span style="font-size:11px;color:${C.blue};font-weight:800;letter-spacing:1.8px">فاتورة إلى</span>
+          </div>
+          <div style="padding:12px 14px;display:grid;grid-template-columns:1fr 1fr;gap:12px">
             <div>
-              <div style="font-size:14px;font-weight:800;color:${C.ink};line-height:1.3">${SELLER.name}</div>
-              <div style="font-size:9.5px;color:${C.muted};margin-top:1px">الرقم الضريبي: <span dir="ltr">${SELLER.vat}</span></div>
+              <div style="font-size:13px;font-weight:800;color:${C.ink};margin-bottom:4px">${clientName}</div>
+              ${clientCompany ? `<div style="font-size:11px;color:${C.muted};line-height:1.75">${clientCompany}</div>` : ""}
+              ${clientVat ? `<div style="font-size:11px;color:${C.muted};line-height:1.75">الرقم الضريبي: <span dir="ltr" style="color:${C.ink};font-weight:600">${clientVat}</span></div>` : ""}
+            </div>
+            <div>
+              ${clientEmail ? `<div style="font-size:11px;color:${C.muted};line-height:1.75" dir="ltr">${clientEmail}</div>` : ""}
+              ${clientPhone ? `<div style="font-size:11px;color:${C.muted};line-height:1.75" dir="ltr">${clientPhone}</div>` : ""}
             </div>
           </div>
-          <div style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;background:${C.soft};border-radius:3px">
-            <span style="width:5px;height:5px;background:${C.blue};border-radius:50%"></span>
-            <span style="font-size:10px;font-weight:800;color:${C.blue};letter-spacing:1.5px">فاتورة ضريبية</span>
-          </div>
         </div>
-        <div style="text-align:left;direction:ltr">
-          <div style="font-size:8.5px;color:${C.muted};letter-spacing:2.5px;font-weight:700;margin-bottom:2px">INVOICE №</div>
-          <div style="font-size:22px;font-weight:800;color:${C.ink};line-height:1;letter-spacing:-.3px" dir="ltr">${invNo}</div>
-          <div style="margin-top:6px">
-            <span style="display:inline-block;padding:3px 10px;border-radius:2px;font-weight:800;font-size:10px;background:${st.bg};color:${st.color};border:1px solid ${st.border}">${st.label}</span>
+
+        <!-- PROJECT BANNER -->
+        <div style="margin-top:12px;padding:10px 14px;background:${C.ink};border-radius:6px;color:${C.white};display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <span style="font-size:10px;color:${C.soft};letter-spacing:1.8px;font-weight:700;padding-inline-end:12px;border-inline-end:1px solid rgba(255,255,255,.22)">المشروع</span>
+            <span style="font-size:12.5px;font-weight:700;color:${C.white}">${projectTitle}</span>
           </div>
+          ${duration ? `<div style="font-size:11px;color:${C.soft}"><span style="opacity:.75">المدة:</span> <strong style="color:${C.white}">${duration} يوم</strong></div>` : ""}
         </div>
-      </div>
 
-      <div style="margin:0 28px;height:1px;background:${C.line}"></div>
+        <!-- ITEMS -->
+        <div style="margin-top:14px">
+          <table style="width:100%;border-collapse:collapse;background:${C.white};border:1px solid ${C.line};border-radius:6px;overflow:hidden">
+            <thead>
+              <tr style="background:${C.soft}">
+                <th style="padding:9px 12px;text-align:start;font-size:10px;color:${C.blue};font-weight:800;letter-spacing:1.5px;border-bottom:2px solid ${C.blue}">#</th>
+                <th style="padding:9px 12px;text-align:start;font-size:10px;color:${C.blue};font-weight:800;letter-spacing:1.5px;border-bottom:2px solid ${C.blue}">الوصف</th>
+                <th style="padding:9px 12px;text-align:center;font-size:10px;color:${C.blue};font-weight:800;letter-spacing:1.5px;border-bottom:2px solid ${C.blue}">الكمية</th>
+                <th style="padding:9px 12px;text-align:end;font-size:10px;color:${C.blue};font-weight:800;letter-spacing:1.5px;border-bottom:2px solid ${C.blue}">سعر الوحدة</th>
+                <th style="padding:9px 12px;text-align:end;font-size:10px;color:${C.blue};font-weight:800;letter-spacing:1.5px;border-bottom:2px solid ${C.blue}">الإجمالي (SAR)</th>
+              </tr>
+            </thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
 
-      <!-- META STRIP -->
-      <div style="padding:10px 28px 12px 28px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
-        ${[
-          ["تاريخ الإصدار", issueDate, false],
-          ["تاريخ الاستحقاق", dueDate, false],
-          ["المرجع", reqRef || invNo, true],
-          ["العملة", "ريال سعودي (SAR)", false],
-        ].map(([k,v,ltr]) => `
-          <div style="border-inline-start:2px solid ${C.blue};padding-inline-start:8px">
-            <div style="font-size:8.5px;color:${C.muted};font-weight:700;letter-spacing:1.5px;margin-bottom:3px">${k}</div>
-            <div ${ltr ? 'dir="ltr" style="text-align:right;' : 'style="'}font-size:11px;font-weight:700;color:${C.ink};font-variant-numeric:tabular-nums;line-height:1.4">${v}</div>
-          </div>`).join("")}
-      </div>
-
-      <!-- PARTIES -->
-      <div style="margin:0 28px 10px 28px;display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid ${C.line};border-radius:4px;overflow:hidden">
-        <div style="padding:10px 12px;border-inline-end:1px solid ${C.line};background:${C.soft}">
-          <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px">
-            <span style="width:3px;height:10px;background:${C.blue}"></span>
-            <span style="font-size:9px;color:${C.blue};font-weight:800;letter-spacing:1.8px">فاتورة إلى</span>
+        <!-- SUMMARY + AMOUNT IN WORDS (equal height) -->
+        <div style="margin-top:16px;display:grid;grid-template-columns:1fr 290px;gap:14px;align-items:stretch">
+          <div style="border:1px solid ${C.line};border-radius:6px;padding:14px 16px;background:${C.soft};display:flex;flex-direction:column;justify-content:center;position:relative;min-height:140px">
+            <div style="position:absolute;top:0;bottom:0;right:0;width:4px;background:${C.blue};border-radius:6px 0 0 6px"></div>
+            <div style="font-size:10px;color:${C.blue};font-weight:800;letter-spacing:1.8px;margin-bottom:8px">المبلغ كتابةً</div>
+            <div style="font-size:13px;font-weight:700;color:${C.ink};line-height:1.75">${amountWords}</div>
           </div>
-          <div style="font-size:12px;font-weight:800;color:${C.ink};margin-bottom:2px">${clientName}</div>
-          ${clientCompany ? `<div style="font-size:10px;color:${C.muted};line-height:1.7">${clientCompany}</div>` : ""}
-          ${clientVat ? `<div style="font-size:10px;color:${C.muted};line-height:1.7">الرقم الضريبي: <span dir="ltr">${clientVat}</span></div>` : ""}
-          ${clientEmail ? `<div style="font-size:10px;color:${C.muted};line-height:1.7" dir="ltr">${clientEmail}</div>` : ""}
-          ${clientPhone ? `<div style="font-size:10px;color:${C.muted};line-height:1.7" dir="ltr">${clientPhone}</div>` : ""}
-        </div>
-        <div style="padding:10px 12px">
-          <div style="display:flex;align-items:center;gap:5px;margin-bottom:5px">
-            <span style="width:3px;height:10px;background:${C.ink}"></span>
-            <span style="font-size:9px;color:${C.ink};font-weight:800;letter-spacing:1.8px">البائع</span>
-          </div>
-          <div style="font-size:12px;font-weight:800;color:${C.ink};margin-bottom:2px">${SELLER.name}</div>
-          <div style="font-size:10px;color:${C.muted};line-height:1.7">${SELLER.address}</div>
-          <div style="font-size:10px;color:${C.muted};line-height:1.7">الرقم الضريبي: <span dir="ltr">${SELLER.vat}</span></div>
-          <div style="font-size:10px;color:${C.muted};line-height:1.7" dir="ltr">${SELLER.email}</div>
-        </div>
-      </div>
-
-      <!-- PROJECT BANNER -->
-      <div style="margin:0 28px 8px 28px;padding:8px 12px;background:${C.ink};border-radius:4px;color:${C.white};display:flex;justify-content:space-between;align-items:center;gap:10px">
-        <div style="display:flex;align-items:center;gap:10px">
-          <span style="font-size:9px;color:${C.soft};letter-spacing:1.8px;font-weight:700;padding-inline-end:10px;border-inline-end:1px solid rgba(255,255,255,.18)">المشروع</span>
-          <span style="font-size:11.5px;font-weight:700;color:${C.white}">${projectTitle}</span>
-        </div>
-        ${duration ? `<div style="font-size:10px;color:${C.soft}"><span style="opacity:.7">المدة:</span> <strong style="color:${C.white}">${duration} يوم</strong></div>` : ""}
-      </div>
-
-      <!-- ITEMS -->
-      <div style="margin:8px 28px 0 28px">
-        <table style="width:100%;border-collapse:collapse;background:${C.white};border:1px solid ${C.line};border-radius:4px;overflow:hidden">
-          <thead>
-            <tr>
-              <th style="padding:7px 10px;text-align:start;font-size:9px;color:${C.blue};font-weight:800;letter-spacing:1.5px;border-bottom:2px solid ${C.blue}">#</th>
-              <th style="padding:7px 10px;text-align:start;font-size:9px;color:${C.blue};font-weight:800;letter-spacing:1.5px;border-bottom:2px solid ${C.blue}">الوصف</th>
-              <th style="padding:7px 10px;text-align:center;font-size:9px;color:${C.blue};font-weight:800;letter-spacing:1.5px;border-bottom:2px solid ${C.blue}">الكمية</th>
-              <th style="padding:7px 10px;text-align:end;font-size:9px;color:${C.blue};font-weight:800;letter-spacing:1.5px;border-bottom:2px solid ${C.blue}">سعر الوحدة</th>
-              <th style="padding:7px 10px;text-align:end;font-size:9px;color:${C.blue};font-weight:800;letter-spacing:1.5px;border-bottom:2px solid ${C.blue}">الإجمالي (SAR)</th>
-            </tr>
-          </thead>
-          <tbody>${rowsHtml}</tbody>
-        </table>
-      </div>
-
-      <!-- SUMMARY + AMOUNT IN WORDS -->
-      <div style="margin:10px 28px 0 28px;display:grid;grid-template-columns:1fr 260px;gap:12px;align-items:stretch">
-        <div style="border:1px solid ${C.line};border-radius:4px;padding:10px 12px;background:${C.soft};display:flex;flex-direction:column;justify-content:center;position:relative">
-          <div style="position:absolute;top:0;bottom:0;right:0;width:3px;background:${C.blue}"></div>
-          <div style="font-size:9px;color:${C.blue};font-weight:800;letter-spacing:1.8px;margin-bottom:4px">المبلغ كتابةً</div>
-          <div style="font-size:11.5px;font-weight:700;color:${C.ink};line-height:1.7">${amountWords}</div>
-        </div>
-        <div style="border:1px solid ${C.line};border-radius:4px;background:${C.white};overflow:hidden">
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;font-size:10px;color:${C.muted};border-bottom:1px solid ${C.line}">
-            <span>المبلغ الخاضع للضريبة</span>
-            <span dir="ltr" style="font-variant-numeric:tabular-nums;font-weight:700;color:${C.ink}">${fmtSAR(subtotal)}</span>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;font-size:10px;color:${C.muted};border-bottom:1px solid ${C.line}">
-            <span>ضريبة القيمة المضافة (${taxRate}%)</span>
-            <span dir="ltr" style="font-variant-numeric:tabular-nums;font-weight:700;color:${C.ink}">${fmtSAR(tax)}</span>
-          </div>
-          <div style="padding:10px 12px;background:${C.blue};color:${C.white}">
-            <div style="font-size:9px;color:${C.soft};letter-spacing:1.8px;font-weight:800;margin-bottom:3px">الإجمالي المستحق</div>
-            <div style="display:flex;justify-content:space-between;align-items:baseline">
-              <span style="font-size:10px;color:${C.soft};opacity:.85" dir="ltr">${currency}</span>
-              <span dir="ltr" style="font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.3px">${fmtSAR(total)}</span>
+          <div style="border:1px solid ${C.line};border-radius:6px;background:${C.white};overflow:hidden;display:flex;flex-direction:column;min-height:140px">
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;font-size:11px;color:${C.muted};border-bottom:1px solid ${C.line}">
+              <span>المبلغ الخاضع للضريبة</span>
+              <span dir="ltr" style="font-variant-numeric:tabular-nums;font-weight:700;color:${C.ink};font-size:12px">${fmtSAR(subtotal)}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:9px 12px;font-size:11px;color:${C.muted};border-bottom:1px solid ${C.line}">
+              <span>ضريبة القيمة المضافة (${taxRate}%)</span>
+              <span dir="ltr" style="font-variant-numeric:tabular-nums;font-weight:700;color:${C.ink};font-size:12px">${fmtSAR(tax)}</span>
+            </div>
+            <div style="padding:12px 14px;background:${C.blue};color:${C.white};margin-top:auto">
+              <div style="font-size:10px;color:${C.soft};letter-spacing:1.8px;font-weight:800;margin-bottom:4px">الإجمالي المستحق</div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline">
+                <span style="font-size:11px;color:${C.soft};opacity:.9" dir="ltr">${currency}</span>
+                <span dir="ltr" style="font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.3px">${fmtSAR(total)}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- PAYMENT + QR -->
-      <div style="margin:10px 28px 0 28px;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:stretch">
-        <div style="border:1px solid ${C.line};border-radius:4px;background:${C.white};overflow:hidden">
-          <div style="padding:6px 10px;background:${C.soft};border-bottom:1px solid ${C.line};display:flex;align-items:center;gap:6px">
-            <span style="width:3px;height:10px;background:${C.blue}"></span>
-            <span style="font-size:9px;color:${C.blue};font-weight:800;letter-spacing:1.8px">تفاصيل الدفع</span>
+      <!-- BOTTOM GROUP -->
+      <div>
+        <!-- PAYMENT + QR (single balanced row) -->
+        <div style="display:grid;grid-template-columns:1fr auto;gap:14px;align-items:stretch">
+          <div style="border:1px solid ${C.line};border-radius:6px;background:${C.white};overflow:hidden;display:flex;flex-direction:column">
+            <div style="padding:8px 12px;background:${C.soft};border-bottom:1px solid ${C.line};display:flex;align-items:center;gap:8px">
+              <span style="width:4px;height:12px;background:${C.blue}"></span>
+              <span style="font-size:10.5px;color:${C.blue};font-weight:800;letter-spacing:1.8px">تفاصيل الدفع</span>
+            </div>
+            <div style="padding:10px 14px;font-size:11px;color:${C.muted};line-height:1.9;flex:1">
+              <div><span style="color:${C.ink};font-weight:800">المستفيد:</span> ${SELLER.name}</div>
+              <div><span style="color:${C.ink};font-weight:800">البنك:</span> ${SELLER.bank}</div>
+              <div dir="ltr" style="text-align:right;font-family:ui-monospace,'SFMono-Regular',monospace;margin-top:6px;padding:7px 10px;background:${C.soft};border:1px dashed ${C.blue};border-radius:4px;font-size:12px;color:${C.ink};font-weight:700">${SELLER.iban}</div>
+              <div style="margin-top:6px"><span style="color:${C.ink};font-weight:800">مرجع التحويل:</span> <span dir="ltr" style="font-family:ui-monospace,monospace;color:${C.ink};font-weight:700">${reqRef || invNo}</span></div>
+            </div>
           </div>
-          <div style="padding:8px 12px;font-size:10px;color:${C.muted};line-height:1.8">
-            <div><span style="color:${C.ink};font-weight:800">المستفيد:</span> ${SELLER.name}</div>
-            <div><span style="color:${C.ink};font-weight:800">البنك:</span> ${SELLER.bank}</div>
-            <div dir="ltr" style="text-align:right;font-family:ui-monospace,'SFMono-Regular',monospace;margin-top:4px;padding:5px 8px;background:${C.soft};border:1px dashed ${C.blue};border-radius:3px;font-size:11px;color:${C.ink};font-weight:700">${SELLER.iban}</div>
-            <div style="margin-top:4px"><span style="color:${C.ink};font-weight:800">مرجع التحويل:</span> <span dir="ltr" style="font-family:ui-monospace,monospace;color:${C.ink};font-weight:700">${reqRef || invNo}</span></div>
+          <div style="border:1px solid ${C.line};border-radius:6px;padding:10px;background:${C.white};display:flex;flex-direction:column;align-items:center;justify-content:center;width:150px">
+            <img src="${qrDataUrl}" alt="ZATCA QR" style="width:128px;height:128px;display:block"/>
+            <div style="font-size:9px;color:${C.muted};margin-top:6px;text-align:center;letter-spacing:.5px;line-height:1.4">رمز التحقق الزكوي<br/><span dir="ltr" style="opacity:.75">ZATCA</span></div>
           </div>
         </div>
-        <div style="border:1px solid ${C.line};border-radius:4px;padding:8px;background:${C.white};display:flex;flex-direction:column;align-items:center;justify-content:center;width:110px">
-          <img src="${qrDataUrl}" alt="ZATCA QR" style="width:94px;height:94px;display:block"/>
-          <div style="font-size:8px;color:${C.muted};margin-top:4px;text-align:center;letter-spacing:.5px">رمز التحقق الزكوي</div>
-        </div>
-      </div>
 
-      <!-- NOTES -->
-      <div style="margin:8px 28px 0 28px;padding:7px 12px;background:${C.white};border-inline-start:3px solid ${C.blue}">
-        <div style="font-size:9px;color:${C.blue};font-weight:800;letter-spacing:1.8px;margin-bottom:2px">ملاحظات</div>
-        <div style="font-size:10px;color:${C.muted};line-height:1.7">${notes}</div>
-      </div>
-
-      <!-- FOOTER -->
-      <div style="margin-top:12px;padding:8px 28px 12px 28px;border-top:1px solid ${C.line};display:flex;justify-content:space-between;align-items:center;gap:12px">
-        <div style="font-size:9px;color:${C.muted};line-height:1.6">
-          فاتورة ضريبية إلكترونية صادرة وفق نظام هيئة الزكاة والضريبة والجمارك — لا تحتاج إلى توقيع أو ختم يدوي.
+        <!-- NOTES -->
+        <div style="margin-top:14px;padding:10px 14px;background:${C.soft};border-inline-start:4px solid ${C.blue};border-radius:0 4px 4px 0">
+          <div style="font-size:10px;color:${C.blue};font-weight:800;letter-spacing:1.8px;margin-bottom:4px">ملاحظات</div>
+          <div style="font-size:11px;color:${C.ink};line-height:1.75">${notes}</div>
         </div>
-        <div style="text-align:left;direction:ltr;font-size:9px;color:${C.dim};font-family:ui-monospace,monospace">
-          <span style="color:${C.ink};font-weight:700">ash-holding.sa</span>
+
+        <!-- FOOTER -->
+        <div style="margin-top:14px;padding-top:10px;border-top:1px solid ${C.line};display:flex;justify-content:space-between;align-items:center;gap:12px">
+          <div style="font-size:10px;color:${C.muted};line-height:1.6">
+            فاتورة ضريبية إلكترونية صادرة وفق نظام هيئة الزكاة والضريبة والجمارك — لا تحتاج إلى توقيع أو ختم يدوي.
+          </div>
+          <div style="text-align:left;direction:ltr;font-size:10px;color:${C.dim};font-family:ui-monospace,monospace">
+            <span style="color:${C.ink};font-weight:700">ash-holding.sa</span>
+          </div>
         </div>
       </div>
     </div>
@@ -412,7 +424,9 @@ html,body{margin:0;padding:0;background:#fff;font-family:"IBM Plex Sans Arabic",
       useCORS: true,
       logging: false,
       windowWidth: 820,
-      windowHeight: node.scrollHeight,
+      windowHeight: 1160,
+      width: 794,
+      height: 1123,
     });
 
     // ── Fit into ONE A4 page (contain)
