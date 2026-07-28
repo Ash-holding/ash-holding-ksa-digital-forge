@@ -43,7 +43,7 @@ function ClientFinancingDetail() {
   const cancel = useMutation({
     mutationFn: () => api.post(`/financing/applications/${id}/cancel`),
     onSuccess: () => { toast.success("تم إلغاء الطلب"); qc.invalidateQueries({ queryKey: ["client-financing-app", id] }); },
-    onError: (e) => toast.error(apiError(e, "تعذر الإلغاء")),
+    onError: (e) => toast.error((apiError(e) || "تعذر الإلغاء")),
   });
 
   if (isLoading || !app) return <div className="p-8 text-sm text-muted-foreground">جاري التحميل…</div>;

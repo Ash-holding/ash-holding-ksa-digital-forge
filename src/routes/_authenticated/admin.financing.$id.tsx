@@ -7,7 +7,7 @@ import {
   ChevronsRight, FileText, Clock, Shield, User as UserIcon,
 } from "lucide-react";
 import { api, apiError, fileUrl } from "@/lib/api";
-import { PageHeader } from "@/components/admin/PageHeader";
+import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
@@ -78,7 +78,7 @@ function AdminFinancingDetail() {
   const take = useMutation({
     mutationFn: () => api.post(`/admin/financing/applications/${id}/take`),
     onSuccess: () => { toast.success("تم تسلّم الطلب"); qc.invalidateQueries({ queryKey: ["admin-financing-app", id] }); },
-    onError: (e) => toast.error(apiError(e, "تعذر تسلّم الطلب")),
+    onError: (e) => toast.error((apiError(e) || "تعذر تسلّم الطلب")),
   });
 
   const decide = useMutation({
@@ -91,7 +91,7 @@ function AdminFinancingDetail() {
     },
     onError: (e: unknown) => {
       const anyE = e as { response?: { data?: { error?: string; message?: string } } };
-      toast.error(anyE.response?.data?.message || apiError(e, "تعذر تسجيل القرار"));
+      toast.error(anyE.response?.data?.message || (apiError(e) || "تعذر تسجيل القرار"));
     },
   });
 

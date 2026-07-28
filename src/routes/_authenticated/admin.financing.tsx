@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Wallet, Search, Filter } from "lucide-react";
 import { api } from "@/lib/api";
-import { PageHeader } from "@/components/admin/PageHeader";
+import { PageHeader } from "@/components/dashboard/AdminLayout";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/_authenticated/admin/financing")({

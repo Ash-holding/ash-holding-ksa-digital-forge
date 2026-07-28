@@ -89,7 +89,7 @@ function FinancingWizardPage() {
       productId: product.id, amount, downPayment: down, termMonths: term,
     })
       .then((r) => setAppId(r.data.id))
-      .catch((e) => toast.error(apiError(e, "تعذر إنشاء الطلب")));
+      .catch((e) => toast.error((apiError(e) || "تعذر إنشاء الطلب")));
   }, [product, appId, search]);
 
   const save = useMutation({
@@ -107,7 +107,7 @@ function FinancingWizardPage() {
       const anyE = e as { response?: { data?: { error?: string; missing?: string[] } } };
       const missing = anyE.response?.data?.missing;
       if (missing?.length) toast.error(`المطلوب: ${missing.join("، ")}`);
-      else toast.error(apiError(e, "تعذر تقديم الطلب"));
+      else toast.error((apiError(e) || "تعذر تقديم الطلب"));
     },
   });
 
@@ -300,7 +300,7 @@ function DocumentsStep({ app, product, onChanged }: { app: Application; product:
       toast.success("تم رفع المستند");
       onChanged();
     } catch (e) {
-      toast.error(apiError(e, "فشل الرفع"));
+      toast.error((apiError(e) || "فشل الرفع"));
     } finally { setBusy(false); if (fileRef.current) fileRef.current.value = ""; }
   };
 
@@ -308,7 +308,7 @@ function DocumentsStep({ app, product, onChanged }: { app: Application; product:
     try {
       await api.delete(`/financing/applications/${app.id}/documents/${id}`);
       onChanged();
-    } catch (e) { toast.error(apiError(e, "تعذر الحذف")); }
+    } catch (e) { toast.error((apiError(e) || "تعذر الحذف")); }
   };
 
   return (
