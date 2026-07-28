@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import {
   FileText, Download, Receipt, CreditCard, User, Calendar,
   Wallet as WalletIcon, Landmark, Sparkles, Copy, Check, Send,
-  BadgeCheck, Stamp,
+  BadgeCheck, Stamp, ArrowUpRight, ArrowDownLeft, RotateCcw, Wrench,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { DetailShell, DetailSection, KV } from "@/components/shared/DetailShell";
@@ -340,6 +340,24 @@ function ClientInvoiceDetail() {
                 </div>
               ) : <p className="text-xs text-muted-foreground text-center py-4">لم يتم تسجيل أي دفعات بعد</p>}
             </DetailSection>
+
+            {/* WALLET LEDGER — every wallet movement tied to this invoice */}
+            <DetailSection title="سجل عمليات المحفظة" icon={WalletIcon}>
+              {(inv.walletTransactions ?? []).length ? (
+                <div className="space-y-2">
+                  {inv.walletTransactions.map((tx: any, i: number) => (
+                    <WalletTxRow key={tx.id} tx={tx} index={i} />
+                  ))}
+                  <div className="rounded-lg bg-muted/40 border border-border/60 px-3 py-2 text-[10px] text-muted-foreground text-center">
+                    جميع حركات المحفظة المرتبطة بهذه الفاتورة موثّقة وتصلك إشعاراتها عبر واتساب
+                  </div>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground text-center py-4">
+                  لا توجد عمليات محفظة مرتبطة بهذه الفاتورة بعد — ستظهر هنا فور السداد من المحفظة أو إضافة الكاش باك
+                </p>
+              )}
+            </DetailSection>
           </div>
 
           <div className="space-y-4">
@@ -397,5 +415,56 @@ function BankLine({ k, v, mono, onCopy, copied }: { k: string; v: string; mono?:
         </button>
       </div>
     </div>
+  );
+}
+
+const TX_META: Record<string, { label: string; icon: any; tint: string }> = {
+  PAYMENT:    { label: "سداد فاتورة",      icon: ArrowUpRight,   tint: "bg-rose-500/10 text-rose-600 border-rose-500/30" },
+  WITHDRAW:   { label: "سحب رصيد",         icon: ArrowUpRight,   tint: "bg-rose-500/10 text-rose-600 border-rose-500/30" },
+  TOPUP:      { label: "شحن رصيد",         icon: ArrowDownLeft,  tint: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" },
+  REFUND:     { label: "استرجاع",          icon: RotateCcw,      tint: "bg-emerald-500/10 text-emerald-600 border-emerald-500/30" },
+  CASHBACK:   { label: "كاش باك 1.85%",    icon: Sparkles,       tint: "bg-amber-500/10 text-amber-600 border-amber-500/30" },
+  ADJUSTMENT: { label: "تعديل يدوي",       icon: Wrench,         tint: "bg-muted text-muted-foreground border-border" },
+};
+
+/** One wallet-ledger row tied to this invoice */
+function WalletTxRow({ tx, index }: { tx: any; index: number }) {
+  const meta = TX_META[tx.type] ?? TX_META.ADJUSTMENT;
+  const Icon = meta.icon;
+  const amt = Number(tx.amount ?? 0);
+  const positive = amt >= 0;
+  return (
+    <motion.div
+      initial={{ opacity: 0, x: 14 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: index * 0.06, type: "spring", stiffness: 260, damping: 24 }}
+      className="flex items-center gap-3 rounded-xl border border-border/60 bg-muted/20 hover:bg-muted/40 transition-colors px-3 py-2.5"
+    >
+      <span className={cn("grid h-9 w-9 shrink-0 place-items-center rounded-lg border", meta.tint)}>
+        <Icon className="h-4.5 w-4.5" />
+      </span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold">{meta.label}</span>
+          <StatusBadge value={tx.status} />
+        </div>
+        <div className="text-[10px] text-muted-foreground mt-0.5 truncate">
+          {tx.note || meta.label} · {formatDate(tx.createdAt)}
+        </div>
+      </div>
+      <div className="text-left shrink-0">
+        <div
+          className={cn("font-black text-sm tabular-nums", positive ? "text-emerald-600" : "text-rose-600")}
+          dir="ltr"
+        >
+          {positive ? "+" : ""}{amt.toLocaleString("ar-SA", { minimumFractionDigits: 2 })}
+        </div>
+        {tx.balanceAfter != null && (
+          <div className="text-[9px] text-muted-foreground tabular-nums" dir="ltr">
+            الرصيد: {Number(tx.balanceAfter).toLocaleString("ar-SA", { minimumFractionDigits: 2 })}
+          </div>
+        )}
+      </div>
+    </motion.div>
   );
 }

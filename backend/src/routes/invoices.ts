@@ -116,7 +116,12 @@ invoicesRouter.get("/:id", async (req, res, next) => {
     const requestRef = linkedRequest
       ? `REQ-${linkedRequest.id.replace(/-/g, "").slice(0, 6).toUpperCase()}`
       : null;
-    res.json({ invoice: { ...inv, linkedRequest, requestRef } });
+    // Attach wallet transactions linked to this invoice (payment, cashback, refunds…)
+    const walletTransactions = await prisma.walletTransaction.findMany({
+      where: { invoiceId: inv.id },
+      orderBy: { createdAt: "desc" },
+    });
+    res.json({ invoice: { ...inv, linkedRequest, requestRef, walletTransactions } });
   } catch (e) { next(e); }
 });
 
