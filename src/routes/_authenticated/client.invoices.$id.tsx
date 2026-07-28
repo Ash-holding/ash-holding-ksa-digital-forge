@@ -183,40 +183,37 @@ function ClientInvoiceDetail() {
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              className="invoice-doc relative overflow-hidden rounded-2xl border border-border/70 bg-card shadow-sm"
+              className="invoice-doc relative overflow-hidden rounded-2xl border border-[#D8E1EC] bg-white shadow-sm"
               dir="rtl"
+              style={{ fontFamily: "'Fira Sans','IBM Plex Sans Arabic','Segoe UI',sans-serif" }}
             >
-              {/* Top brand strip */}
-              <div className="relative border-b border-border/60 bg-gradient-to-l from-primary/8 via-card to-card px-5 sm:px-7 py-5">
-                <div className="absolute inset-y-0 right-0 w-1.5 bg-gradient-to-b from-electric via-primary to-navy-deep" />
-                <div className="grid grid-cols-[1fr_auto] items-start gap-4">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2.5">
-                      <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-primary text-primary-foreground font-black text-lg shadow-sm">
-                        <Building2 className="h-5.5 w-5.5" />
-                      </span>
-                      <div className="min-w-0">
-                        <h2 className="font-black text-lg sm:text-xl tracking-tight truncate">ASH HOLDING</h2>
-                        <p className="text-[11px] text-muted-foreground truncate">شركة علي صالح الشهري القابضة · المملكة العربية السعودية</p>
-                      </div>
+              {/* Top corporate-blue rule */}
+              <div className="h-1 bg-[#0E4C92]" />
+
+              {/* Masthead — brand on right, oversized invoice № on left */}
+              <div className="px-5 sm:px-8 pt-7 pb-4 grid grid-cols-[1fr_auto] items-end gap-4">
+                <div className="min-w-0">
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="grid h-11 w-11 shrink-0 place-items-center rounded-md bg-[#0E4C92] text-white font-black text-xl">ش</span>
+                    <div className="min-w-0">
+                      <h2 className="text-base sm:text-lg font-bold text-[#0A2540] truncate">شركة علي صالح الشهري القابضة</h2>
+                      <p className="text-[10.5px] tracking-[0.28em] font-semibold text-[#0E4C92] mt-0.5" dir="ltr">ASH · HOLDING</p>
                     </div>
                   </div>
-                  <div className="text-left shrink-0">
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background px-3 py-1 text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                      <Hash className="h-3 w-3" /> فاتورة ضريبية
-                    </div>
-                    <div className="mt-1.5 font-mono text-sm font-bold" dir="ltr">{inv.invoiceNumber}</div>
+                  <div className="inline-flex items-center gap-2 rounded-sm bg-[#E6EEF7] px-3 py-1">
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#0E4C92]" />
+                    <span className="text-[10px] font-bold tracking-[0.22em] text-[#0E4C92]">فاتورة ضريبية · TAX INVOICE</span>
                   </div>
                 </div>
-              </div>
-
-              {/* Meta grid: dates + status + paid badge */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 border-b border-border/60 divide-x divide-x-reverse divide-border/60">
-                <MetaCell label="تاريخ الإصدار" value={formatDate(inv.issueDate || inv.createdAt)} />
-                <MetaCell label="تاريخ الاستحقاق" value={formatDate(inv.dueAt)} />
-                <MetaCell label="تاريخ الدفع" value={formatDate(inv.paidAt)} />
-                <MetaCell label="حالة الفاتورة" value={
-                  <div className="flex items-center gap-1.5">
+                <div className="text-left shrink-0" dir="ltr">
+                  <div className="text-[9.5px] tracking-[0.35em] font-bold text-[#5B6B7A] mb-0.5">INVOICE №</div>
+                  <div
+                    className="text-[#0A2540] leading-none"
+                    style={{ fontFamily: "'DM Serif Display',Georgia,serif", fontSize: "clamp(28px,6vw,44px)", letterSpacing: "-0.5px" }}
+                  >
+                    {inv.invoiceNumber}
+                  </div>
+                  <div className="mt-2 flex items-center gap-1.5 justify-end">
                     <StatusBadge value={inv.status} />
                     {isPaid && (
                       <motion.span
@@ -230,29 +227,64 @@ function ClientInvoiceDetail() {
                       </motion.span>
                     )}
                   </div>
-                } />
+                </div>
               </div>
 
-              {/* Bill-to + Project ref */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-0 border-b border-border/60 sm:divide-x sm:divide-x-reverse divide-border/60">
-                <div className="p-5">
-                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-2">فاتورة إلى</div>
-                  <div className="font-bold text-sm">{inv.client?.user?.name ?? inv.client?.company ?? "—"}</div>
-                  {inv.client?.company && inv.client?.user?.name && (
-                    <div className="text-xs text-muted-foreground mt-0.5">{inv.client.company}</div>
-                  )}
-                  <div className="mt-1 text-xs text-muted-foreground truncate" dir="ltr">{inv.client?.user?.email ?? ""}</div>
-                  <div className="text-xs text-muted-foreground" dir="ltr">{inv.client?.user?.phone ?? ""}</div>
-                </div>
-                <div className="p-5 bg-muted/20">
-                  <div className="text-[10px] uppercase tracking-widest text-muted-foreground/80 mb-2">مرجع المشروع</div>
-                  <div className="font-mono font-bold text-sm" dir="ltr">{inv.requestRef ?? "—"}</div>
-                  <div className="text-xs text-muted-foreground mt-0.5 truncate">
-                    {inv.linkedRequest?.title ?? inv.project?.title ?? "—"}
+              {/* Hairline */}
+              <div className="mx-5 sm:mx-8 h-px bg-[#D8E1EC]" />
+
+              {/* Meta grid — 4 columns each with blue accent tick */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 px-5 sm:px-8 py-5">
+                {[
+                  ["تاريخ الإصدار", formatDate(inv.issueDate || inv.createdAt)],
+                  ["تاريخ الاستحقاق", formatDate(inv.dueAt)],
+                  ["المرجع", inv.requestRef ?? inv.invoiceNumber],
+                  ["العملة", `${inv.currency} · ريال سعودي`],
+                ].map(([k, v]) => (
+                  <div key={String(k)} className="border-r-2 border-[#0E4C92] pr-2.5" dir="rtl">
+                    <div className="text-[9px] font-bold tracking-[0.2em] text-[#5B6B7A] mb-1">{k}</div>
+                    <div className="text-[13px] font-bold text-[#0A2540] tabular-nums truncate">{v ?? "—"}</div>
                   </div>
-                  <div className="mt-1 text-[11px] text-muted-foreground">العملة: <span className="font-semibold">{inv.currency}</span></div>
+                ))}
+              </div>
+
+              {/* Bill To / From cards */}
+              <div className="mx-5 sm:mx-8 mb-4 grid grid-cols-1 sm:grid-cols-2 rounded border border-[#D8E1EC] overflow-hidden">
+                <div className="p-4 sm:p-5 bg-[#E6EEF7] sm:border-l sm:border-[#D8E1EC]">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="w-[3px] h-3 bg-[#0E4C92]" />
+                    <span className="text-[9.5px] font-extrabold tracking-[0.24em] text-[#0E4C92]">فاتورة إلى · BILL TO</span>
+                  </div>
+                  <div className="text-[15px] font-extrabold text-[#0A2540]">{inv.client?.user?.name ?? inv.client?.company ?? "—"}</div>
+                  {inv.client?.company && inv.client?.user?.name && (
+                    <div className="text-[11.5px] text-[#5B6B7A] mt-0.5">{inv.client.company}</div>
+                  )}
+                  {inv.client?.user?.email && <div className="text-[11.5px] text-[#5B6B7A]" dir="ltr">{inv.client.user.email}</div>}
+                  {inv.client?.user?.phone && <div className="text-[11.5px] text-[#5B6B7A]" dir="ltr">{inv.client.user.phone}</div>}
+                </div>
+                <div className="p-4 sm:p-5 bg-white">
+                  <div className="flex items-center gap-1.5 mb-2">
+                    <span className="w-[3px] h-3 bg-[#0A2540]" />
+                    <span className="text-[9.5px] font-extrabold tracking-[0.24em] text-[#0A2540]">من · FROM</span>
+                  </div>
+                  <div className="text-[15px] font-extrabold text-[#0A2540]">شركة علي صالح الشهري القابضة</div>
+                  <div className="text-[11.5px] text-[#5B6B7A]">الرياض · المملكة العربية السعودية</div>
+                  <div className="text-[11.5px] text-[#5B6B7A]">مرجع المشروع: <span dir="ltr" className="font-mono font-bold text-[#0A2540]">{inv.requestRef ?? "—"}</span></div>
+                  <div className="text-[11.5px] text-[#5B6B7A] truncate">{inv.linkedRequest?.title ?? inv.project?.title ?? "—"}</div>
                 </div>
               </div>
+
+              {/* Deep-navy project banner */}
+              <div className="mx-5 sm:mx-8 mb-4 rounded px-4 py-3 flex items-center justify-between gap-3 bg-[#0A2540] text-white">
+                <div className="flex items-center gap-3 min-w-0">
+                  <span className="text-[9.5px] tracking-[0.24em] font-bold text-[#E6EEF7] pe-3 border-e border-white/20">المشروع</span>
+                  <span className="text-[13.5px] font-bold truncate">{inv.linkedRequest?.title ?? inv.project?.title ?? "خدمات مهنية"}</span>
+                </div>
+                {inv.linkedRequest?.proposalDuration ? (
+                  <div className="text-[11px] text-[#E6EEF7] shrink-0"><span className="opacity-70">المدة:</span> <strong className="text-white">{inv.linkedRequest.proposalDuration} يوم</strong></div>
+                ) : null}
+              </div>
+
 
               {/* Items — desktop table + mobile card list */}
               <div className="p-5">
