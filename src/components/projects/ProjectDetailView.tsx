@@ -278,7 +278,18 @@ export function ProjectDetailView({ projectId, isAdmin }: { projectId: string; i
       ) : null}
 
       {/* BENTO: Stages + Chat */}
+      {/* Linked request banner */}
+      {linkedRequest && (
+        <RequestLinkCard req={linkedRequest} requestRef={requestRef ?? ""} />
+      )}
+
+      {/* Admin control panel */}
+      {isAdmin && p && (
+        <AdminControlPanel project={p} projectId={projectId} />
+      )}
+
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
         {/* STAGES */}
         <section className="lg:col-span-3 space-y-4">
           <motion.div
