@@ -165,6 +165,8 @@ enum WalletTxType {
   REFUND
   CASHBACK
   ADJUSTMENT
+  FINANCING_DISBURSE
+  FINANCING_INSTALLMENT
 }
 
 enum WalletTxStatus {
@@ -1237,6 +1239,7 @@ model FinancingProduct {
 
   services            FinancingProductService[]
   applications        FinancingApplication[]
+  contracts           FinancingContract[]
 
   @@index([status])
   @@index([customerType, status])
@@ -1398,6 +1401,7 @@ model FinancingApplication {
   documents          FinancingApplicationDocument[]
   events             FinancingApplicationEvent[]
   decisions          FinancingApplicationDecision[]
+  contract           FinancingContract?
 
   @@index([status])
   @@index([applicantId])
@@ -1456,4 +1460,96 @@ model FinancingApplicationDecision {
   application   FinancingApplication         @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@index([applicationId])
+}
+
+// ===================== FINANCING CONTRACT (Phase 4) =====================
+
+enum FinancingContractStatus {
+  DRAFT
+  AWAITING_CLIENT_SIGNATURE
+  SIGNED
+  ACTIVE
+  COMPLETED
+  DEFAULTED
+  CANCELLED
+}
+
+enum FinancingInstallmentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  WAIVED
+}
+
+model FinancingContract {
+  id                  String                     @id @default(cuid())
+  code                String                     @unique
+  applicationId       String                     @unique
+  clientId            String?
+  applicantId         String
+  productId           String
+  status              FinancingContractStatus    @default(DRAFT)
+
+  amount              Decimal                    @db.Decimal(14, 2)
+  downPayment         Decimal                    @default(0) @db.Decimal(14, 2)
+  financedAmount      Decimal                    @db.Decimal(14, 2)
+  termMonths          Int
+  rateBasis           FinancingRateBasis
+  ratePct             Decimal                    @db.Decimal(6, 3)
+  installmentAmount   Decimal                    @db.Decimal(14, 2)
+  totalInterest       Decimal                    @default(0) @db.Decimal(14, 2)
+  totalFees           Decimal                    @default(0) @db.Decimal(14, 2)
+  totalVat            Decimal                    @default(0) @db.Decimal(14, 2)
+  totalPayable        Decimal                    @db.Decimal(14, 2)
+  aprPct              Decimal                    @default(0) @db.Decimal(6, 3)
+
+  firstDueDate        DateTime?
+  lastDueDate         DateTime?
+  scheduleSnapshot    Json?
+  termsSnapshot       Json?
+
+  clientSignedAt      DateTime?
+  clientSignatureIp   String?
+  clientSignatureHash String?
+  clientSignatureName String?
+  activatedAt         DateTime?
+  activatedById       String?
+  disbursedTxId       String?
+  cancelledAt         DateTime?
+  cancelReasonAr      String?
+
+  createdAt           DateTime                   @default(now())
+  updatedAt           DateTime                   @updatedAt
+
+  application         FinancingApplication       @relation(fields: [applicationId], references: [id])
+  product             FinancingProduct           @relation(fields: [productId], references: [id])
+  installments        FinancingInstallment[]
+
+  @@index([clientId])
+  @@index([applicantId])
+  @@index([status])
+}
+
+model FinancingInstallment {
+  id           String                     @id @default(cuid())
+  contractId   String
+  n            Int
+  dueDate      DateTime
+  principal    Decimal                    @db.Decimal(14, 2)
+  interest     Decimal                    @default(0) @db.Decimal(14, 2)
+  fees         Decimal                    @default(0) @db.Decimal(14, 2)
+  total        Decimal                    @db.Decimal(14, 2)
+  balanceAfter Decimal                    @db.Decimal(14, 2)
+  status       FinancingInstallmentStatus @default(PENDING)
+  paidAt       DateTime?
+  paidAmount   Decimal?                   @db.Decimal(14, 2)
+  paidTxId     String?
+  note         String?
+  createdAt    DateTime                   @default(now())
+
+  contract     FinancingContract          @relation(fields: [contractId], references: [id], onDelete: Cascade)
+
+  @@unique([contractId, n])
+  @@index([status])
+  @@index([dueDate])
 }

@@ -20,6 +20,7 @@ type App = {
   documents: { id: string; labelAr: string; filePath: string; status: string; notes?: string | null }[];
   events: { id: string; type: string; message?: string | null; toStatus?: string | null; createdAt: string; actorRole?: string | null }[];
   decisions: { id: string; stage: string; outcome: string; notesAr?: string | null; createdAt: string }[];
+  contract?: { id: string; code: string; status: string } | null;
 };
 
 const STATUS_AR: Record<string, string> = {
@@ -29,6 +30,12 @@ const STATUS_AR: Record<string, string> = {
   COMMITTEE_REVIEW: "اللجنة الائتمانية", PENDING_FINAL: "اعتماد نهائي",
   MORE_INFO: "بحاجة لمعلومات إضافية", APPROVED: "معتمد", REJECTED: "مرفوض",
   CANCELLED: "ملغى", EXPIRED: "منتهي",
+};
+
+const CONTRACT_STATUS_AR: Record<string, string> = {
+  DRAFT: "مسودة", AWAITING_CLIENT_SIGNATURE: "بانتظار توقيعك",
+  SIGNED: "موقع — بانتظار التفعيل", ACTIVE: "نشط",
+  COMPLETED: "منتهي", CANCELLED: "ملغى", DEFAULTED: "متعثر",
 };
 
 function ClientFinancingDetail() {
@@ -82,6 +89,28 @@ function ClientFinancingDetail() {
       {app.rejectionReasonAr && (
         <div className="rounded-xl bg-rose-500/10 p-4 text-sm text-rose-300 ring-1 ring-rose-500/20">
           سبب الرفض: {app.rejectionReasonAr}
+        </div>
+      )}
+
+      {(app.status === "APPROVED" || app.contract) && (
+        <div className="rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent p-5">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div>
+              <div className="text-sm font-bold text-amber-300">🎉 تمت الموافقة النهائية على تمويلك</div>
+              <div className="text-xs text-amber-200/80 mt-1">
+                {app.contract
+                  ? `العقد ${app.contract.code} — الحالة: ${CONTRACT_STATUS_AR[app.contract.status] || app.contract.status}`
+                  : "لم يتم إصدار العقد بعد. سيتم إشعارك فور جاهزيته."}
+              </div>
+            </div>
+            {app.contract && (
+              <Link to="/client/financing/contracts/$id" params={{ id: app.contract.id }}>
+                <Button size="sm" className="gap-1">
+                  <FileText className="h-4 w-4" /> عرض العقد وتوقيعه
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       )}
 
