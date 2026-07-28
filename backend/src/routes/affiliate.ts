@@ -424,3 +424,25 @@ affiliateRouter.patch("/me", requireAuth, async (req, res, next) => {
     res.json({ affiliate });
   } catch (e) { next(e); }
 });
+
+// ---------- admin/cron: release matured commissions ----------
+// POST /api/affiliate/admin/release  (SUPER_ADMIN | ADMIN | AFFILIATE_MANAGER)
+//   or via header  X-Cron-Secret: <AFFILIATE_CRON_SECRET>
+affiliateRouter.post("/admin/release", async (req, res, next) => {
+  try {
+    const cronSecret = process.env.AFFILIATE_CRON_SECRET;
+    const headerSecret = req.header("x-cron-secret");
+    const authorizedByCron = !!cronSecret && !!headerSecret && cronSecret === headerSecret;
+
+    if (!authorizedByCron) {
+      // Fall back to normal auth + role check.
+      const user = (req as any).user;
+      if (!user) return res.status(401).json({ error: "Unauthorized" });
+      const allowed = ["SUPER_ADMIN", "ADMIN", "AFFILIATE_MANAGER"];
+      if (!allowed.includes(user.role)) return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const result = await releaseMaturedCommissions(500);
+    res.json({ ok: true, ...result });
+  } catch (e) { next(e); }
+});
