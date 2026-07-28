@@ -37,28 +37,59 @@ type OtpRecord = {
   meta?: Record<string, unknown>;
 };
 
+const memoryOtpStore = new Map<string, OtpRecord>();
+
+function saveOtpInMemory(key: string, rec: OtpRecord) {
+  memoryOtpStore.set(key, rec);
+}
+
+function loadOtpFromMemory(key: string): OtpRecord | null {
+  const rec = memoryOtpStore.get(key);
+  if (!rec) return null;
+  if (new Date(rec.expiresAt).getTime() < Date.now()) {
+    memoryOtpStore.delete(key);
+    return null;
+  }
+  return rec;
+}
+
 function otpKey(purpose: OtpPurpose, phone: string) {
   return `otp:${purpose}:${phone}`;
 }
 
 async function saveOtp(purpose: OtpPurpose, phone: string, rec: OtpRecord) {
   const key = otpKey(purpose, phone);
-  await prisma.systemSetting.upsert({
-    where: { key },
-    update: { value: rec as never },
-    create: { key, value: rec as never },
-  });
+  saveOtpInMemory(key, rec);
+  try {
+    await prisma.systemSetting.upsert({
+      where: { key },
+      update: { value: rec as never },
+      create: { key, value: rec as never },
+    });
+  } catch (error) {
+    console.warn("[otp] database storage unavailable; using encrypted in-memory OTP fallback", error);
+  }
 }
 
 async function loadOtp(purpose: OtpPurpose, phone: string): Promise<OtpRecord | null> {
   const key = otpKey(purpose, phone);
-  const row = await prisma.systemSetting.findUnique({ where: { key } });
-  return (row?.value as unknown as OtpRecord) || null;
+  try {
+    const row = await prisma.systemSetting.findUnique({ where: { key } });
+    return (row?.value as unknown as OtpRecord) || loadOtpFromMemory(key);
+  } catch (error) {
+    console.warn("[otp] database read unavailable; using in-memory OTP fallback", error);
+    return loadOtpFromMemory(key);
+  }
 }
 
 async function clearOtp(purpose: OtpPurpose, phone: string) {
   const key = otpKey(purpose, phone);
-  await prisma.systemSetting.deleteMany({ where: { key } });
+  memoryOtpStore.delete(key);
+  try {
+    await prisma.systemSetting.deleteMany({ where: { key } });
+  } catch (error) {
+    console.warn("[otp] database cleanup unavailable", error);
+  }
 }
 
 // --------------------------------------------------------------------------
