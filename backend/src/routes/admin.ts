@@ -48,7 +48,7 @@ adminRouter.get("/stats", async (_req, res, next) => {
       prisma.project.groupBy({ by: ["status"], _count: { _all: true } }),
       prisma.invoice.groupBy({ by: ["status"], _count: { _all: true }, _sum: { total: true } }),
       prisma.invoice.aggregate({ _sum: { total: true }, where: { status: "OVERDUE" } }),
-      prisma.contract.aggregate({ _sum: { value: true }, where: { status: "ACTIVE" } }),
+      prisma.contract.aggregate({ _sum: { value: true }, where: { status: "SIGNED" } }),
       prisma.project.aggregate({ _avg: { progress: true }, where: { status: { notIn: ["COMPLETED", "ON_HOLD"] } } }),
       prisma.ticketMessage.findMany({
         where: { createdAt: { gte: day30Ago }, isInternal: false },
@@ -67,7 +67,7 @@ adminRouter.get("/stats", async (_req, res, next) => {
       }),
       prisma.invoice.count({ where: { status: "OVERDUE" } }),
       prisma.supportTicket.count({ where: { priority: { in: ["HIGH", "URGENT"] }, status: { in: ["OPEN", "IN_PROGRESS"] } } }),
-      prisma.contract.count({ where: { status: "ACTIVE", endDate: { gte: now, lte: day14Ahead } } }),
+      prisma.contract.count({ where: { status: "SIGNED", endDate: { gte: now, lte: day14Ahead } } }),
     ]);
 
     // 6-month revenue history
