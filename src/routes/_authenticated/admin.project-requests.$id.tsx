@@ -277,6 +277,23 @@ function RequestDetailPage() {
       <div className="grid gap-4 lg:grid-cols-3">
         {/* Main editable content */}
         <div className="lg:col-span-2 space-y-4">
+          <ProposalBuilder
+            requestId={id}
+            existing={{
+              amount: r.proposalAmount != null ? Number(r.proposalAmount) : null,
+              scope: r.proposalScope ?? "",
+              durationDays: r.proposalDuration ?? null,
+              validUntil: r.proposalValidUntil ? String(r.proposalValidUntil).slice(0, 10) : "",
+              sentAt: r.proposalSentAt ?? null,
+              revisionNote: r.revisionRequest ?? null,
+              revisionCount: r.revisionCount ?? 0,
+              signedAt: r.signedAt ?? null,
+              signatureHash: r.signatureHash ?? null,
+              linkedInvoiceId: r.linkedInvoiceId ?? null,
+            }}
+            onSaved={() => qc.invalidateQueries({ queryKey: ["project-request", id] })}
+          />
+
           <Section title="المعلومات الأساسية" icon={FileText}>
             <div className="grid gap-3">
               <Field label="عنوان الطلب">
