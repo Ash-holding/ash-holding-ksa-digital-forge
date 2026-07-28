@@ -32,7 +32,6 @@ type Tab = "projects" | "requests";
 
 function ClientProjectsPage() {
   const [tab, setTab] = useState<Tab>("projects");
-  const [sheetOpen, setSheetOpen] = useState(false);
 
   return (
     <div className="space-y-3">
@@ -43,11 +42,13 @@ function ClientProjectsPage() {
         actions={
           <div className="flex items-center gap-2">
             <LiveBadge interval={15} />
-            <Button size="sm" onClick={() => setSheetOpen(true)}
+            <Button asChild size="sm"
               className="gap-1.5 bg-gradient-to-r from-electric to-purple-accent shadow-glow">
-              <Rocket className="h-3.5 w-3.5" />
-              <span className="hidden sm:inline">طلب مشروع جديد</span>
-              <span className="sm:hidden">طلب</span>
+              <Link to="/client/projects/new">
+                <Rocket className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">طلب مشروع جديد</span>
+                <span className="sm:hidden">طلب</span>
+              </Link>
             </Button>
           </div>
         }
@@ -59,9 +60,7 @@ function ClientProjectsPage() {
         <TabBtn active={tab === "requests"} onClick={() => setTab("requests")} icon={Inbox} label="طلباتي" />
       </div>
 
-      {tab === "projects" ? <ProjectsView onNew={() => setSheetOpen(true)} /> : <RequestsView onNew={() => setSheetOpen(true)} />}
-
-      <ProjectRequestSheet open={sheetOpen} onOpenChange={setSheetOpen} />
+      {tab === "projects" ? <ProjectsView /> : <RequestsView />}
     </div>
   );
 }
