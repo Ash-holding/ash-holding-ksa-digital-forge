@@ -179,20 +179,29 @@ function CategoryPage() {
                 </ul>
               )}
 
-              <div className="relative mt-4 flex items-center justify-between border-t border-border/60 pt-3">
+              <div className="relative mt-4 flex items-center justify-between gap-2 border-t border-border/60 pt-3">
                 {it.from ? (
                   <div className="text-[11px] font-bold text-foreground">{it.from}</div>
                 ) : (
                   <span />
                 )}
-                <Link
-                  to="/client/services/new"
-                  search={{ catalog: cat.key, item: it.itemKey }}
-                  className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-[12px] font-bold text-foreground ring-1 ring-border transition hover:bg-white/10 hover:text-electric"
-                >
-                  اطلب الآن
-                  <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-1" />
-                </Link>
+                <div className="flex items-center gap-1.5">
+                  <Link
+                    to="/client/services/catalog/$catKey/$itemKey"
+                    params={{ catKey: cat.key, itemKey: it.itemKey }}
+                    className="inline-flex items-center gap-1 rounded-lg border border-border bg-transparent px-2.5 py-1.5 text-[12px] font-bold text-muted-foreground transition hover:text-foreground"
+                  >
+                    التفاصيل
+                  </Link>
+                  <Link
+                    to="/client/services/new"
+                    search={{ catalog: cat.key, item: it.itemKey }}
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-white/5 px-3 py-1.5 text-[12px] font-bold text-foreground ring-1 ring-border transition hover:bg-white/10 hover:text-electric"
+                  >
+                    اطلب
+                    <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-1" />
+                  </Link>
+                </div>
               </div>
             </motion.article>
           );
