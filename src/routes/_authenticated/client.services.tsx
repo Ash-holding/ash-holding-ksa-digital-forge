@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Boxes, Activity, PauseCircle, RefreshCw, Wallet, Layers, Search, AlertTriangle,
   Globe, Smartphone, Server, Mail, Megaphone, Palette, LifeBuoy, HardDrive, Package,
-  Clock, Inbox, ClipboardList, Plus, ArrowLeft,
+  Clock, Inbox, ClipboardList, Plus, ArrowLeft, Heart,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { ClientPageHeader } from "@/components/client/ClientPageHeader";
