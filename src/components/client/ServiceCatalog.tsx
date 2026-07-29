@@ -4,106 +4,14 @@ import { ArrowLeft, Zap, Shield, Rocket, Sparkles, type LucideIcon } from "lucid
 import { CATALOG } from "@/lib/services-catalog";
 
 
-type Item = { icon: LucideIcon; title: string; desc: string; itemKey: string };
-type Category = {
-  key: string;
-  eyebrow: string;
-  title: string;
-  tagline: string;
-  gradient: string;
-  ring: string;
-  glow: string;
-  icon: LucideIcon;
-  items: Item[];
-  metrics: { value: string; label: string }[];
-};
+const CATS = CATALOG.map((c) => ({
+  ...c,
+  items: c.items.slice(0, 4),
+}));
 
-const CATS: Category[] = [
-  {
-    key: "dev",
-    eyebrow: "Engineering",
-    title: "البرمجة والتطوير",
-    tagline: "منصات ويب وتطبيقات جوال بأداء استثنائي وبنية قابلة للتوسع.",
-    gradient: "from-sky-500 via-blue-500 to-indigo-600",
-    ring: "ring-sky-500/30",
-    glow: "shadow-[0_30px_80px_-30px_rgba(56,189,248,0.55)]",
-    icon: Code2,
-    items: [
-      { icon: Globe, title: "مواقع مؤسسية", desc: "واجهات SSR فائقة السرعة", itemKey: "website" },
-      { icon: Smartphone, title: "تطبيقات iOS / Android", desc: "تجربة أصيلة عبر React Native", itemKey: "mobile" },
-      { icon: ShoppingCart, title: "متاجر إلكترونية", desc: "مدفوعات محلية وتكامل شحن", itemKey: "store" },
-      { icon: Code2, title: "APIs مخصصة", desc: "REST / GraphQL موثّقة بالكامل", itemKey: "api" },
-    ],
-    metrics: [
-      { value: "99.9%", label: "وقت التشغيل" },
-      { value: "<1.5s", label: "زمن الاستجابة" },
-      { value: "100", label: "Lighthouse" },
-    ],
-  },
-  {
-    key: "systems",
-    eyebrow: "Infrastructure",
-    title: "الأنظمة والبنية التحتية",
-    tagline: "أنظمة إدارية سحابية، خوادم مخصصة، وحلول تشغيل مؤسسية.",
-    gradient: "from-emerald-500 via-teal-500 to-cyan-600",
-    ring: "ring-emerald-500/30",
-    glow: "shadow-[0_30px_80px_-30px_rgba(16,185,129,0.55)]",
-    icon: Server,
-    items: [
-      { icon: Database, title: "أنظمة ERP / CRM", desc: "إدارة كاملة للأعمال", itemKey: "erp" },
-      { icon: Cloud, title: "استضافة سحابية", desc: "تشغيل مرن وقابل للتوسع", itemKey: "hosting" },
-      { icon: HardDrive, title: "سيرفرات VPS ومخصصة", desc: "أداء عالي وحماية متقدمة", itemKey: "vps" },
-      { icon: Shield, title: "حماية وجدران نارية", desc: "WAF, DDoS, SSL A+", itemKey: "security" },
-    ],
-    metrics: [
-      { value: "24/7", label: "مراقبة" },
-      { value: "SLA", label: "99.95%" },
-      { value: "ISO", label: "معايير" },
-    ],
-  },
-  {
-    key: "marketing",
-    eyebrow: "Growth",
-    title: "التسويق الرقمي",
-    tagline: "حملات مدفوعة، سيو، وأتمتة نمو تدفع أعمالك للأمام بأرقام قابلة للقياس.",
-    gradient: "from-rose-500 via-pink-500 to-fuchsia-600",
-    ring: "ring-rose-500/30",
-    glow: "shadow-[0_30px_80px_-30px_rgba(244,63,94,0.55)]",
-    icon: Megaphone,
-    items: [
-      { icon: Target, title: "إعلانات Google & Meta", desc: "استهداف دقيق وROAS مرتفع", itemKey: "ads" },
-      { icon: Search, title: "تحسين محركات البحث", desc: "SEO تقني ومحتوى استراتيجي", itemKey: "seo" },
-      { icon: TrendingUp, title: "استراتيجية نمو", desc: "قمع تحويل متكامل", itemKey: "growth" },
-      { icon: Sparkles, title: "إدارة محتوى", desc: "سوشيال ميديا احترافي", itemKey: "content" },
-    ],
-    metrics: [
-      { value: "×4.2", label: "متوسط ROAS" },
-      { value: "+180%", label: "نمو عضوي" },
-      { value: "A/B", label: "اختبارات مستمرة" },
-    ],
-  },
-  {
-    key: "design",
-    eyebrow: "Design Studio",
-    title: "التصميم والهوية",
-    tagline: "هويات بصرية، تصميم واجهات UX/UI، ومحتوى إبداعي بمعايير عالمية.",
-    gradient: "from-violet-500 via-purple-500 to-fuchsia-600",
-    ring: "ring-violet-500/30",
-    glow: "shadow-[0_30px_80px_-30px_rgba(139,92,246,0.55)]",
-    icon: Palette,
-    items: [
-      { icon: PenTool, title: "الهوية البصرية", desc: "شعار ودليل علامة كامل", itemKey: "brand" },
-      { icon: Layers, title: "تصميم UX/UI", desc: "تجارب سلسة تركز على المستخدم", itemKey: "uiux" },
-      { icon: Sparkles, title: "موشن جرافيك", desc: "فيديوهات ترويجية 2D/3D", itemKey: "motion" },
-      { icon: Palette, title: "محتوى إبداعي", desc: "ملفات تعريفية وسوشيال", itemKey: "creative" },
-    ],
-    metrics: [
-      { value: "Awwwards", label: "معايير" },
-      { value: "4K", label: "تسليمات" },
-      { value: "RTL", label: "متكامل" },
-    ],
-  },
-];
+// keep type export shape for below usage
+type _T = LucideIcon;
+
 
 const container = {
   hidden: { opacity: 0 },
