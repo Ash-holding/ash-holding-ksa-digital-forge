@@ -222,7 +222,7 @@ function Hero({
               </h1>
               <p className="mt-1 text-[13px] leading-6 text-muted-foreground">{item.desc}</p>
             </div>
-            <FavoriteButton catKey={category.key} itemKey={item.itemKey} title={item.title} size="md" />
+            <FavoriteButton catKey={category.key} itemKey={Route.useParams().itemKey} title={item.title} size="md" />
           </div>
           {item.highlights && item.highlights.length > 0 && (
             <div className="flex flex-wrap gap-2">
