@@ -1,11 +1,51 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { ArrowLeft, ArrowRight, Search, Sparkles, Zap, Shield, Rocket, CheckCircle2 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { ArrowLeft, ArrowRight, Search, Sparkles, Zap, Shield, Rocket, CheckCircle2, X, ArrowUpDown, Repeat as RepeatIcon, Tag } from "lucide-react";
+import { useMemo } from "react";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { CATALOG, getCatalogCategory } from "@/lib/services-catalog";
 import { FavoriteButton } from "@/components/client/FavoriteButton";
 
+const searchSchema = z.object({
+  q: fallback(z.string(), "").default(""),
+  sort: fallback(z.string(), "recommended").default("recommended"),
+  type: fallback(z.string(), "all").default("all"),
+  tier: fallback(z.string(), "all").default("all"),
+});
+
+const SORTS = [
+  { key: "recommended", label: "الموصى به" },
+  { key: "newest", label: "الأحدث" },
+  { key: "price-asc", label: "السعر: الأقل" },
+  { key: "price-desc", label: "السعر: الأعلى" },
+  { key: "name", label: "الأبجدية" },
+];
+
+const TYPES = [
+  { key: "all", label: "الكل", icon: Tag },
+  { key: "onetime", label: "لمرة واحدة", icon: Rocket },
+  { key: "recurring", label: "اشتراك شهري", icon: RepeatIcon },
+];
+
+const TIERS = [
+  { key: "all", label: "كل الأسعار" },
+  { key: "low", label: "أقل من 3,000" },
+  { key: "mid", label: "3,000 – 10,000" },
+  { key: "high", label: "10,000+" },
+];
+
+function priceOf(from?: string): number {
+  if (!from) return Number.POSITIVE_INFINITY;
+  const m = from.replace(/,/g, "").match(/(\d+(?:\.\d+)?)/);
+  return m ? Number(m[1]) : Number.POSITIVE_INFINITY;
+}
+function isRecurring(from?: string) {
+  return !!from && /شهر/.test(from);
+}
+
 export const Route = createFileRoute("/_authenticated/client/services/catalog/$catKey")({
+  validateSearch: zodValidator(searchSchema),
   head: ({ params }) => {
     const c = getCatalogCategory(params.catKey);
     const title = c ? `${c.title} — كتالوج ASH HOLDING` : "قسم الخدمات — ASH HOLDING";
@@ -36,17 +76,40 @@ export const Route = createFileRoute("/_authenticated/client/services/catalog/$c
 
 function CategoryPage() {
   const { catKey } = Route.useParams();
+  const { q, sort, type, tier } = Route.useSearch();
   const navigate = useNavigate();
   const cat = getCatalogCategory(catKey)!;
-  const [q, setQ] = useState("");
+
+  const setParam = (patch: Record<string, string>) =>
+    navigate({
+      to: "/client/services/catalog/$catKey",
+      params: { catKey },
+      search: (prev) => ({ ...prev, ...patch }),
+      replace: true,
+    });
 
   const items = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return cat.items;
-    return cat.items.filter(
-      (it) => it.title.toLowerCase().includes(s) || it.desc.toLowerCase().includes(s),
-    );
-  }, [cat.items, q]);
+    let list = cat.items.map((it, i) => ({ ...it, _idx: i, _price: priceOf(it.from), _recurring: isRecurring(it.from) }));
+    if (s) list = list.filter((it) => it.title.toLowerCase().includes(s) || it.desc.toLowerCase().includes(s));
+    if (type === "recurring") list = list.filter((it) => it._recurring);
+    else if (type === "onetime") list = list.filter((it) => !it._recurring);
+    if (tier === "low") list = list.filter((it) => it._price < 3000);
+    else if (tier === "mid") list = list.filter((it) => it._price >= 3000 && it._price < 10000);
+    else if (tier === "high") list = list.filter((it) => it._price >= 10000);
+
+    switch (sort) {
+      case "price-asc": list = [...list].sort((a, b) => a._price - b._price); break;
+      case "price-desc": list = [...list].sort((a, b) => b._price - a._price); break;
+      case "name": list = [...list].sort((a, b) => a.title.localeCompare(b.title, "ar")); break;
+      case "newest": list = [...list].sort((a, b) => b._idx - a._idx); break;
+      default: break;
+    }
+    return list;
+  }, [cat.items, q, sort, type, tier]);
+
+  const activeFilters = (type !== "all" ? 1 : 0) + (tier !== "all" ? 1 : 0) + (sort !== "recommended" ? 1 : 0) + (q ? 1 : 0);
+
 
   const Icon = cat.icon;
 
