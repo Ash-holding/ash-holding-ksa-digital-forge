@@ -93,21 +93,68 @@ const statusSchema = z.object({
 export const serviceRequestsRouter = Router();
 
 // ---------- LIST ----------
+// Legacy ProjectRequestStatus → ServiceRequest status mapping
+const LEGACY_STATUS_MAP: Record<string, string> = {
+  PENDING: "SUBMITTED",
+  UNDER_REVIEW: "UNDER_REVIEW",
+  QUOTED: "QUOTED",
+  PROPOSAL_SENT: "QUOTED",
+  APPROVED: "PAID",
+  SIGNED: "PAID",
+  INVOICED: "AWAITING_PAYMENT",
+  IN_PROGRESS: "PROVISIONING",
+  COMPLETED: "ACTIVE",
+  REJECTED: "REJECTED",
+  CANCELLED: "CANCELLED",
+};
+
+function mapLegacyRequest(r: any) {
+  return {
+    id: r.id,
+    code: `LEG-${r.id.replace(/-/g, "").slice(0, 6).toUpperCase()}`,
+    kind: "QUOTE_REQUEST",
+    status: LEGACY_STATUS_MAP[r.status] ?? "SUBMITTED",
+    catalogKey: null,
+    itemKey: null,
+    serviceType: r.category,
+    title: r.title,
+    description: r.description,
+    basePrice: r.budgetMin ?? null,
+    quotedPrice: r.proposalAmount ?? null,
+    currency: "SAR",
+    billingCycle: "ONE_TIME",
+    createdAt: r.createdAt,
+    updatedAt: r.updatedAt,
+    clientId: r.clientId,
+    client: r.client,
+    legacy: true,
+    legacyProjectRequestId: r.id,
+  };
+}
+
 serviceRequestsRouter.get("/", requireAuth, async (req, res) => {
   const { page, pageSize, skip, take } = paging(req);
   const staff = isStaff(req);
   const where: any = {};
+  let clientScopeId: string | null = null;
   if (!staff) {
     const cid = await currentClientId(req);
     if (!cid) return res.json({ rows: [], total: 0, page, pageSize });
     where.clientId = cid;
+    clientScopeId = cid;
   } else if (req.query.clientId) {
     where.clientId = String(req.query.clientId);
+    clientScopeId = String(req.query.clientId);
   }
   if (req.query.status) where.status = String(req.query.status);
   if (req.query.kind) where.kind = String(req.query.kind);
 
-  const [rows, total] = await Promise.all([
+  const includeLegacy = req.query.includeLegacy !== "false" && !req.query.status && !req.query.kind;
+
+  const legacyWhere: any = {};
+  if (clientScopeId) legacyWhere.clientId = clientScopeId;
+
+  const [rows, total, legacyRows] = await Promise.all([
     prisma.serviceRequest.findMany({
       where, skip, take,
       orderBy: { createdAt: "desc" },
@@ -116,9 +163,26 @@ serviceRequestsRouter.get("/", requireAuth, async (req, res) => {
       },
     }),
     prisma.serviceRequest.count({ where }),
+    includeLegacy
+      ? prisma.projectRequest.findMany({
+          where: legacyWhere,
+          orderBy: { createdAt: "desc" },
+          include: {
+            client: { include: { user: { select: { name: true, email: true, phone: true } } } },
+          },
+          take: 200,
+        }).catch(() => [])
+      : Promise.resolve([]),
   ]);
-  res.json({ rows, total, page, pageSize });
+
+  const legacyMapped = (legacyRows as any[]).map(mapLegacyRequest);
+  const merged = [...rows, ...legacyMapped].sort(
+    (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  res.json({ rows: merged, total: total + legacyMapped.length, page, pageSize });
 });
+
 
 // ---------- GET ONE ----------
 serviceRequestsRouter.get("/:id", requireAuth, async (req, res) => {

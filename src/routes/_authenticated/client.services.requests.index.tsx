@@ -114,7 +114,12 @@ function ClientServiceRequestsList() {
   };
 
   const cols: Column<any>[] = [
-    { key: "code", header: "المرجع", render: (r) => <span className="font-mono text-[11px] font-bold text-electric">{r.code}</span> },
+    { key: "code", header: "المرجع", render: (r) => (
+      <div className="flex items-center gap-1.5">
+        <span className="font-mono text-[11px] font-bold text-electric">{r.code}</span>
+        {r.legacy && <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold text-amber-400">قديم</span>}
+      </div>
+    ) },
     { key: "title", header: "الخدمة", render: (r) => (
       <div className="min-w-0">
         <div className="font-semibold truncate">{r.title}</div>
@@ -301,7 +306,9 @@ function ClientServiceRequestsList() {
         page={1}
         pageSize={50}
         onPageChange={() => {}}
-        onRowClick={(r) => nav({ to: "/client/services/requests/$id", params: { id: r.id } })}
+        onRowClick={(r) => r.legacy
+          ? nav({ to: "/client/projects/requests/$id", params: { id: r.legacyProjectRequestId ?? r.id } })
+          : nav({ to: "/client/services/requests/$id", params: { id: r.id } })}
         emptyTitle="لا توجد طلبات مطابقة للفلترة — جرّب توسيع نطاق البحث أو مسح الفلاتر"
       />
     </div>
