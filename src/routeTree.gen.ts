@@ -108,6 +108,7 @@ import { Route as AuthenticatedAdminClientsNewRouteImport } from './routes/_auth
 import { Route as AuthenticatedAdminClientsIdRouteImport } from './routes/_authenticated/admin.clients.$id'
 import { Route as AuthenticatedClientServicesRequestsIndexRouteImport } from './routes/_authenticated/client.services.requests.index'
 import { Route as AuthenticatedClientServicesRequestsIdRouteImport } from './routes/_authenticated/client.services.requests.$id'
+import { Route as AuthenticatedClientServicesCatalogCatKeyRouteImport } from './routes/_authenticated/client.services.catalog.$catKey'
 import { Route as AuthenticatedClientProjectsRequestsIdRouteImport } from './routes/_authenticated/client.projects.requests.$id'
 import { Route as AuthenticatedClientFinancingContractsIdRouteImport } from './routes/_authenticated/client.financing.contracts.$id'
 import { Route as AuthenticatedClientFinancingApplyProductIdRouteImport } from './routes/_authenticated/client.financing.apply.$productId'
@@ -676,6 +677,12 @@ const AuthenticatedClientServicesRequestsIdRoute =
     path: '/$id',
     getParentRoute: () => AuthenticatedClientServicesRequestsRoute,
   } as any)
+const AuthenticatedClientServicesCatalogCatKeyRoute =
+  AuthenticatedClientServicesCatalogCatKeyRouteImport.update({
+    id: '/catalog/$catKey',
+    path: '/catalog/$catKey',
+    getParentRoute: () => AuthenticatedClientServicesRoute,
+  } as any)
 const AuthenticatedClientProjectsRequestsIdRoute =
   AuthenticatedClientProjectsRequestsIdRouteImport.update({
     id: '/requests/$id',
@@ -809,6 +816,7 @@ export interface FileRoutesByFullPath {
   '/client/financing/apply/$productId': typeof AuthenticatedClientFinancingApplyProductIdRoute
   '/client/financing/contracts/$id': typeof AuthenticatedClientFinancingContractsIdRoute
   '/client/projects/requests/$id': typeof AuthenticatedClientProjectsRequestsIdRoute
+  '/client/services/catalog/$catKey': typeof AuthenticatedClientServicesCatalogCatKeyRoute
   '/client/services/requests/$id': typeof AuthenticatedClientServicesRequestsIdRoute
   '/client/services/requests/': typeof AuthenticatedClientServicesRequestsIndexRoute
 }
@@ -904,6 +912,7 @@ export interface FileRoutesByTo {
   '/client/financing/apply/$productId': typeof AuthenticatedClientFinancingApplyProductIdRoute
   '/client/financing/contracts/$id': typeof AuthenticatedClientFinancingContractsIdRoute
   '/client/projects/requests/$id': typeof AuthenticatedClientProjectsRequestsIdRoute
+  '/client/services/catalog/$catKey': typeof AuthenticatedClientServicesCatalogCatKeyRoute
   '/client/services/requests/$id': typeof AuthenticatedClientServicesRequestsIdRoute
   '/client/services/requests': typeof AuthenticatedClientServicesRequestsIndexRoute
 }
@@ -1011,6 +1020,7 @@ export interface FileRoutesById {
   '/_authenticated/client/financing/apply/$productId': typeof AuthenticatedClientFinancingApplyProductIdRoute
   '/_authenticated/client/financing/contracts/$id': typeof AuthenticatedClientFinancingContractsIdRoute
   '/_authenticated/client/projects/requests/$id': typeof AuthenticatedClientProjectsRequestsIdRoute
+  '/_authenticated/client/services/catalog/$catKey': typeof AuthenticatedClientServicesCatalogCatKeyRoute
   '/_authenticated/client/services/requests/$id': typeof AuthenticatedClientServicesRequestsIdRoute
   '/_authenticated/client/services/requests/': typeof AuthenticatedClientServicesRequestsIndexRoute
 }
@@ -1118,6 +1128,7 @@ export interface FileRouteTypes {
     | '/client/financing/apply/$productId'
     | '/client/financing/contracts/$id'
     | '/client/projects/requests/$id'
+    | '/client/services/catalog/$catKey'
     | '/client/services/requests/$id'
     | '/client/services/requests/'
   fileRoutesByTo: FileRoutesByTo
@@ -1213,6 +1224,7 @@ export interface FileRouteTypes {
     | '/client/financing/apply/$productId'
     | '/client/financing/contracts/$id'
     | '/client/projects/requests/$id'
+    | '/client/services/catalog/$catKey'
     | '/client/services/requests/$id'
     | '/client/services/requests'
   id:
@@ -1319,6 +1331,7 @@ export interface FileRouteTypes {
     | '/_authenticated/client/financing/apply/$productId'
     | '/_authenticated/client/financing/contracts/$id'
     | '/_authenticated/client/projects/requests/$id'
+    | '/_authenticated/client/services/catalog/$catKey'
     | '/_authenticated/client/services/requests/$id'
     | '/_authenticated/client/services/requests/'
   fileRoutesById: FileRoutesById
@@ -2042,6 +2055,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientServicesRequestsIdRouteImport
       parentRoute: typeof AuthenticatedClientServicesRequestsRoute
     }
+    '/_authenticated/client/services/catalog/$catKey': {
+      id: '/_authenticated/client/services/catalog/$catKey'
+      path: '/catalog/$catKey'
+      fullPath: '/client/services/catalog/$catKey'
+      preLoaderRoute: typeof AuthenticatedClientServicesCatalogCatKeyRouteImport
+      parentRoute: typeof AuthenticatedClientServicesRoute
+    }
     '/_authenticated/client/projects/requests/$id': {
       id: '/_authenticated/client/projects/requests/$id'
       path: '/requests/$id'
@@ -2428,6 +2448,7 @@ interface AuthenticatedClientServicesRouteChildren {
   AuthenticatedClientServicesIdRoute: typeof AuthenticatedClientServicesIdRoute
   AuthenticatedClientServicesNewRoute: typeof AuthenticatedClientServicesNewRoute
   AuthenticatedClientServicesRequestsRoute: typeof AuthenticatedClientServicesRequestsRouteWithChildren
+  AuthenticatedClientServicesCatalogCatKeyRoute: typeof AuthenticatedClientServicesCatalogCatKeyRoute
 }
 
 const AuthenticatedClientServicesRouteChildren: AuthenticatedClientServicesRouteChildren =
@@ -2436,6 +2457,8 @@ const AuthenticatedClientServicesRouteChildren: AuthenticatedClientServicesRoute
     AuthenticatedClientServicesNewRoute: AuthenticatedClientServicesNewRoute,
     AuthenticatedClientServicesRequestsRoute:
       AuthenticatedClientServicesRequestsRouteWithChildren,
+    AuthenticatedClientServicesCatalogCatKeyRoute:
+      AuthenticatedClientServicesCatalogCatKeyRoute,
   }
 
 const AuthenticatedClientServicesRouteWithChildren =
