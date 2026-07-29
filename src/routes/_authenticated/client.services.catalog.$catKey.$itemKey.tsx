@@ -8,6 +8,7 @@ import {
 import {
   getCatalogItem, buildServiceDetails, formatPrice, type CatalogCategory,
 } from "@/lib/services-catalog";
+import { FavoriteButton } from "@/components/client/FavoriteButton";
 
 export const Route = createFileRoute("/_authenticated/client/services/catalog/$catKey/$itemKey")({
   head: ({ params }) => {
@@ -215,12 +216,13 @@ function Hero({
             >
               <Icon className="h-7 w-7" />
             </motion.span>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <h1 className="text-2xl font-black leading-tight text-foreground md:text-3xl">
                 {item.title}
               </h1>
               <p className="mt-1 text-[13px] leading-6 text-muted-foreground">{item.desc}</p>
             </div>
+            <FavoriteButton catKey={category.key} itemKey={Route.useParams().itemKey} title={item.title} size="md" />
           </div>
           {item.highlights && item.highlights.length > 0 && (
             <div className="flex flex-wrap gap-2">

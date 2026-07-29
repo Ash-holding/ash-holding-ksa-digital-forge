@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Boxes, Activity, PauseCircle, RefreshCw, Wallet, Layers, Search, AlertTriangle,
   Globe, Smartphone, Server, Mail, Megaphone, Palette, LifeBuoy, HardDrive, Package,
-  Clock, Inbox, ClipboardList, Plus, ArrowLeft,
+  Clock, Inbox, ClipboardList, Plus, ArrowLeft, Heart,
 } from "lucide-react";
 import { api } from "@/lib/api";
 import { ClientPageHeader } from "@/components/client/ClientPageHeader";
@@ -158,6 +158,9 @@ function ClientServicesPage() {
         actions={
           <div className="flex items-center gap-2">
             <LiveBadge interval={20} />
+            <Link to="/client/services/favorites" className="inline-flex items-center gap-1.5 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-2 text-[12px] font-bold text-rose-400 hover:bg-rose-500/20">
+              <Heart className="h-3.5 w-3.5" /> المفضلة
+            </Link>
             <Link to="/client/services/new" className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-electric to-purple-accent px-3 py-2 text-[12px] font-bold text-white">
               <Plus className="h-3.5 w-3.5" /> طلب جديد
             </Link>

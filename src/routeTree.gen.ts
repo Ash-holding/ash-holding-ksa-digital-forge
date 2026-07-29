@@ -85,6 +85,7 @@ import { Route as AuthenticatedAdminClientsIndexRouteImport } from './routes/_au
 import { Route as AuthenticatedClientSupportIdRouteImport } from './routes/_authenticated/client.support.$id'
 import { Route as AuthenticatedClientServicesRequestsRouteImport } from './routes/_authenticated/client.services.requests'
 import { Route as AuthenticatedClientServicesNewRouteImport } from './routes/_authenticated/client.services.new'
+import { Route as AuthenticatedClientServicesFavoritesRouteImport } from './routes/_authenticated/client.services.favorites'
 import { Route as AuthenticatedClientServicesIdRouteImport } from './routes/_authenticated/client.services.$id'
 import { Route as AuthenticatedClientProjectsNewRouteImport } from './routes/_authenticated/client.projects.new'
 import { Route as AuthenticatedClientProjectsIdRouteImport } from './routes/_authenticated/client.projects.$id'
@@ -540,6 +541,12 @@ const AuthenticatedClientServicesNewRoute =
     path: '/new',
     getParentRoute: () => AuthenticatedClientServicesRoute,
   } as any)
+const AuthenticatedClientServicesFavoritesRoute =
+  AuthenticatedClientServicesFavoritesRouteImport.update({
+    id: '/favorites',
+    path: '/favorites',
+    getParentRoute: () => AuthenticatedClientServicesRoute,
+  } as any)
 const AuthenticatedClientServicesIdRoute =
   AuthenticatedClientServicesIdRouteImport.update({
     id: '/$id',
@@ -809,6 +816,7 @@ export interface FileRoutesByFullPath {
   '/client/projects/$id': typeof AuthenticatedClientProjectsIdRoute
   '/client/projects/new': typeof AuthenticatedClientProjectsNewRoute
   '/client/services/$id': typeof AuthenticatedClientServicesIdRoute
+  '/client/services/favorites': typeof AuthenticatedClientServicesFavoritesRoute
   '/client/services/new': typeof AuthenticatedClientServicesNewRoute
   '/client/services/requests': typeof AuthenticatedClientServicesRequestsRouteWithChildren
   '/client/support/$id': typeof AuthenticatedClientSupportIdRoute
@@ -907,6 +915,7 @@ export interface FileRoutesByTo {
   '/client/projects/$id': typeof AuthenticatedClientProjectsIdRoute
   '/client/projects/new': typeof AuthenticatedClientProjectsNewRoute
   '/client/services/$id': typeof AuthenticatedClientServicesIdRoute
+  '/client/services/favorites': typeof AuthenticatedClientServicesFavoritesRoute
   '/client/services/new': typeof AuthenticatedClientServicesNewRoute
   '/client/support/$id': typeof AuthenticatedClientSupportIdRoute
   '/admin/clients': typeof AuthenticatedAdminClientsIndexRoute
@@ -1015,6 +1024,7 @@ export interface FileRoutesById {
   '/_authenticated/client/projects/$id': typeof AuthenticatedClientProjectsIdRoute
   '/_authenticated/client/projects/new': typeof AuthenticatedClientProjectsNewRoute
   '/_authenticated/client/services/$id': typeof AuthenticatedClientServicesIdRoute
+  '/_authenticated/client/services/favorites': typeof AuthenticatedClientServicesFavoritesRoute
   '/_authenticated/client/services/new': typeof AuthenticatedClientServicesNewRoute
   '/_authenticated/client/services/requests': typeof AuthenticatedClientServicesRequestsRouteWithChildren
   '/_authenticated/client/support/$id': typeof AuthenticatedClientSupportIdRoute
@@ -1124,6 +1134,7 @@ export interface FileRouteTypes {
     | '/client/projects/$id'
     | '/client/projects/new'
     | '/client/services/$id'
+    | '/client/services/favorites'
     | '/client/services/new'
     | '/client/services/requests'
     | '/client/support/$id'
@@ -1222,6 +1233,7 @@ export interface FileRouteTypes {
     | '/client/projects/$id'
     | '/client/projects/new'
     | '/client/services/$id'
+    | '/client/services/favorites'
     | '/client/services/new'
     | '/client/support/$id'
     | '/admin/clients'
@@ -1329,6 +1341,7 @@ export interface FileRouteTypes {
     | '/_authenticated/client/projects/$id'
     | '/_authenticated/client/projects/new'
     | '/_authenticated/client/services/$id'
+    | '/_authenticated/client/services/favorites'
     | '/_authenticated/client/services/new'
     | '/_authenticated/client/services/requests'
     | '/_authenticated/client/support/$id'
@@ -1907,6 +1920,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientServicesNewRouteImport
       parentRoute: typeof AuthenticatedClientServicesRoute
     }
+    '/_authenticated/client/services/favorites': {
+      id: '/_authenticated/client/services/favorites'
+      path: '/favorites'
+      fullPath: '/client/services/favorites'
+      preLoaderRoute: typeof AuthenticatedClientServicesFavoritesRouteImport
+      parentRoute: typeof AuthenticatedClientServicesRoute
+    }
     '/_authenticated/client/services/$id': {
       id: '/_authenticated/client/services/$id'
       path: '/$id'
@@ -2481,6 +2501,7 @@ const AuthenticatedClientServicesCatalogCatKeyRouteWithChildren =
 
 interface AuthenticatedClientServicesRouteChildren {
   AuthenticatedClientServicesIdRoute: typeof AuthenticatedClientServicesIdRoute
+  AuthenticatedClientServicesFavoritesRoute: typeof AuthenticatedClientServicesFavoritesRoute
   AuthenticatedClientServicesNewRoute: typeof AuthenticatedClientServicesNewRoute
   AuthenticatedClientServicesRequestsRoute: typeof AuthenticatedClientServicesRequestsRouteWithChildren
   AuthenticatedClientServicesCatalogCatKeyRoute: typeof AuthenticatedClientServicesCatalogCatKeyRouteWithChildren
@@ -2489,6 +2510,8 @@ interface AuthenticatedClientServicesRouteChildren {
 const AuthenticatedClientServicesRouteChildren: AuthenticatedClientServicesRouteChildren =
   {
     AuthenticatedClientServicesIdRoute: AuthenticatedClientServicesIdRoute,
+    AuthenticatedClientServicesFavoritesRoute:
+      AuthenticatedClientServicesFavoritesRoute,
     AuthenticatedClientServicesNewRoute: AuthenticatedClientServicesNewRoute,
     AuthenticatedClientServicesRequestsRoute:
       AuthenticatedClientServicesRequestsRouteWithChildren,
