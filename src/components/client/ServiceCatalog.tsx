@@ -6,7 +6,7 @@ import {
   ArrowLeft, Zap, Shield, Rocket, type LucideIcon,
 } from "lucide-react";
 
-type Item = { icon: LucideIcon; title: string; desc: string };
+type Item = { icon: LucideIcon; title: string; desc: string; itemKey: string };
 type Category = {
   key: string;
   eyebrow: string;
@@ -157,10 +157,10 @@ export function ServiceCatalog() {
             </div>
           </div>
           <Link
-            to="/client/projects/new"
+            to="/client/services/new"
             className="group inline-flex items-center gap-2 self-start rounded-2xl bg-gradient-to-r from-electric to-purple-accent px-5 py-3 text-sm font-bold text-white shadow-lg shadow-electric/30 transition hover:-translate-y-0.5"
           >
-            اطلب مشروعاً جديداً
+            اطلب خدمة جديدة
             <ArrowLeft className="h-4 w-4 transition group-hover:-translate-x-1" />
           </Link>
         </div>
@@ -209,15 +209,20 @@ export function ServiceCatalog() {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.05 + i * 0.06 + 0.2 }}
-                  className="group/it flex items-start gap-2.5 rounded-xl border border-border/60 bg-background/40 p-2.5 transition hover:border-electric/40 hover:bg-background/70"
                 >
-                  <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br ${c.gradient} text-white shadow`}>
-                    <it.icon className="h-3.5 w-3.5" />
-                  </span>
-                  <div className="min-w-0">
-                    <div className="truncate text-[12.5px] font-bold text-foreground">{it.title}</div>
-                    <div className="truncate text-[11px] text-muted-foreground">{it.desc}</div>
-                  </div>
+                  <Link
+                    to="/client/services/new"
+                    search={{ catalog: c.key, item: it.itemKey }}
+                    className="group/it flex items-start gap-2.5 rounded-xl border border-border/60 bg-background/40 p-2.5 transition hover:border-electric/40 hover:bg-background/70"
+                  >
+                    <span className={`grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-gradient-to-br ${c.gradient} text-white shadow`}>
+                      <it.icon className="h-3.5 w-3.5" />
+                    </span>
+                    <div className="min-w-0">
+                      <div className="truncate text-[12.5px] font-bold text-foreground">{it.title}</div>
+                      <div className="truncate text-[11px] text-muted-foreground">{it.desc}</div>
+                    </div>
+                  </Link>
                 </motion.li>
               ))}
             </ul>
@@ -233,7 +238,8 @@ export function ServiceCatalog() {
 
             <div className="relative mt-4 flex items-center justify-between">
               <Link
-                to="/client/projects/new"
+                to="/client/services/new"
+                search={{ catalog: c.key, item: c.items[0].itemKey }}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-white/5 px-3 py-2 text-[12px] font-bold text-foreground ring-1 ring-border transition hover:bg-white/10 hover:text-electric"
               >
                 اطلب هذه الخدمة
