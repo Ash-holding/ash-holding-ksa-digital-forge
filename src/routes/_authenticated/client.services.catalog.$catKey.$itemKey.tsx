@@ -339,7 +339,13 @@ function PricingSection({
               onClick={() =>
                 navigate({
                   to: "/client/services/new",
-                  search: { catalog: category.key, item: item.itemKey },
+                  search: {
+                    catalog: category.key,
+                    item: item.itemKey,
+                    plan: plan.name,
+                    price: plan.price,
+                    duration: plan.unit.includes("شهر") ? "MONTHLY" : "ONE_TIME",
+                  },
                 })
               }
               className={`mt-5 flex w-full items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-black transition ${
