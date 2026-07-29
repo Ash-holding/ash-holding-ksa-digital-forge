@@ -135,7 +135,9 @@ function NewServiceRequestPage() {
       return data;
     },
     onSuccess: (data) => {
-      toast.success("تم تقديم الطلب بنجاح");
+      toast.success(`تم تسجيل الطلب في السجل — المرجع ${data.code ?? ""}`.trim());
+      qc.invalidateQueries({ queryKey: ["client-service-requests"] });
+      qc.invalidateQueries({ queryKey: ["admin-service-requests"] });
       nav({ to: "/client/services/requests/$id", params: { id: data.id } });
     },
     onError: (e) => toast.error(apiError(e)),
