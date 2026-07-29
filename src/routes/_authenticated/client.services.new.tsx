@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -62,6 +62,7 @@ type UploadedFile = { name: string; url: string; size: number };
 
 function NewServiceRequestPage() {
   const nav = useNavigate();
+  const qc = useQueryClient();
   const { catalog, item, plan: presetPlan, price: presetPrice, duration: presetDuration } = Route.useSearch();
   const found = catalog && item ? getCatalogItem(catalog, item) : null;
   const details = found ? buildServiceDetails(found.item, found.category) : null;
@@ -134,7 +135,9 @@ function NewServiceRequestPage() {
       return data;
     },
     onSuccess: (data) => {
-      toast.success("تم تقديم الطلب بنجاح");
+      toast.success(`تم تسجيل الطلب في السجل — المرجع ${data.code ?? ""}`.trim());
+      qc.invalidateQueries({ queryKey: ["client-service-requests"] });
+      qc.invalidateQueries({ queryKey: ["admin-service-requests"] });
       nav({ to: "/client/services/requests/$id", params: { id: data.id } });
     },
     onError: (e) => toast.error(apiError(e)),

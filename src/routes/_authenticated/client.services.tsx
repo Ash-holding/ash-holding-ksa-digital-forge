@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
 import { Money } from "@/components/ui/money";
 import { ServiceCatalog } from "@/components/client/ServiceCatalog";
+import { getCatalogItem } from "@/lib/services-catalog";
 
 const TYPE_AR: Record<string, string> = { WEBSITE:"موقع", MOBILE_APP:"تطبيق", ADMIN_SYSTEM:"نظام", HOSTING:"استضافة", VPS:"VPS", DEDICATED_SERVER:"سيرفر", SMTP:"SMTP", MARKETING:"تسويق", DESIGN:"تصميم", SUPPORT:"دعم", OTHER:"أخرى" };
 const TYPE_ICON: Record<string, any> = { WEBSITE: Globe, MOBILE_APP: Smartphone, ADMIN_SYSTEM: Server, HOSTING: HardDrive, VPS: Server, DEDICATED_SERVER: Server, SMTP: Mail, MARKETING: Megaphone, DESIGN: Palette, SUPPORT: LifeBuoy, OTHER: Package };
@@ -138,12 +139,30 @@ function ClientServicesPage() {
         {r.legacy && <span className="rounded bg-amber-500/15 px-1.5 py-0.5 text-[9px] font-bold text-amber-400">قديم</span>}
       </div>
     ) },
-    { key: "title", header: "الخدمة", render: (r) => (
-      <div className="min-w-0">
-        <div className="font-semibold truncate">{r.title}</div>
-        <div className="text-[10px] text-muted-foreground">{KIND_LABEL[r.kind] ?? r.kind}</div>
-      </div>
-    ) },
+    { key: "title", header: "الخدمة", render: (r) => {
+      const src = r.catalogKey && r.itemKey ? getCatalogItem(r.catalogKey, r.itemKey) : null;
+      return (
+        <div className="min-w-0">
+          <div className="font-semibold truncate">{r.title}</div>
+          <div className="mt-0.5 flex items-center gap-1.5 text-[10px] text-muted-foreground">
+            <span>{KIND_LABEL[r.kind] ?? r.kind}</span>
+            {src && (
+              <>
+                <span className="text-muted-foreground/40">•</span>
+                <Link
+                  to="/client/services/catalog/$catKey/$itemKey"
+                  params={{ catKey: r.catalogKey, itemKey: r.itemKey }}
+                  onClick={(e) => e.stopPropagation()}
+                  className={`inline-flex items-center gap-1 rounded-full border border-border/60 bg-card/60 px-1.5 py-0.5 font-bold ${src.category.accent} hover:underline`}
+                >
+                  <Package className="h-2.5 w-2.5" /> {src.category.title}
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      );
+    } },
     { key: "status", header: "الحالة", render: (r) => <StatusBadge value={r.status} /> },
     { key: "price", header: "السعر", render: (r) => (r.quotedPrice || r.basePrice ? <Money value={r.quotedPrice ?? r.basePrice} className="font-bold" /> : <span className="text-muted-foreground text-[11px]">—</span>) },
     { key: "createdAt", header: "التاريخ", hideOnMobile: true, render: (r) => <span className="text-[11px]">{formatDate(r.createdAt)}</span> },

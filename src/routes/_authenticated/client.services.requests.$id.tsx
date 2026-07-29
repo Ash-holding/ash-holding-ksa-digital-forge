@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, MessageCircle, Send, X, CheckCircle2, Clock } from "lucide-react";
 import { api, apiError } from "@/lib/api";
+import { getCatalogItem } from "@/lib/services-catalog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
@@ -62,6 +63,20 @@ function ClientServiceRequestDetail() {
             <div className="text-[10px] font-bold uppercase tracking-widest text-electric">{r.code}</div>
             <h1 className="mt-1 text-xl sm:text-2xl font-black text-white">{r.title}</h1>
             {r.description && <p className="mt-2 max-w-2xl text-sm text-slate-300">{r.description}</p>}
+            {(() => {
+              const src = r.catalogKey && r.itemKey ? getCatalogItem(r.catalogKey, r.itemKey) : null;
+              if (!src) return null;
+              return (
+                <Link
+                  to="/client/services/catalog/$catKey/$itemKey"
+                  params={{ catKey: r.catalogKey, itemKey: r.itemKey }}
+                  className={`mt-3 inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 text-[11px] font-bold ${src.category.accent} hover:bg-white/10`}
+                >
+                  <ArrowLeft className="h-3 w-3 rotate-180" />
+                  من الكتالوج: {src.category.title} — {src.item.title}
+                </Link>
+              );
+            })()}
           </div>
           <div className="flex items-center gap-2">
             <StatusBadge value={r.status} />
