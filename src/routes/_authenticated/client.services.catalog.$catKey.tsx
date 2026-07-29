@@ -182,22 +182,98 @@ function CategoryPage() {
         </div>
       </motion.section>
 
-      {/* Search + count */}
-      <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="text-[12px] text-muted-foreground">
-          عرض <span className="font-bold text-foreground">{items.length}</span> من أصل{" "}
-          <span className="font-bold text-foreground">{cat.items.length}</span> خدمة
+      {/* Search + filters (URL-driven, no reload) */}
+      <div className="rounded-2xl border border-border bg-card/50 p-3 sm:p-4 space-y-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <div className="relative flex-1">
+            <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <input
+              value={q}
+              onChange={(e) => setParam({ q: e.target.value })}
+              placeholder="ابحث داخل الخدمات..."
+              className="w-full rounded-xl border border-border bg-background/60 py-2.5 pr-10 pl-9 text-sm text-foreground outline-none transition focus:border-electric/60 focus:ring-2 focus:ring-electric/20"
+            />
+            {q && (
+              <button
+                onClick={() => setParam({ q: "" })}
+                aria-label="مسح البحث"
+                className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground transition hover:bg-white/5 hover:text-foreground"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+          </div>
+          <div className="relative">
+            <ArrowUpDown className="pointer-events-none absolute right-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+            <select
+              value={sort}
+              onChange={(e) => setParam({ sort: e.target.value })}
+              className="w-full sm:w-52 appearance-none rounded-xl border border-border bg-background/60 py-2.5 pr-9 pl-3 text-sm font-semibold text-foreground outline-none transition focus:border-electric/60 focus:ring-2 focus:ring-electric/20"
+            >
+              {SORTS.map((s) => (
+                <option key={s.key} value={s.key}>الفرز: {s.label}</option>
+              ))}
+            </select>
+          </div>
+          {activeFilters > 0 && (
+            <button
+              onClick={() => setParam({ q: "", sort: "recommended", type: "all", tier: "all" })}
+              className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-background/60 px-3 py-2 text-[12px] font-bold text-muted-foreground transition hover:border-rose-400/40 hover:text-rose-400"
+            >
+              <X className="h-3.5 w-3.5" /> إعادة تعيين ({activeFilters})
+            </button>
+          )}
         </div>
-        <div className="relative w-full sm:max-w-xs">
-          <Search className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="ابحث داخل الخدمات..."
-            className="w-full rounded-xl border border-border bg-card/60 py-2.5 pr-10 pl-3 text-sm text-foreground outline-none transition focus:border-electric/60 focus:ring-2 focus:ring-electric/20"
-          />
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">النوع</span>
+          {TYPES.map((t) => {
+            const active = type === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setParam({ type: t.key })}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11.5px] font-bold transition ${
+                  active
+                    ? `border-transparent bg-gradient-to-r ${cat.gradient} text-white shadow-lg`
+                    : "border-border bg-background/50 text-muted-foreground hover:text-foreground hover:border-electric/40"
+                }`}
+              >
+                <t.icon className="h-3 w-3" /> {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">السعر</span>
+          {TIERS.map((t) => {
+            const active = tier === t.key;
+            return (
+              <button
+                key={t.key}
+                onClick={() => setParam({ tier: t.key })}
+                className={`inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[11.5px] font-bold transition ${
+                  active
+                    ? `border-transparent bg-gradient-to-r ${cat.gradient} text-white shadow-lg`
+                    : "border-border bg-background/50 text-muted-foreground hover:text-foreground hover:border-electric/40"
+                }`}
+              >
+                {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="flex items-center justify-between border-t border-border/60 pt-2 text-[11.5px] text-muted-foreground">
+          <span>
+            عرض <span className="font-bold text-foreground">{items.length}</span> من أصل{" "}
+            <span className="font-bold text-foreground">{cat.items.length}</span> خدمة
+          </span>
+          <span className="text-[10px] text-muted-foreground/60">الفلاتر تتحدث فورياً بدون إعادة تحميل</span>
         </div>
       </div>
+
 
       {/* Grid */}
       <motion.div
