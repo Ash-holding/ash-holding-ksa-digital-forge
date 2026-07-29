@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/format";
 import { Money } from "@/components/ui/money";
 import { ServiceCatalog } from "@/components/client/ServiceCatalog";
+import { getCatalogItem } from "@/lib/services-catalog";
 
 const TYPE_AR: Record<string, string> = { WEBSITE:"موقع", MOBILE_APP:"تطبيق", ADMIN_SYSTEM:"نظام", HOSTING:"استضافة", VPS:"VPS", DEDICATED_SERVER:"سيرفر", SMTP:"SMTP", MARKETING:"تسويق", DESIGN:"تصميم", SUPPORT:"دعم", OTHER:"أخرى" };
 const TYPE_ICON: Record<string, any> = { WEBSITE: Globe, MOBILE_APP: Smartphone, ADMIN_SYSTEM: Server, HOSTING: HardDrive, VPS: Server, DEDICATED_SERVER: Server, SMTP: Mail, MARKETING: Megaphone, DESIGN: Palette, SUPPORT: LifeBuoy, OTHER: Package };
