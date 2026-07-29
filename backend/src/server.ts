@@ -35,6 +35,7 @@ import { financingOpsRouter, financingOpsPublicRouter } from "./routes/financing
 import { financingClosureRouter, financingDisclosuresPublicRouter } from "./routes/financing-closure.js";
 import { financingReportsRouter } from "./routes/financing-reports.js";
 import { financingIfrs9Router } from "./routes/financing-ifrs9.js";
+import { serviceRequestsRouter } from "./routes/service-requests.js";
 import { seedDefaultFinancingProducts } from "./lib/financing/seed-defaults.js";
 import { errorHandler, notFoundHandler } from "./middleware/error.js";
 import { apiLimiter } from "./middleware/rate-limit.js";
@@ -74,6 +75,7 @@ app.use("/api/admin", adminRouter);           // stats + audit-log
 app.use("/api/clients", clientsRouter);
 app.use("/api/projects", projectsRouter);
 app.use("/api/services", servicesRouter);
+app.use("/api/service-requests", serviceRequestsRouter);
 app.use("/api/invoices", invoicesRouter);
 app.use("/api/contracts", contractsRouter);
 app.use("/api/support", supportRouter);

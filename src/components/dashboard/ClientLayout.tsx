@@ -13,6 +13,7 @@ const ITEMS = [
   { to: "/client", label: "نظرة عامة", icon: LayoutDashboard, exact: true },
   { to: "/client/projects", label: "المشاريع", icon: FolderKanban },
   { to: "/client/services", label: "الخدمات", icon: Boxes },
+  { to: "/client/services/requests", label: "طلبات الخدمات", icon: Boxes },
   { to: "/client/invoices", label: "الفواتير", icon: FileText },
   { to: "/client/wallet", label: "المحفظة الرقمية", icon: Wallet },
   { to: "/client/financing", label: "تمويل الخدمات", icon: Wallet },

@@ -1,99 +1,73 @@
-# إعادة تصميم تمويل الخدمات — بوابة العميل
+# فصل الخدمات عن المشاريع بشكل كامل
 
-نبني تجربة تمويل داخلية بمستوى شركات التمويل العالمية (Klarna / Tabby / Affirm)، مع إصلاح كل الأزرار المكسورة في المسار: التقييم الائتماني ← الحاسبة ← معالج الطلب ← رفع المستندات ← الإرسال ← تفاصيل الطلب.
+الهدف: نظام مستقل لطلبات الخدمات (ServiceRequest) موازٍ لنظام المشاريع (ProjectRequest)، مع فصل واضح في قاعدة البيانات، الواجهات، ولوحة الإدمن.
 
-## المشاكل الموجودة حالياً
+## 1. قاعدة البيانات (Prisma)
 
-1. **زر "إكمال المسودة" مكسور** في `client.financing.$id.tsx` — يمرّر `productId` غير موجود على النموذج، فيفتح رابطًا فارغًا.
-2. **معالج الطلب يحفظ فقط عند onBlur**، بلا زر «حفظ ومتابعة»، ولا يظهر ما هو الحقل الناقص عند تعطّل زر «التالي».
-3. **رفع المستندات بلا سحب-وإفلات** ولا شريط تقدم ولا تحقق من أنواع الملفات ولا إشارة "المطلوب المتبقي".
-4. **التقييم الائتماني الفوري لا يقود مباشرة** إلى إنشاء الطلب بالقيم التي أدخلها المستخدم — انفصال بين الشاشتين.
-5. **التصميم الحالي بلا هوية بصرية موحّدة** بين الصفحات، وبلا تسلسل هرمي واضح للمعلومات.
+**جدول جديد `ServiceRequest`:**
+- `id`, `code` (SRQ-XXXXXX), `clientId`, `catalogKey` (dev/systems/marketing/design), `itemKey` (hosting/vps/smtp/...), `title`, `description`
+- `kind`: `NEW_SUBSCRIPTION` | `QUOTE_REQUEST` | `RENEWAL_UPGRADE`
+- `status`: `DRAFT` → `SUBMITTED` → `UNDER_REVIEW` → `QUOTED` → `AWAITING_PAYMENT` → `PAID` → `PROVISIONING` → `ACTIVE` / `REJECTED` / `CANCELLED`
+- `basePrice`, `quotedPrice`, `currency`, `billingCycle` (MONTHLY/YEARLY/ONE_TIME)
+- `attachedServiceId` (للترقية/التجديد — nullable FK إلى `Service`)
+- `linkedInvoiceId`, `linkedServiceId` (بعد التفعيل)
+- `adminNotes`, `clientNotes`, `metadata` JSON (specs مثل RAM/CPU/domain)
+- `submittedAt`, `quotedAt`, `paidAt`, `activatedAt`
+- `assignedAdminId`
 
-## التصميم الجديد — 4 شاشات
+**جدول `ServiceRequestMessage`** (محادثة داخلية مثل ProjectMessage).
 
-### 1) شاشة التمويل الرئيسية `/client/financing`
-لوحة قيادة تمويلية بأسلوب فينتيك حديث:
+**جدول `ServiceRequestEvent`** (audit trail لتغيير الحالات).
 
-```text
-┌─────────────────────────────────────────────────┐
-│ HERO  «تمويل خدمات ASH»  [شارة: ممول ذاتياً]     │
-│ رقم القسط الشهري الأقصى المتاح لك (Big number)   │
-│ [ابدأ التقييم الفوري]  [احسب قسطك]              │
-├─────────────────────────────────────────────────┤
-│  KPI Strip: طلبات نشطة | مسودات | معتمدة        │
-├─────────────────────────────────────────────────┤
-│  Instant Credit Card (سحابة تدرّج + عجلة نتيجة)  │
-├─────────────────────────────────────────────────┤
-│  Calculator (منتجات كبطاقات + Sliders + Result)  │
-├─────────────────────────────────────────────────┤
-│  My Applications (بطاقات لا صفوف — كل بطاقة      │
-│  فيها progress bar للمرحلة + CTA واضح)          │
-└─────────────────────────────────────────────────┘
-```
+## 2. الباك-إند (Express routes)
 
-### 2) صفحة إنشاء الطلب — Wizard `/client/financing/apply/$productId`
-- **Progress bar عمودي** على اليمين في الديسكتوب، أفقي في الموبايل.
-- **زر «حفظ ومتابعة»** يحفظ ثم ينقل الخطوة — يعطّل ويعرض السبب إن كان هناك حقل ناقص («يرجى إدخال: الاسم، رقم الهوية»).
-- **حقول ذكية**: تحقق فوري (رقم هوية 10 أرقام يبدأ بـ 1/2، إيميل، أرقام مالية) مع رسائل خطأ عربية.
-- **DocumentsStep**: منطقة سحب-وإفلات، Grid بالمستندات المطلوبة مع أيقونة "مطلوب/تم/قيد المراجعة"، شريط تقدم للرفع.
-- **ReviewStep**: ملخص كامل + خانات الموافقة + عرض للنسبة المئوية للاكتمال.
+- `backend/src/routes/service-requests.ts` — CRUD للعميل
+- `backend/src/routes/service-requests-admin.ts` — إدارة، تسعير، موافقة، Kanban
+- lifecycle helper: عند `PAID` للاشتراك → إنشاء `Service` تلقائياً + تفعيل + إشعار واتساب
+- عند `QUOTED` → إشعار العميل + رابط دفع
+- WhatsApp templates: تقديم طلب، تسعير، دفع، تفعيل، رفض
 
-### 3) صفحة تفاصيل الطلب `/client/financing/$id`
-- Timeline رأسي حديث بأيقونات ملونة لكل مرحلة (KYC → Credit → Committee → Approved).
-- بطاقات مقسمة: الملخص المالي / المستندات / السجل / العقد.
-- **إصلاح زر إكمال المسودة**: قراءة `productId` من `app.product` (سنمرره من الـ backend) بدل الحقل الغائب.
-- زر «تحميل ملخص PDF».
+## 3. واجهة العميل
 
-### 4) بطاقة التقييم الائتماني — تدفق مباشر
-عند حساب النتيجة، يظهر CTA «تقدّم بطلبك بهذه القيم» يفتح المعالج مع تمرير `amount/term/income` كـ search params ويحفظها فوراً في المسودة.
+**مسارات جديدة:**
+- `/client/services/new?catalog=dev&item=website` — نموذج طلب خدمة (3 أنواع)
+- `/client/services/requests` — سجل طلبات الخدمات (منفصل عن `/client/projects/requests`)
+- `/client/services/requests/$id` — تفاصيل الطلب + المحادثة + الحالة + الدفع
+- `/client/services` تبقى للاشتراكات النشطة + الكتالوج
 
-## الأزرار — قائمة التحقق
+**تحديث `ServiceCatalog.tsx`:** زر "اطلب هذه الخدمة" يفتح `/client/services/new` بدلاً من `/client/projects/new`.
 
-| المكان | الزر | السلوك المطلوب |
-|---|---|---|
-| Credit Card | «تقدم بطلبك بهذه القيم» | ينشئ مسودة → يفتح الوزارد |
-| Calculator | «استكمال بيانات الطلب» | يعمل ✓ — يمرر amount/down/term |
-| Wizard | «التالي» | يحفظ ثم يتقدم — يعرض أخطاء الحقول |
-| Wizard | «السابق» | تنقّل بلا حفظ (البيانات محفوظة أصلاً) |
-| Wizard | «تقديم الطلب» | يستدعي submit ويعرض missing[] بالعربية |
-| DocumentsStep | «سحب/رفع» | multipart POST + progress + toast |
-| DocumentsStep | «حذف» | DELETE مع confirm |
-| Detail | «إكمال المسودة» | ✗ مكسور → يقرأ productId من app.product |
-| Detail | «إلغاء الطلب» | POST cancel + confirm |
-| Detail | «تحميل PDF» | جديد — طباعة ملخص |
-| Detail | «عرض العقد» | يعمل ✓ |
+**نموذج الطلب `ServiceRequestSheet`:** يعرض حقول ديناميكية حسب النوع:
+- اشتراك: مواصفات (نطاق، RAM، مدة) + سعر ثابت + زر "ادفع الآن"
+- تسعير: وصف الاحتياج + ملفات مرفقة + انتظار عرض السعر
+- تجديد: يختار خدمة قائمة + مدة التجديد
 
-## التفاصيل التقنية
+## 4. لوحة الإدمن
 
-### تعديلات Backend خفيفة
-- `GET /financing/applications/:id`: إضافة `productId` في الاستجابة (حقل صريح لا داخل product فقط) لكي يعمل زر «إكمال المسودة» بلا cast.
-- لا تغييرات على schema.
+**مسارات جديدة:**
+- `/admin/service-requests` — Layout مع Outlet
+- `/admin/service-requests/index` — Kanban board بأعمدة (جديد، قيد المراجعة، مسعّر، بانتظار الدفع، مدفوع، مفعّل)
+- `/admin/service-requests/$id` — تفاصيل + محادثة + تسعير + قبول/رفض + ربط بخدمة/فاتورة
 
-### الملفات المتأثرة
-```
-src/routes/_authenticated/client.financing.tsx           (إعادة تصميم كاملة)
-src/routes/_authenticated/client.financing.apply.$productId.tsx  (إعادة تصميم + إصلاح أزرار)
-src/routes/_authenticated/client.financing.$id.tsx       (إعادة تصميم + إصلاح زر المسودة)
-src/components/financing/Calculator.tsx                  (تنسيقات + توحيد ألوان)
-src/components/financing/CreditPreviewCard.tsx           (إضافة CTA للتقدّم بالطلب)
-src/components/financing/DocumentsUploader.tsx           (جديد — سحب وإفلات)
-backend/src/routes/financing.ts                          (إضافة productId في GET /:id)
-```
+**تحديث `AdminLayout`:** إضافة عنصر تنقل "طلبات الخدمات" منفصل عن "طلبات المشاريع".
 
-### مبادئ التصميم البصرية
-- **ألوان**: Slate-950 أساسية + تدرجات Electric-blue إلى Cyan (الهوية المعتمدة في `financing.index.tsx`).
-- **Typography**: أرقام tabular-nums، عناوين font-black للمبالغ الكبيرة.
-- **Motion**: framer-motion مع reduce-motion respect؛ عدّاد رقمي متدرج للمبالغ.
-- **بطاقات**: rounded-3xl + ring-1 + shadow ناعم + hover ارتفاع طفيف.
-- **موبايل أول**: كل الصفوف grid على الموبايل → flex على sm.
+## 5. الفصل النهائي
 
-### نطاق الحفاظ
-- لا تغيير في نموذج Prisma.
-- لا تغيير في منطق التقييم الائتماني أو محرك الحوكمة.
-- لا تغيير في مسارات الإدارة (Admin).
+- إزالة أي استخدام لـ `ProjectRequest` من تدفق الخدمات.
+- `client.projects.new` يبقى للمشاريع فقط (تطوير مخصص).
+- الفواتير المولّدة من طلبات الخدمات تحمل `sourceType: SERVICE_REQUEST` بدلاً من `PROJECT`.
+- إحصائيات لوحة الإدمن تعرض عدّاداً منفصلاً للطلبين.
 
-## ما هو خارج النطاق
-- تعديل صفحات Admin (منفصلة).
-- تعديل صفحات التقارير IFRS9 والامتثال.
-- تعديل صفحة العقد (تعمل بشكل جيد).
+## تفاصيل تقنية
+
+- Prisma migration + `prisma db push` (يتم يدوياً على السيرفر — سأذكر ذلك).
+- إشعارات SmartWats منفصلة عن قوالب المشاريع.
+- reuse مكونات `DataTable`, `DetailShell`, `StatusBadge` مع ألوان جديدة للحالات.
+- بدون تكرار: `ServiceCatalog` تبقى مكون واحد يُستخدم في `/client/services` و`/client/services/new`.
+
+## ما لن يُلمس
+
+- نظام المشاريع الحالي (`Project`, `ProjectRequest`, `ProjectMessage`) يبقى كما هو تماماً.
+- نظام التمويل والمحفظة لا يتغيّر.
+
+هل أبدأ التنفيذ؟
