@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
-import { Inbox, Plus, Search, X, SlidersHorizontal, CalendarRange } from "lucide-react";
+import { Inbox, Plus, Search, X, SlidersHorizontal, CalendarRange, Package } from "lucide-react";
 import { api } from "@/lib/api";
 import { ClientPageHeader } from "@/components/client/ClientPageHeader";
 import { LiveBadge } from "@/components/client/LiveBadge";
