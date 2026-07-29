@@ -3,7 +3,7 @@ import { useState, type ReactNode } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, FolderKanban, Boxes, FileText, ScrollText,
-  LifeBuoy, CreditCard, Files, User, Bell, Menu, X, LogOut, Wallet, Megaphone,
+  LifeBuoy, CreditCard, Files, User, Bell, Menu, X, LogOut, Wallet, Megaphone, Inbox,
 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { cn } from "@/lib/utils";
