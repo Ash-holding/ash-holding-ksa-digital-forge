@@ -162,7 +162,7 @@ function ServiceDetailsPage() {
                 لماذا آش؟
               </div>
               <ul className="mt-2 space-y-2">
-                {category.metrics.map((m) => (
+                {category.metrics.map((m: { value: string; label: string }) => (
                   <li key={m.label} className="flex items-center justify-between text-[12.5px]">
                     <span className="text-muted-foreground">{m.label}</span>
                     <span className={`font-black ${category.accent}`}>{m.value}</span>
