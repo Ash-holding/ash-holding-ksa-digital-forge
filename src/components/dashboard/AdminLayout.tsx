@@ -23,6 +23,7 @@ const ITEMS: NavItem[] = [
   { to: "/admin/clients", label: "العملاء", icon: Users },
   { to: "/admin/project-requests", label: "طلبات المشاريع", icon: Inbox },
   { to: "/admin/projects", label: "المشاريع", icon: FolderKanban },
+  { to: "/admin/service-requests", label: "طلبات الخدمات", icon: Inbox },
   { to: "/admin/services", label: "الخدمات", icon: Boxes },
   { to: "/admin/invoices", label: "الفواتير", icon: FileText },
   { to: "/admin/wallet", label: "المحافظ الرقمية", icon: Wallet },
