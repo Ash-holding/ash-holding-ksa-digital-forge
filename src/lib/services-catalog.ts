@@ -175,3 +175,156 @@ export const CATALOG: CatalogCategory[] = [
 export function getCatalogCategory(key: string) {
   return CATALOG.find((c) => c.key === key);
 }
+
+export function getCatalogItem(catKey: string, itemKey: string) {
+  const category = getCatalogCategory(catKey);
+  if (!category) return null;
+  const item = category.items.find((i) => i.itemKey === itemKey);
+  if (!item) return null;
+  return { category, item };
+}
+
+export type ServicePlan = {
+  name: string;
+  tagline: string;
+  price: number;
+  unit: string;
+  features: string[];
+  featured?: boolean;
+};
+
+export type ServiceTimelinePhase = {
+  week: string;
+  title: string;
+  desc: string;
+};
+
+export type ServiceFAQ = { q: string; a: string };
+
+export type ServiceDetails = {
+  overview: string;
+  deliverables: string[];
+  timeline: ServiceTimelinePhase[];
+  plans: ServicePlan[];
+  faq: ServiceFAQ[];
+};
+
+function parsePrice(from?: string): { value: number; unit: string } {
+  if (!from) return { value: 2900, unit: "ر.س" };
+  const digits = from.replace(/[^\d]/g, "");
+  const value = parseInt(digits || "2900", 10);
+  const unit = /شهر/.test(from) ? "ر.س / شهر" : "ر.س";
+  return { value, unit };
+}
+
+export function buildServiceDetails(
+  item: CatalogItem,
+  category: CatalogCategory,
+): ServiceDetails {
+  const { value, unit } = parsePrice(item.from);
+  const isMonthly = unit.includes("شهر");
+  const base = Math.max(value, 490);
+
+  const overview = `${item.desc}. نقدّم هذه الخدمة عبر منهجية ${category.eyebrow} مدروسة من ${category.title}، تجمع بين خبرة فريق آش الفني ومعايير عالمية في الجودة والتسليم. نبدأ بجلسة استكشاف لفهم أهدافك، ثم نصمم حلاً مخصصاً يوازن بين السرعة والجودة والقابلية للتوسع، مع تقارير تقدّم أسبوعية شفافة.`;
+
+  const deliverables = [
+    "جلسة استكشاف افتتاحية وتحديد نطاق العمل (SOW) موثّق",
+    "خطة تنفيذ تفصيلية بمعالم زمنية واضحة ومقاييس نجاح",
+    ...(item.highlights ?? []).map((h) => `تسليم كامل: ${h}`),
+    "مراجعات دورية مع مدير حساب مخصص طوال فترة المشروع",
+    "توثيق فني كامل وتدريب فريقك على التشغيل والصيانة",
+    "دعم فني مجاني لمدة 30 يوماً بعد التسليم النهائي",
+  ];
+
+  const timeline: ServiceTimelinePhase[] = isMonthly
+    ? [
+        { week: "اليوم 1-3", title: "الإعداد والتهيئة", desc: "جلسة انطلاق، جمع الأصول، ربط الحسابات، وتحديد مؤشرات الأداء." },
+        { week: "الأسبوع 1", title: "الإطلاق التشغيلي", desc: "بدء التنفيذ الفعلي وضبط الأدوات والتكاملات اللازمة." },
+        { week: "شهرياً", title: "التحسين المستمر", desc: "تقارير أداء شهرية مع اقتراحات تحسين مبنية على البيانات." },
+        { week: "ربع سنوي", title: "المراجعة الاستراتيجية", desc: "جلسة مراجعة معمّقة لإعادة ضبط الأهداف والاستراتيجية." },
+      ]
+    : [
+        { week: "الأسبوع 1", title: "الاكتشاف والتخطيط", desc: "فهم المتطلبات، تحليل السوق، ووضع خارطة الطريق التفصيلية." },
+        { week: "الأسبوع 2-3", title: "التصميم والنمذجة", desc: "تصميم الحلول، مخططات معمارية، والحصول على موافقتك." },
+        { week: "الأسبوع 4-6", title: "التنفيذ والتطوير", desc: "بناء الحل باتباع أفضل الممارسات مع مراجعات مرحلية." },
+        { week: "الأسبوع 7", title: "الاختبار والتسليم", desc: "اختبارات جودة شاملة، تدريب الفريق، والإطلاق الرسمي." },
+      ];
+
+  const plans: ServicePlan[] = [
+    {
+      name: "الأساسية",
+      tagline: "للمشاريع الصغيرة والشركات الناشئة",
+      price: base,
+      unit,
+      features: [
+        "نطاق عمل محدد بوضوح",
+        "تسليم قياسي خلال المدة المعلنة",
+        "مراجعتان ضمن نطاق المشروع",
+        "دعم فني لمدة 30 يوماً",
+      ],
+    },
+    {
+      name: "الاحترافية",
+      tagline: "الأكثر طلباً — للشركات النامية",
+      price: Math.round(base * 2),
+      unit,
+      featured: true,
+      features: [
+        "كل ما في الباقة الأساسية",
+        "أولوية في التنفيذ ومدير حساب مخصص",
+        "مراجعات غير محدودة ضمن النطاق",
+        "تحسينات أداء متقدمة",
+        "دعم فني لمدة 90 يوماً",
+      ],
+    },
+    {
+      name: "المؤسسية",
+      tagline: "حلول مخصصة للمؤسسات الكبرى",
+      price: Math.round(base * 4),
+      unit,
+      features: [
+        "كل ما في الباقة الاحترافية",
+        "SLA موثّق واستجابة خلال ساعة",
+        "فريق مخصص بالكامل لمشروعك",
+        "تكاملات مؤسسية مخصصة",
+        "دعم فني لمدة 12 شهراً",
+        "تدريب معمّق لفريقك",
+      ],
+    },
+  ];
+
+  const faq: ServiceFAQ[] = [
+    {
+      q: "كم تستغرق مدة التنفيذ؟",
+      a: isMonthly
+        ? "الاشتراك يبدأ خلال 3 أيام عمل من تأكيد الطلب، ويستمر التشغيل الشهري مع تقارير دورية."
+        : `المدة التقديرية بين ${timeline[0].week.replace(/[^\d-]/g, "")} و${timeline[timeline.length - 2].week}، وتُحدَّد بدقة بعد جلسة الاستكشاف.`,
+    },
+    {
+      q: "هل السعر المذكور نهائي؟",
+      a: `السعر المعروض "${item.from ?? "من 2,900 ر.س"}" هو نقطة البداية، ويعتمد السعر النهائي على نطاق العمل الفعلي بعد الجلسة الاستكشافية المجانية. لا توجد رسوم مخفية.`,
+    },
+    {
+      q: "ما آلية الدفع المتاحة؟",
+      a: "يمكنك الدفع دفعة واحدة، أو على مراحل مرتبطة بالتسليمات، أو عبر خيار التمويل الداخلي من آش القابضة بدون فوائد ولا رسوم إدارية.",
+    },
+    {
+      q: "هل أملك الحقوق الكاملة للمخرجات؟",
+      a: "نعم، جميع المخرجات ملكيتك الكاملة بعد استلام الدفعة الأخيرة، بما في ذلك الكود المصدري والملفات المفتوحة عند اللزوم.",
+    },
+    {
+      q: "ماذا يحدث بعد التسليم النهائي؟",
+      a: "نوفر دعماً فنياً مجانياً لفترة الضمان، ويمكنك بعدها الاشتراك في باقة صيانة شهرية لضمان استمرارية عالية للأداء.",
+    },
+    {
+      q: "هل يمكن تخصيص الخدمة حسب احتياجاتي؟",
+      a: "بالتأكيد. جميع خدماتنا قابلة للتخصيص الكامل. تواصل معنا وسنقترح عليك حزمة مصممة خصيصاً لأهدافك.",
+    },
+  ];
+
+  return { overview, deliverables, timeline, plans, faq };
+}
+
+export function formatPrice(value: number): string {
+  return new Intl.NumberFormat("ar-SA").format(value);
+}
