@@ -24,16 +24,14 @@ export const Route = createFileRoute("/_authenticated/client/services/catalog/$c
       ],
     };
   },
-  loader: ({ params }) => {
-    const found = getCatalogItem(params.catKey, params.itemKey);
-    if (!found) throw notFound();
-    return found;
-  },
   component: ServiceDetailsPage,
 });
 
 function ServiceDetailsPage() {
-  const { category, item } = Route.useLoaderData();
+  const { catKey, itemKey } = Route.useParams();
+  const found = getCatalogItem(catKey, itemKey);
+  if (!found) throw notFound();
+  const { category, item } = found;
   const details = buildServiceDetails(item, category);
   const navigate = useNavigate();
   const Icon = item.icon;
