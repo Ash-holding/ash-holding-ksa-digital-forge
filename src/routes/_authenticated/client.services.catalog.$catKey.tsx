@@ -166,6 +166,7 @@ function CategoryPage() {
                   <h3 className="truncate text-sm font-black text-foreground">{it.title}</h3>
                   <p className="mt-0.5 line-clamp-2 text-[12px] leading-5 text-muted-foreground">{it.desc}</p>
                 </div>
+                <FavoriteButton catKey={cat.key} itemKey={it.itemKey} title={it.title} />
               </div>
 
               {it.highlights && it.highlights.length > 0 && (
