@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Search, Sparkles, Zap, Shield, Rocket, CheckCircle2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { CATALOG, getCatalogCategory } from "@/lib/services-catalog";
+import { FavoriteButton } from "@/components/client/FavoriteButton";
 
 export const Route = createFileRoute("/_authenticated/client/services/catalog/$catKey")({
   head: ({ params }) => {
