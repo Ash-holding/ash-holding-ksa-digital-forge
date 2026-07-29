@@ -1654,3 +1654,107 @@ model FinancingDisclosure {
   @@index([category])
   @@index([isPublished])
 }
+
+// ===================== SERVICE REQUESTS (منفصل عن طلبات المشاريع) =====================
+
+enum ServiceRequestKind {
+  NEW_SUBSCRIPTION
+  QUOTE_REQUEST
+  RENEWAL_UPGRADE
+}
+
+enum ServiceRequestStatus {
+  DRAFT
+  SUBMITTED
+  UNDER_REVIEW
+  QUOTED
+  AWAITING_PAYMENT
+  PAID
+  PROVISIONING
+  ACTIVE
+  REJECTED
+  CANCELLED
+}
+
+enum ServiceRequestBillingCycle {
+  ONE_TIME
+  MONTHLY
+  QUARTERLY
+  YEARLY
+}
+
+model ServiceRequest {
+  id           String                     @id @default(cuid())
+  code         String                     @unique
+  clientId     String
+  kind         ServiceRequestKind         @default(NEW_SUBSCRIPTION)
+  status       ServiceRequestStatus       @default(SUBMITTED)
+  catalogKey   String
+  itemKey      String
+  serviceType  ServiceType                @default(OTHER)
+  title        String
+  description  String?
+  specs        Json?
+  attachments  Json?
+
+  basePrice    Decimal?                   @db.Decimal(12, 2)
+  quotedPrice  Decimal?                   @db.Decimal(12, 2)
+  currency     String                     @default("SAR")
+  billingCycle ServiceRequestBillingCycle @default(ONE_TIME)
+
+  attachedServiceId String?
+  linkedInvoiceId   String?
+  linkedServiceId   String?
+
+  adminNotes   String?
+  clientNotes  String?
+  rejectReason String?
+
+  submittedAt  DateTime?
+  quotedAt     DateTime?
+  paidAt       DateTime?
+  activatedAt  DateTime?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  client   Client                  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  messages ServiceRequestMessage[]
+  events   ServiceRequestEvent[]
+
+  @@index([clientId])
+  @@index([status])
+  @@index([kind])
+  @@index([createdAt])
+}
+
+model ServiceRequestMessage {
+  id           String   @id @default(cuid())
+  requestId    String
+  authorId     String
+  content      String
+  attachments  Json?
+  isInternal   Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  request ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+  @@index([createdAt])
+}
+
+model ServiceRequestEvent {
+  id         String   @id @default(cuid())
+  requestId  String
+  actorId    String?
+  kind       String
+  fromStatus String?
+  toStatus   String?
+  note       String?
+  createdAt  DateTime @default(now())
+
+  request ServiceRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId])
+  @@index([createdAt])
+}
