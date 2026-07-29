@@ -65,6 +65,7 @@ import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authentic
 import { Route as AuthenticatedAdminSupportRouteImport } from './routes/_authenticated/admin.support'
 import { Route as AuthenticatedAdminSettingsRouteImport } from './routes/_authenticated/admin.settings'
 import { Route as AuthenticatedAdminServicesRouteImport } from './routes/_authenticated/admin.services'
+import { Route as AuthenticatedAdminServiceRequestsRouteImport } from './routes/_authenticated/admin.service-requests'
 import { Route as AuthenticatedAdminReportsRouteImport } from './routes/_authenticated/admin.reports'
 import { Route as AuthenticatedAdminProjectsRouteImport } from './routes/_authenticated/admin.projects'
 import { Route as AuthenticatedAdminProjectRequestsRouteImport } from './routes/_authenticated/admin.project-requests'
@@ -77,10 +78,13 @@ import { Route as AuthenticatedAdminAuditLogRouteImport } from './routes/_authen
 import { Route as AuthenticatedAdminAffiliateRouteImport } from './routes/_authenticated/admin.affiliate'
 import { Route as AuthenticatedClientProjectsIndexRouteImport } from './routes/_authenticated/client.projects.index'
 import { Route as AuthenticatedClientFinancingIndexRouteImport } from './routes/_authenticated/client.financing.index'
+import { Route as AuthenticatedAdminServiceRequestsIndexRouteImport } from './routes/_authenticated/admin.service-requests.index'
 import { Route as AuthenticatedAdminProjectRequestsIndexRouteImport } from './routes/_authenticated/admin.project-requests.index'
 import { Route as AuthenticatedAdminFinancingIndexRouteImport } from './routes/_authenticated/admin.financing.index'
 import { Route as AuthenticatedAdminClientsIndexRouteImport } from './routes/_authenticated/admin.clients.index'
 import { Route as AuthenticatedClientSupportIdRouteImport } from './routes/_authenticated/client.support.$id'
+import { Route as AuthenticatedClientServicesRequestsRouteImport } from './routes/_authenticated/client.services.requests'
+import { Route as AuthenticatedClientServicesNewRouteImport } from './routes/_authenticated/client.services.new'
 import { Route as AuthenticatedClientServicesIdRouteImport } from './routes/_authenticated/client.services.$id'
 import { Route as AuthenticatedClientProjectsNewRouteImport } from './routes/_authenticated/client.projects.new'
 import { Route as AuthenticatedClientProjectsIdRouteImport } from './routes/_authenticated/client.projects.$id'
@@ -89,6 +93,7 @@ import { Route as AuthenticatedClientInvoicesIdRouteImport } from './routes/_aut
 import { Route as AuthenticatedClientFinancingIdRouteImport } from './routes/_authenticated/client.financing.$id'
 import { Route as AuthenticatedClientContractsIdRouteImport } from './routes/_authenticated/client.contracts.$id'
 import { Route as AuthenticatedAdminSupportIdRouteImport } from './routes/_authenticated/admin.support.$id'
+import { Route as AuthenticatedAdminServiceRequestsIdRouteImport } from './routes/_authenticated/admin.service-requests.$id'
 import { Route as AuthenticatedAdminProjectsIdRouteImport } from './routes/_authenticated/admin.projects.$id'
 import { Route as AuthenticatedAdminProjectRequestsIdRouteImport } from './routes/_authenticated/admin.project-requests.$id'
 import { Route as AuthenticatedAdminPaymentsIdRouteImport } from './routes/_authenticated/admin.payments.$id'
@@ -101,6 +106,8 @@ import { Route as AuthenticatedAdminFinancingIdRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminContractsIdRouteImport } from './routes/_authenticated/admin.contracts.$id'
 import { Route as AuthenticatedAdminClientsNewRouteImport } from './routes/_authenticated/admin.clients.new'
 import { Route as AuthenticatedAdminClientsIdRouteImport } from './routes/_authenticated/admin.clients.$id'
+import { Route as AuthenticatedClientServicesRequestsIndexRouteImport } from './routes/_authenticated/client.services.requests.index'
+import { Route as AuthenticatedClientServicesRequestsIdRouteImport } from './routes/_authenticated/client.services.requests.$id'
 import { Route as AuthenticatedClientProjectsRequestsIdRouteImport } from './routes/_authenticated/client.projects.requests.$id'
 import { Route as AuthenticatedClientFinancingContractsIdRouteImport } from './routes/_authenticated/client.financing.contracts.$id'
 import { Route as AuthenticatedClientFinancingApplyProductIdRouteImport } from './routes/_authenticated/client.financing.apply.$productId'
@@ -412,6 +419,12 @@ const AuthenticatedAdminServicesRoute =
     path: '/services',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminServiceRequestsRoute =
+  AuthenticatedAdminServiceRequestsRouteImport.update({
+    id: '/service-requests',
+    path: '/service-requests',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminReportsRoute =
   AuthenticatedAdminReportsRouteImport.update({
     id: '/reports',
@@ -483,6 +496,12 @@ const AuthenticatedClientFinancingIndexRoute =
     path: '/',
     getParentRoute: () => AuthenticatedClientFinancingRoute,
   } as any)
+const AuthenticatedAdminServiceRequestsIndexRoute =
+  AuthenticatedAdminServiceRequestsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAdminServiceRequestsRoute,
+  } as any)
 const AuthenticatedAdminProjectRequestsIndexRoute =
   AuthenticatedAdminProjectRequestsIndexRouteImport.update({
     id: '/',
@@ -506,6 +525,18 @@ const AuthenticatedClientSupportIdRoute =
     id: '/$id',
     path: '/$id',
     getParentRoute: () => AuthenticatedClientSupportRoute,
+  } as any)
+const AuthenticatedClientServicesRequestsRoute =
+  AuthenticatedClientServicesRequestsRouteImport.update({
+    id: '/requests',
+    path: '/requests',
+    getParentRoute: () => AuthenticatedClientServicesRoute,
+  } as any)
+const AuthenticatedClientServicesNewRoute =
+  AuthenticatedClientServicesNewRouteImport.update({
+    id: '/new',
+    path: '/new',
+    getParentRoute: () => AuthenticatedClientServicesRoute,
   } as any)
 const AuthenticatedClientServicesIdRoute =
   AuthenticatedClientServicesIdRouteImport.update({
@@ -554,6 +585,12 @@ const AuthenticatedAdminSupportIdRoute =
     id: '/$id',
     path: '/$id',
     getParentRoute: () => AuthenticatedAdminSupportRoute,
+  } as any)
+const AuthenticatedAdminServiceRequestsIdRoute =
+  AuthenticatedAdminServiceRequestsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedAdminServiceRequestsRoute,
   } as any)
 const AuthenticatedAdminProjectsIdRoute =
   AuthenticatedAdminProjectsIdRouteImport.update({
@@ -627,6 +664,18 @@ const AuthenticatedAdminClientsIdRoute =
     path: '/clients/$id',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedClientServicesRequestsIndexRoute =
+  AuthenticatedClientServicesRequestsIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedClientServicesRequestsRoute,
+  } as any)
+const AuthenticatedClientServicesRequestsIdRoute =
+  AuthenticatedClientServicesRequestsIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => AuthenticatedClientServicesRequestsRoute,
+  } as any)
 const AuthenticatedClientProjectsRequestsIdRoute =
   AuthenticatedClientProjectsRequestsIdRouteImport.update({
     id: '/requests/$id',
@@ -695,6 +744,7 @@ export interface FileRoutesByFullPath {
   '/admin/project-requests': typeof AuthenticatedAdminProjectRequestsRouteWithChildren
   '/admin/projects': typeof AuthenticatedAdminProjectsRouteWithChildren
   '/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/admin/service-requests': typeof AuthenticatedAdminServiceRequestsRouteWithChildren
   '/admin/services': typeof AuthenticatedAdminServicesRoute
   '/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/admin/support': typeof AuthenticatedAdminSupportRouteWithChildren
@@ -736,6 +786,7 @@ export interface FileRoutesByFullPath {
   '/admin/payments/$id': typeof AuthenticatedAdminPaymentsIdRoute
   '/admin/project-requests/$id': typeof AuthenticatedAdminProjectRequestsIdRoute
   '/admin/projects/$id': typeof AuthenticatedAdminProjectsIdRoute
+  '/admin/service-requests/$id': typeof AuthenticatedAdminServiceRequestsIdRoute
   '/admin/support/$id': typeof AuthenticatedAdminSupportIdRoute
   '/client/contracts/$id': typeof AuthenticatedClientContractsIdRoute
   '/client/financing/$id': typeof AuthenticatedClientFinancingIdRoute
@@ -744,10 +795,13 @@ export interface FileRoutesByFullPath {
   '/client/projects/$id': typeof AuthenticatedClientProjectsIdRoute
   '/client/projects/new': typeof AuthenticatedClientProjectsNewRoute
   '/client/services/$id': typeof AuthenticatedClientServicesIdRoute
+  '/client/services/new': typeof AuthenticatedClientServicesNewRoute
+  '/client/services/requests': typeof AuthenticatedClientServicesRequestsRouteWithChildren
   '/client/support/$id': typeof AuthenticatedClientSupportIdRoute
   '/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
   '/admin/financing/': typeof AuthenticatedAdminFinancingIndexRoute
   '/admin/project-requests/': typeof AuthenticatedAdminProjectRequestsIndexRoute
+  '/admin/service-requests/': typeof AuthenticatedAdminServiceRequestsIndexRoute
   '/client/financing/': typeof AuthenticatedClientFinancingIndexRoute
   '/client/projects/': typeof AuthenticatedClientProjectsIndexRoute
   '/admin/clients/$id/edit': typeof AuthenticatedAdminClientsIdEditRoute
@@ -755,6 +809,8 @@ export interface FileRoutesByFullPath {
   '/client/financing/apply/$productId': typeof AuthenticatedClientFinancingApplyProductIdRoute
   '/client/financing/contracts/$id': typeof AuthenticatedClientFinancingContractsIdRoute
   '/client/projects/requests/$id': typeof AuthenticatedClientProjectsRequestsIdRoute
+  '/client/services/requests/$id': typeof AuthenticatedClientServicesRequestsIdRoute
+  '/client/services/requests/': typeof AuthenticatedClientServicesRequestsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -826,6 +882,7 @@ export interface FileRoutesByTo {
   '/admin/payments/$id': typeof AuthenticatedAdminPaymentsIdRoute
   '/admin/project-requests/$id': typeof AuthenticatedAdminProjectRequestsIdRoute
   '/admin/projects/$id': typeof AuthenticatedAdminProjectsIdRoute
+  '/admin/service-requests/$id': typeof AuthenticatedAdminServiceRequestsIdRoute
   '/admin/support/$id': typeof AuthenticatedAdminSupportIdRoute
   '/client/contracts/$id': typeof AuthenticatedClientContractsIdRoute
   '/client/financing/$id': typeof AuthenticatedClientFinancingIdRoute
@@ -834,10 +891,12 @@ export interface FileRoutesByTo {
   '/client/projects/$id': typeof AuthenticatedClientProjectsIdRoute
   '/client/projects/new': typeof AuthenticatedClientProjectsNewRoute
   '/client/services/$id': typeof AuthenticatedClientServicesIdRoute
+  '/client/services/new': typeof AuthenticatedClientServicesNewRoute
   '/client/support/$id': typeof AuthenticatedClientSupportIdRoute
   '/admin/clients': typeof AuthenticatedAdminClientsIndexRoute
   '/admin/financing': typeof AuthenticatedAdminFinancingIndexRoute
   '/admin/project-requests': typeof AuthenticatedAdminProjectRequestsIndexRoute
+  '/admin/service-requests': typeof AuthenticatedAdminServiceRequestsIndexRoute
   '/client/financing': typeof AuthenticatedClientFinancingIndexRoute
   '/client/projects': typeof AuthenticatedClientProjectsIndexRoute
   '/admin/clients/$id/edit': typeof AuthenticatedAdminClientsIdEditRoute
@@ -845,6 +904,8 @@ export interface FileRoutesByTo {
   '/client/financing/apply/$productId': typeof AuthenticatedClientFinancingApplyProductIdRoute
   '/client/financing/contracts/$id': typeof AuthenticatedClientFinancingContractsIdRoute
   '/client/projects/requests/$id': typeof AuthenticatedClientProjectsRequestsIdRoute
+  '/client/services/requests/$id': typeof AuthenticatedClientServicesRequestsIdRoute
+  '/client/services/requests': typeof AuthenticatedClientServicesRequestsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -885,6 +946,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/project-requests': typeof AuthenticatedAdminProjectRequestsRouteWithChildren
   '/_authenticated/admin/projects': typeof AuthenticatedAdminProjectsRouteWithChildren
   '/_authenticated/admin/reports': typeof AuthenticatedAdminReportsRoute
+  '/_authenticated/admin/service-requests': typeof AuthenticatedAdminServiceRequestsRouteWithChildren
   '/_authenticated/admin/services': typeof AuthenticatedAdminServicesRoute
   '/_authenticated/admin/settings': typeof AuthenticatedAdminSettingsRoute
   '/_authenticated/admin/support': typeof AuthenticatedAdminSupportRouteWithChildren
@@ -926,6 +988,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/payments/$id': typeof AuthenticatedAdminPaymentsIdRoute
   '/_authenticated/admin/project-requests/$id': typeof AuthenticatedAdminProjectRequestsIdRoute
   '/_authenticated/admin/projects/$id': typeof AuthenticatedAdminProjectsIdRoute
+  '/_authenticated/admin/service-requests/$id': typeof AuthenticatedAdminServiceRequestsIdRoute
   '/_authenticated/admin/support/$id': typeof AuthenticatedAdminSupportIdRoute
   '/_authenticated/client/contracts/$id': typeof AuthenticatedClientContractsIdRoute
   '/_authenticated/client/financing/$id': typeof AuthenticatedClientFinancingIdRoute
@@ -934,10 +997,13 @@ export interface FileRoutesById {
   '/_authenticated/client/projects/$id': typeof AuthenticatedClientProjectsIdRoute
   '/_authenticated/client/projects/new': typeof AuthenticatedClientProjectsNewRoute
   '/_authenticated/client/services/$id': typeof AuthenticatedClientServicesIdRoute
+  '/_authenticated/client/services/new': typeof AuthenticatedClientServicesNewRoute
+  '/_authenticated/client/services/requests': typeof AuthenticatedClientServicesRequestsRouteWithChildren
   '/_authenticated/client/support/$id': typeof AuthenticatedClientSupportIdRoute
   '/_authenticated/admin/clients/': typeof AuthenticatedAdminClientsIndexRoute
   '/_authenticated/admin/financing/': typeof AuthenticatedAdminFinancingIndexRoute
   '/_authenticated/admin/project-requests/': typeof AuthenticatedAdminProjectRequestsIndexRoute
+  '/_authenticated/admin/service-requests/': typeof AuthenticatedAdminServiceRequestsIndexRoute
   '/_authenticated/client/financing/': typeof AuthenticatedClientFinancingIndexRoute
   '/_authenticated/client/projects/': typeof AuthenticatedClientProjectsIndexRoute
   '/_authenticated/admin/clients/$id/edit': typeof AuthenticatedAdminClientsIdEditRoute
@@ -945,6 +1011,8 @@ export interface FileRoutesById {
   '/_authenticated/client/financing/apply/$productId': typeof AuthenticatedClientFinancingApplyProductIdRoute
   '/_authenticated/client/financing/contracts/$id': typeof AuthenticatedClientFinancingContractsIdRoute
   '/_authenticated/client/projects/requests/$id': typeof AuthenticatedClientProjectsRequestsIdRoute
+  '/_authenticated/client/services/requests/$id': typeof AuthenticatedClientServicesRequestsIdRoute
+  '/_authenticated/client/services/requests/': typeof AuthenticatedClientServicesRequestsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -985,6 +1053,7 @@ export interface FileRouteTypes {
     | '/admin/project-requests'
     | '/admin/projects'
     | '/admin/reports'
+    | '/admin/service-requests'
     | '/admin/services'
     | '/admin/settings'
     | '/admin/support'
@@ -1026,6 +1095,7 @@ export interface FileRouteTypes {
     | '/admin/payments/$id'
     | '/admin/project-requests/$id'
     | '/admin/projects/$id'
+    | '/admin/service-requests/$id'
     | '/admin/support/$id'
     | '/client/contracts/$id'
     | '/client/financing/$id'
@@ -1034,10 +1104,13 @@ export interface FileRouteTypes {
     | '/client/projects/$id'
     | '/client/projects/new'
     | '/client/services/$id'
+    | '/client/services/new'
+    | '/client/services/requests'
     | '/client/support/$id'
     | '/admin/clients/'
     | '/admin/financing/'
     | '/admin/project-requests/'
+    | '/admin/service-requests/'
     | '/client/financing/'
     | '/client/projects/'
     | '/admin/clients/$id/edit'
@@ -1045,6 +1118,8 @@ export interface FileRouteTypes {
     | '/client/financing/apply/$productId'
     | '/client/financing/contracts/$id'
     | '/client/projects/requests/$id'
+    | '/client/services/requests/$id'
+    | '/client/services/requests/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -1116,6 +1191,7 @@ export interface FileRouteTypes {
     | '/admin/payments/$id'
     | '/admin/project-requests/$id'
     | '/admin/projects/$id'
+    | '/admin/service-requests/$id'
     | '/admin/support/$id'
     | '/client/contracts/$id'
     | '/client/financing/$id'
@@ -1124,10 +1200,12 @@ export interface FileRouteTypes {
     | '/client/projects/$id'
     | '/client/projects/new'
     | '/client/services/$id'
+    | '/client/services/new'
     | '/client/support/$id'
     | '/admin/clients'
     | '/admin/financing'
     | '/admin/project-requests'
+    | '/admin/service-requests'
     | '/client/financing'
     | '/client/projects'
     | '/admin/clients/$id/edit'
@@ -1135,6 +1213,8 @@ export interface FileRouteTypes {
     | '/client/financing/apply/$productId'
     | '/client/financing/contracts/$id'
     | '/client/projects/requests/$id'
+    | '/client/services/requests/$id'
+    | '/client/services/requests'
   id:
     | '__root__'
     | '/'
@@ -1174,6 +1254,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/project-requests'
     | '/_authenticated/admin/projects'
     | '/_authenticated/admin/reports'
+    | '/_authenticated/admin/service-requests'
     | '/_authenticated/admin/services'
     | '/_authenticated/admin/settings'
     | '/_authenticated/admin/support'
@@ -1215,6 +1296,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/payments/$id'
     | '/_authenticated/admin/project-requests/$id'
     | '/_authenticated/admin/projects/$id'
+    | '/_authenticated/admin/service-requests/$id'
     | '/_authenticated/admin/support/$id'
     | '/_authenticated/client/contracts/$id'
     | '/_authenticated/client/financing/$id'
@@ -1223,10 +1305,13 @@ export interface FileRouteTypes {
     | '/_authenticated/client/projects/$id'
     | '/_authenticated/client/projects/new'
     | '/_authenticated/client/services/$id'
+    | '/_authenticated/client/services/new'
+    | '/_authenticated/client/services/requests'
     | '/_authenticated/client/support/$id'
     | '/_authenticated/admin/clients/'
     | '/_authenticated/admin/financing/'
     | '/_authenticated/admin/project-requests/'
+    | '/_authenticated/admin/service-requests/'
     | '/_authenticated/client/financing/'
     | '/_authenticated/client/projects/'
     | '/_authenticated/admin/clients/$id/edit'
@@ -1234,6 +1319,8 @@ export interface FileRouteTypes {
     | '/_authenticated/client/financing/apply/$productId'
     | '/_authenticated/client/financing/contracts/$id'
     | '/_authenticated/client/projects/requests/$id'
+    | '/_authenticated/client/services/requests/$id'
+    | '/_authenticated/client/services/requests/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -1654,6 +1741,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminServicesRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/service-requests': {
+      id: '/_authenticated/admin/service-requests'
+      path: '/service-requests'
+      fullPath: '/admin/service-requests'
+      preLoaderRoute: typeof AuthenticatedAdminServiceRequestsRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/reports': {
       id: '/_authenticated/admin/reports'
       path: '/reports'
@@ -1738,6 +1832,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedClientFinancingIndexRouteImport
       parentRoute: typeof AuthenticatedClientFinancingRoute
     }
+    '/_authenticated/admin/service-requests/': {
+      id: '/_authenticated/admin/service-requests/'
+      path: '/'
+      fullPath: '/admin/service-requests/'
+      preLoaderRoute: typeof AuthenticatedAdminServiceRequestsIndexRouteImport
+      parentRoute: typeof AuthenticatedAdminServiceRequestsRoute
+    }
     '/_authenticated/admin/project-requests/': {
       id: '/_authenticated/admin/project-requests/'
       path: '/'
@@ -1765,6 +1866,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/client/support/$id'
       preLoaderRoute: typeof AuthenticatedClientSupportIdRouteImport
       parentRoute: typeof AuthenticatedClientSupportRoute
+    }
+    '/_authenticated/client/services/requests': {
+      id: '/_authenticated/client/services/requests'
+      path: '/requests'
+      fullPath: '/client/services/requests'
+      preLoaderRoute: typeof AuthenticatedClientServicesRequestsRouteImport
+      parentRoute: typeof AuthenticatedClientServicesRoute
+    }
+    '/_authenticated/client/services/new': {
+      id: '/_authenticated/client/services/new'
+      path: '/new'
+      fullPath: '/client/services/new'
+      preLoaderRoute: typeof AuthenticatedClientServicesNewRouteImport
+      parentRoute: typeof AuthenticatedClientServicesRoute
     }
     '/_authenticated/client/services/$id': {
       id: '/_authenticated/client/services/$id'
@@ -1821,6 +1936,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/support/$id'
       preLoaderRoute: typeof AuthenticatedAdminSupportIdRouteImport
       parentRoute: typeof AuthenticatedAdminSupportRoute
+    }
+    '/_authenticated/admin/service-requests/$id': {
+      id: '/_authenticated/admin/service-requests/$id'
+      path: '/$id'
+      fullPath: '/admin/service-requests/$id'
+      preLoaderRoute: typeof AuthenticatedAdminServiceRequestsIdRouteImport
+      parentRoute: typeof AuthenticatedAdminServiceRequestsRoute
     }
     '/_authenticated/admin/projects/$id': {
       id: '/_authenticated/admin/projects/$id'
@@ -1905,6 +2027,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/clients/$id'
       preLoaderRoute: typeof AuthenticatedAdminClientsIdRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
+    }
+    '/_authenticated/client/services/requests/': {
+      id: '/_authenticated/client/services/requests/'
+      path: '/'
+      fullPath: '/client/services/requests/'
+      preLoaderRoute: typeof AuthenticatedClientServicesRequestsIndexRouteImport
+      parentRoute: typeof AuthenticatedClientServicesRequestsRoute
+    }
+    '/_authenticated/client/services/requests/$id': {
+      id: '/_authenticated/client/services/requests/$id'
+      path: '/$id'
+      fullPath: '/client/services/requests/$id'
+      preLoaderRoute: typeof AuthenticatedClientServicesRequestsIdRouteImport
+      parentRoute: typeof AuthenticatedClientServicesRequestsRoute
     }
     '/_authenticated/client/projects/requests/$id': {
       id: '/_authenticated/client/projects/requests/$id'
@@ -2049,6 +2185,24 @@ const AuthenticatedAdminProjectsRouteWithChildren =
     AuthenticatedAdminProjectsRouteChildren,
   )
 
+interface AuthenticatedAdminServiceRequestsRouteChildren {
+  AuthenticatedAdminServiceRequestsIdRoute: typeof AuthenticatedAdminServiceRequestsIdRoute
+  AuthenticatedAdminServiceRequestsIndexRoute: typeof AuthenticatedAdminServiceRequestsIndexRoute
+}
+
+const AuthenticatedAdminServiceRequestsRouteChildren: AuthenticatedAdminServiceRequestsRouteChildren =
+  {
+    AuthenticatedAdminServiceRequestsIdRoute:
+      AuthenticatedAdminServiceRequestsIdRoute,
+    AuthenticatedAdminServiceRequestsIndexRoute:
+      AuthenticatedAdminServiceRequestsIndexRoute,
+  }
+
+const AuthenticatedAdminServiceRequestsRouteWithChildren =
+  AuthenticatedAdminServiceRequestsRoute._addFileChildren(
+    AuthenticatedAdminServiceRequestsRouteChildren,
+  )
+
 interface AuthenticatedAdminSupportRouteChildren {
   AuthenticatedAdminSupportIdRoute: typeof AuthenticatedAdminSupportIdRoute
 }
@@ -2088,6 +2242,7 @@ interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminProjectRequestsRoute: typeof AuthenticatedAdminProjectRequestsRouteWithChildren
   AuthenticatedAdminProjectsRoute: typeof AuthenticatedAdminProjectsRouteWithChildren
   AuthenticatedAdminReportsRoute: typeof AuthenticatedAdminReportsRoute
+  AuthenticatedAdminServiceRequestsRoute: typeof AuthenticatedAdminServiceRequestsRouteWithChildren
   AuthenticatedAdminServicesRoute: typeof AuthenticatedAdminServicesRoute
   AuthenticatedAdminSettingsRoute: typeof AuthenticatedAdminSettingsRoute
   AuthenticatedAdminSupportRoute: typeof AuthenticatedAdminSupportRouteWithChildren
@@ -2113,6 +2268,8 @@ const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
     AuthenticatedAdminProjectRequestsRouteWithChildren,
   AuthenticatedAdminProjectsRoute: AuthenticatedAdminProjectsRouteWithChildren,
   AuthenticatedAdminReportsRoute: AuthenticatedAdminReportsRoute,
+  AuthenticatedAdminServiceRequestsRoute:
+    AuthenticatedAdminServiceRequestsRouteWithChildren,
   AuthenticatedAdminServicesRoute: AuthenticatedAdminServicesRoute,
   AuthenticatedAdminSettingsRoute: AuthenticatedAdminSettingsRoute,
   AuthenticatedAdminSupportRoute: AuthenticatedAdminSupportRouteWithChildren,
@@ -2249,13 +2406,36 @@ const AuthenticatedClientProjectsRouteWithChildren =
     AuthenticatedClientProjectsRouteChildren,
   )
 
+interface AuthenticatedClientServicesRequestsRouteChildren {
+  AuthenticatedClientServicesRequestsIdRoute: typeof AuthenticatedClientServicesRequestsIdRoute
+  AuthenticatedClientServicesRequestsIndexRoute: typeof AuthenticatedClientServicesRequestsIndexRoute
+}
+
+const AuthenticatedClientServicesRequestsRouteChildren: AuthenticatedClientServicesRequestsRouteChildren =
+  {
+    AuthenticatedClientServicesRequestsIdRoute:
+      AuthenticatedClientServicesRequestsIdRoute,
+    AuthenticatedClientServicesRequestsIndexRoute:
+      AuthenticatedClientServicesRequestsIndexRoute,
+  }
+
+const AuthenticatedClientServicesRequestsRouteWithChildren =
+  AuthenticatedClientServicesRequestsRoute._addFileChildren(
+    AuthenticatedClientServicesRequestsRouteChildren,
+  )
+
 interface AuthenticatedClientServicesRouteChildren {
   AuthenticatedClientServicesIdRoute: typeof AuthenticatedClientServicesIdRoute
+  AuthenticatedClientServicesNewRoute: typeof AuthenticatedClientServicesNewRoute
+  AuthenticatedClientServicesRequestsRoute: typeof AuthenticatedClientServicesRequestsRouteWithChildren
 }
 
 const AuthenticatedClientServicesRouteChildren: AuthenticatedClientServicesRouteChildren =
   {
     AuthenticatedClientServicesIdRoute: AuthenticatedClientServicesIdRoute,
+    AuthenticatedClientServicesNewRoute: AuthenticatedClientServicesNewRoute,
+    AuthenticatedClientServicesRequestsRoute:
+      AuthenticatedClientServicesRequestsRouteWithChildren,
   }
 
 const AuthenticatedClientServicesRouteWithChildren =

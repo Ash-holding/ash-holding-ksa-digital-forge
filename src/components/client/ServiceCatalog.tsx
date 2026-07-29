@@ -31,10 +31,10 @@ const CATS: Category[] = [
     glow: "shadow-[0_30px_80px_-30px_rgba(56,189,248,0.55)]",
     icon: Code2,
     items: [
-      { icon: Globe, title: "مواقع مؤسسية", desc: "واجهات SSR فائقة السرعة" },
-      { icon: Smartphone, title: "تطبيقات iOS / Android", desc: "تجربة أصيلة عبر React Native" },
-      { icon: ShoppingCart, title: "متاجر إلكترونية", desc: "مدفوعات محلية وتكامل شحن" },
-      { icon: Code2, title: "APIs مخصصة", desc: "REST / GraphQL موثّقة بالكامل" },
+      { icon: Globe, title: "مواقع مؤسسية", desc: "واجهات SSR فائقة السرعة", itemKey: "website" },
+      { icon: Smartphone, title: "تطبيقات iOS / Android", desc: "تجربة أصيلة عبر React Native", itemKey: "mobile" },
+      { icon: ShoppingCart, title: "متاجر إلكترونية", desc: "مدفوعات محلية وتكامل شحن", itemKey: "store" },
+      { icon: Code2, title: "APIs مخصصة", desc: "REST / GraphQL موثّقة بالكامل", itemKey: "api" },
     ],
     metrics: [
       { value: "99.9%", label: "وقت التشغيل" },
@@ -52,10 +52,10 @@ const CATS: Category[] = [
     glow: "shadow-[0_30px_80px_-30px_rgba(16,185,129,0.55)]",
     icon: Server,
     items: [
-      { icon: Database, title: "أنظمة ERP / CRM", desc: "إدارة كاملة للأعمال" },
-      { icon: Cloud, title: "استضافة سحابية", desc: "تشغيل مرن وقابل للتوسع" },
-      { icon: HardDrive, title: "سيرفرات VPS ومخصصة", desc: "أداء عالي وحماية متقدمة" },
-      { icon: Shield, title: "حماية وجدران نارية", desc: "WAF, DDoS, SSL A+" },
+      { icon: Database, title: "أنظمة ERP / CRM", desc: "إدارة كاملة للأعمال", itemKey: "erp" },
+      { icon: Cloud, title: "استضافة سحابية", desc: "تشغيل مرن وقابل للتوسع", itemKey: "hosting" },
+      { icon: HardDrive, title: "سيرفرات VPS ومخصصة", desc: "أداء عالي وحماية متقدمة", itemKey: "vps" },
+      { icon: Shield, title: "حماية وجدران نارية", desc: "WAF, DDoS, SSL A+", itemKey: "security" },
     ],
     metrics: [
       { value: "24/7", label: "مراقبة" },
@@ -73,10 +73,10 @@ const CATS: Category[] = [
     glow: "shadow-[0_30px_80px_-30px_rgba(244,63,94,0.55)]",
     icon: Megaphone,
     items: [
-      { icon: Target, title: "إعلانات Google & Meta", desc: "استهداف دقيق وROAS مرتفع" },
-      { icon: Search, title: "تحسين محركات البحث", desc: "SEO تقني ومحتوى استراتيجي" },
-      { icon: TrendingUp, title: "استراتيجية نمو", desc: "قمع تحويل متكامل" },
-      { icon: Sparkles, title: "إدارة محتوى", desc: "سوشيال ميديا احترافي" },
+      { icon: Target, title: "إعلانات Google & Meta", desc: "استهداف دقيق وROAS مرتفع", itemKey: "ads" },
+      { icon: Search, title: "تحسين محركات البحث", desc: "SEO تقني ومحتوى استراتيجي", itemKey: "seo" },
+      { icon: TrendingUp, title: "استراتيجية نمو", desc: "قمع تحويل متكامل", itemKey: "growth" },
+      { icon: Sparkles, title: "إدارة محتوى", desc: "سوشيال ميديا احترافي", itemKey: "content" },
     ],
     metrics: [
       { value: "×4.2", label: "متوسط ROAS" },
@@ -94,10 +94,10 @@ const CATS: Category[] = [
     glow: "shadow-[0_30px_80px_-30px_rgba(139,92,246,0.55)]",
     icon: Palette,
     items: [
-      { icon: PenTool, title: "الهوية البصرية", desc: "شعار ودليل علامة كامل" },
-      { icon: Layers, title: "تصميم UX/UI", desc: "تجارب سلسة تركز على المستخدم" },
-      { icon: Sparkles, title: "موشن جرافيك", desc: "فيديوهات ترويجية 2D/3D" },
-      { icon: Palette, title: "محتوى إبداعي", desc: "ملفات تعريفية وسوشيال" },
+      { icon: PenTool, title: "الهوية البصرية", desc: "شعار ودليل علامة كامل", itemKey: "brand" },
+      { icon: Layers, title: "تصميم UX/UI", desc: "تجارب سلسة تركز على المستخدم", itemKey: "uiux" },
+      { icon: Sparkles, title: "موشن جرافيك", desc: "فيديوهات ترويجية 2D/3D", itemKey: "motion" },
+      { icon: Palette, title: "محتوى إبداعي", desc: "ملفات تعريفية وسوشيال", itemKey: "creative" },
     ],
     metrics: [
       { value: "Awwwards", label: "معايير" },
