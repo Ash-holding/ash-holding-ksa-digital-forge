@@ -1,10 +1,8 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import {
-  Code2, Smartphone, Globe, ShoppingCart, Server, HardDrive, Cloud, Database,
-  Megaphone, Search, Target, TrendingUp, Palette, PenTool, Layers, Sparkles,
-  ArrowLeft, Zap, Shield, Rocket, type LucideIcon,
-} from "lucide-react";
+import { ArrowLeft, Zap, Shield, Rocket, Sparkles, type LucideIcon } from "lucide-react";
+import { CATALOG } from "@/lib/services-catalog";
+
 
 type Item = { icon: LucideIcon; title: string; desc: string; itemKey: string };
 type Category = {
