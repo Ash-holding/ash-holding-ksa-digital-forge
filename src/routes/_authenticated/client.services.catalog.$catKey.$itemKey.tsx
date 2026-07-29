@@ -8,6 +8,7 @@ import {
 import {
   getCatalogItem, buildServiceDetails, formatPrice, type CatalogCategory,
 } from "@/lib/services-catalog";
+import { FavoriteButton } from "@/components/client/FavoriteButton";
 
 export const Route = createFileRoute("/_authenticated/client/services/catalog/$catKey/$itemKey")({
   head: ({ params }) => {
