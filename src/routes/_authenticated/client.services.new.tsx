@@ -62,6 +62,7 @@ type UploadedFile = { name: string; url: string; size: number };
 
 function NewServiceRequestPage() {
   const nav = useNavigate();
+  const qc = useQueryClient();
   const { catalog, item, plan: presetPlan, price: presetPrice, duration: presetDuration } = Route.useSearch();
   const found = catalog && item ? getCatalogItem(catalog, item) : null;
   const details = found ? buildServiceDetails(found.item, found.category) : null;
