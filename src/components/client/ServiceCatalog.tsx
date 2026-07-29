@@ -152,11 +152,13 @@ export function ServiceCatalog() {
                 <ArrowLeft className="h-3.5 w-3.5 transition group-hover:-translate-x-1" />
               </Link>
               <Link
-                to="/services"
+                to="/client/services/catalog/$catKey"
+                params={{ catKey: c.key }}
                 className="text-[11px] font-semibold text-muted-foreground transition hover:text-electric"
               >
-                عرض التفاصيل الكاملة →
+                عرض كل الـ15 خدمة ←
               </Link>
+
             </div>
           </motion.article>
         ))}
