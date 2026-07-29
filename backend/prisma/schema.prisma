@@ -272,6 +272,7 @@ model Client {
   payments   Payment[]
   files      File[]
   projectRequests ProjectRequest[]
+  serviceRequests ServiceRequest[]
   wallet     Wallet?
 
   @@index([status])
