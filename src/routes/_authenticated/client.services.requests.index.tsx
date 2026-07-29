@@ -306,7 +306,9 @@ function ClientServiceRequestsList() {
         page={1}
         pageSize={50}
         onPageChange={() => {}}
-        onRowClick={(r) => nav({ to: "/client/services/requests/$id", params: { id: r.id } })}
+        onRowClick={(r) => r.legacy
+          ? nav({ to: "/client/projects/requests/$id", params: { id: r.legacyProjectRequestId ?? r.id } })
+          : nav({ to: "/client/services/requests/$id", params: { id: r.id } })}
         emptyTitle="لا توجد طلبات مطابقة للفلترة — جرّب توسيع نطاق البحث أو مسح الفلاتر"
       />
     </div>
