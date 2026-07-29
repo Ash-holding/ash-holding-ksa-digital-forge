@@ -2,16 +2,15 @@ import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-ro
 import { motion } from "framer-motion";
 import { ArrowLeft, ArrowRight, Search, Sparkles, Zap, Shield, Rocket, CheckCircle2, X, ArrowUpDown, Repeat as RepeatIcon, Tag } from "lucide-react";
 import { useMemo } from "react";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
-import { z } from "zod";
 import { CATALOG, getCatalogCategory } from "@/lib/services-catalog";
 import { FavoriteButton } from "@/components/client/FavoriteButton";
 
-const searchSchema = z.object({
-  q: fallback(z.string(), "").default(""),
-  sort: fallback(z.string(), "recommended").default("recommended"),
-  type: fallback(z.string(), "all").default("all"),
-  tier: fallback(z.string(), "all").default("all"),
+type CatalogSearch = { q: string; sort: string; type: string; tier: string };
+const validateSearch = (raw: Record<string, unknown>): CatalogSearch => ({
+  q: typeof raw.q === "string" ? raw.q : "",
+  sort: typeof raw.sort === "string" ? raw.sort : "recommended",
+  type: typeof raw.type === "string" ? raw.type : "all",
+  tier: typeof raw.tier === "string" ? raw.tier : "all",
 });
 
 const SORTS = [
@@ -45,7 +44,7 @@ function isRecurring(from?: string) {
 }
 
 export const Route = createFileRoute("/_authenticated/client/services/catalog/$catKey")({
-  validateSearch: zodValidator(searchSchema),
+  validateSearch,
   head: ({ params }) => {
     const c = getCatalogCategory(params.catKey);
     const title = c ? `${c.title} — كتالوج ASH HOLDING` : "قسم الخدمات — ASH HOLDING";
@@ -80,11 +79,11 @@ function CategoryPage() {
   const navigate = useNavigate();
   const cat = getCatalogCategory(catKey)!;
 
-  const setParam = (patch: Record<string, string>) =>
+  const setParam = (patch: Partial<CatalogSearch>) =>
     navigate({
       to: "/client/services/catalog/$catKey",
       params: { catKey },
-      search: (prev) => ({ ...prev, ...patch }),
+      search: (prev: CatalogSearch) => ({ ...prev, ...patch }),
       replace: true,
     });
 
