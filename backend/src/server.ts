@@ -75,6 +75,7 @@ app.use("/api/admin", adminRouter);           // stats + audit-log
 app.use("/api/clients", clientsRouter);
 app.use("/api/projects", projectsRouter);
 app.use("/api/services", servicesRouter);
+app.use("/api/service-requests", serviceRequestsRouter);
 app.use("/api/invoices", invoicesRouter);
 app.use("/api/contracts", contractsRouter);
 app.use("/api/support", supportRouter);
