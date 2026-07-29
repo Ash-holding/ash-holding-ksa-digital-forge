@@ -4,7 +4,7 @@ import { ArrowLeft, Heart, Sparkles, Trash2, Package } from "lucide-react";
 import { useMemo } from "react";
 import { useFavorites } from "@/lib/service-favorites";
 import { getCatalogItem } from "@/lib/services-catalog";
-import { PageHeader } from "@/components/dashboard/PageHeader";
+import { PageHeader } from "@/components/dashboard/AdminLayout";
 
 export const Route = createFileRoute("/_authenticated/client/services/favorites")({
   head: () => ({
